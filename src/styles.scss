@@ -1,0 +1,130 @@
+@layer tailwind-base, primeng, tailwind-utilities;
+
+@layer tailwind-base {
+  @tailwind base;
+}
+
+@layer tailwind-utilities {
+  @tailwind components;
+  @tailwind utilities;
+}
+
+@import 'primeicons/primeicons.css';
+
+:root {
+  --base-font-size: 16px;
+  --base-font-family: 'Aptos', 'Segoe UI', system-ui, sans-serif;
+  --display-font: 'Arial Narrow', 'Aptos Display', 'Segoe UI', sans-serif;
+  --color-ocean: #071d26;
+  --color-ink: #102c34;
+  --color-ink-muted: #60777c;
+  --color-brand: #19c7b5;
+  --color-brand-strong: #087c73;
+  --color-brand-soft: #e5f8f5;
+  --color-tournament: #ff5a1f;
+  --color-tournament-soft: #fff0e9;
+  --color-sand: #f0d7aa;
+  --color-surface: #ffffff;
+  --color-surface-muted: #eef4f2;
+  --color-canvas: #f7faf9;
+  --color-border: #dce7e4;
+  --color-danger: #c43842;
+  --color-danger-soft: #fcecef;
+  --color-success: #167a4e;
+  --color-success-soft: #e9f7f0;
+  --color-focus: #48ddcf;
+  --header-height: 66px;
+  --bottom-nav-height: 72px;
+  --bottom-actions-height: 0px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --space-3: 12px;
+  --space-4: 16px;
+  --z-sticky: 30;
+  --z-fixed: 50;
+  --z-modal: 100;
+  --duration-fast: 180ms;
+  --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+:root:has(.app-bottom-dock.has-actions) {
+  --bottom-actions-height: 58px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  min-height: 100%;
+}
+
+html {
+  color: var(--color-ink);
+  background: var(--color-canvas);
+  font-size: var(--base-font-size);
+  scroll-behavior: smooth;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  min-width: 320px;
+  margin: 0;
+  background:
+    linear-gradient(180deg, rgb(25 199 181 / 0.055), transparent 220px),
+    var(--color-canvas);
+  font-family: var(--base-font-family);
+  text-rendering: optimizeLegibility;
+}
+
+button,
+input,
+textarea,
+select {
+  font: inherit;
+}
+
+button,
+a {
+  -webkit-tap-highlight-color: transparent;
+}
+
+img,
+svg {
+  display: block;
+  max-width: 100%;
+}
+
+::selection {
+  color: white;
+  background: var(--color-brand-strong);
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  border-radius: 999px;
+  background: #a8bbb7;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 0.01ms !important;
+  }
+}
