@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormField, email, form, minLength, required } from '@angular/forms/signals';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { LoginRequest } from '../models/auth.model';
 import { AuthStore } from '../store/auth.store';
 
 @Component({
   selector: 'app-login',
-  imports: [FormField, RouterLink],
+  imports: [FormField, RouterLink, ButtonModule, InputText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="auth-page">
@@ -34,6 +36,8 @@ import { AuthStore } from '../store/auth.store';
               <label for="login-email">Email</label>
               <input
                 id="login-email"
+                pInputText
+                fluid
                 type="email"
                 autocomplete="email"
                 placeholder="nome@email.com"
@@ -51,6 +55,8 @@ import { AuthStore } from '../store/auth.store';
               <label for="login-password">Password</label>
               <input
                 id="login-password"
+                pInputText
+                fluid
                 type="password"
                 autocomplete="current-password"
                 placeholder="La tua password"
@@ -68,7 +74,7 @@ import { AuthStore } from '../store/auth.store';
               <p class="auth-error" role="alert">{{ authStore.error() }}</p>
             }
 
-            <button class="submit-button" type="submit" [disabled]="authStore.loading()">
+            <button pButton class="submit-button" type="submit" [disabled]="authStore.loading()">
               @if (authStore.loading()) {
                 <span class="spinner" aria-hidden="true"></span>
                 Accesso in corso

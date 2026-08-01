@@ -55,13 +55,7 @@ export const layoutRoutes: Routes = [
       },
       {
         path: 'profilo',
-        loadComponent: () =>
-          import('../coming-soon/coming-soon').then((component) => component.ComingSoon),
-        data: {
-          title: 'Il tuo profilo',
-          description: 'Livello, andamento delle valutazioni e affidabilità avranno una vista dedicata.',
-          icon: 'pi-user',
-        },
+        loadComponent: () => import('../profile/profile').then((component) => component.Profile),
       },
       {
         path: 'notifiche',

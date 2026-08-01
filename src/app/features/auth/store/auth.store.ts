@@ -175,6 +175,12 @@ export const AuthStore = signalStore(
         clearError(): void {
           patchState(store, { error: null });
         },
+
+        updateProfileSnapshot(profile: UserProfile): void {
+          if (profile.id === store.authUser()?.id) {
+            patchState(store, { profile });
+          }
+        },
       };
     },
   ),

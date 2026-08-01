@@ -1,6 +1,7 @@
 import { User } from '@supabase/supabase-js';
 
 export type UserRole = 'admin' | 'giocatore';
+export type PreferredSide = 'sinistra' | 'destra' | 'indifferente';
 
 export interface UserProfile {
   id: string;
@@ -11,6 +12,9 @@ export interface UserProfile {
   attivo: boolean;
   livello: number;
   affidabilita: number;
+  lato_preferito: PreferredSide;
+  avatar_url: string | null;
+  autovalutazione: number;
   created_at: string;
   updated_at: string;
 }

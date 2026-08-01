@@ -76,11 +76,16 @@ Stato: struttura principale implementata; specifica non ancora completata integr
 
 - [x] Dati base: nome, cognome, email, ruolo, attivo, livello, affidabilità.
 - [x] Lettura del profilo dell'utente autenticato.
-- [ ] Pagina profilo reale.
-- [ ] Modifica dei campi consentiti.
-- [ ] Lato preferito e avatar.
-- [ ] Storico livello e affidabilità.
-- [ ] Grafici.
+- [x] Pagina profilo reale.
+- [x] Modifica dei campi consentiti tramite funzione SQL dedicata.
+- [x] Lato preferito e avatar tramite URL HTTPS opzionale.
+- [x] Autovalutazione distinta dal livello calcolato.
+- [x] Storico livello e affidabilità con policy RLS di sola lettura.
+- [x] Grafici accessibili per livello e affidabilità.
+
+L'incremento è implementato e verificato localmente con un account reale. La migration
+`20260801010000_player_profile.sql` è applicata e la cronologia Supabase CLI è sincronizzata. Il
+deploy e la verifica in produzione devono ancora essere eseguiti prima di considerarlo completato.
 
 ### Amministrazione
 
@@ -106,21 +111,14 @@ Stato: struttura principale implementata; specifica non ancora completata integr
 
 ## Prossimo incremento
 
-Onda 1, incremento 1: **profilo giocatore modificabile**.
+Onda 1, completamento incremento 1: **rilascio del profilo giocatore modificabile**.
 
-Ordine di lavoro:
+Ordine di lavoro residuo:
 
-1. nuova migration per lato preferito, avatar e storici;
-2. funzioni SQL e policy RLS per aggiornamenti sicuri;
-3. modelli, service e SignalStore Angular;
-4. pagina profilo mobile-first;
-5. modifica dati e autovalutazione;
-6. registrazione delle azioni nel dock/pill;
-7. test con giocatore e admin;
-8. deploy e aggiornamento di questo file.
-
-Subito dopo: incremento 2, **gestione utenti per admin**, per eliminare l'attivazione manuale via
-SQL Editor.
+1. pubblicare su Vercel e verificare il refresh diretto di `/profilo`;
+2. completare la matrice RLS con un secondo giocatore e un admin;
+3. iniziare l'incremento 2, **gestione utenti per admin**, per eliminare l'attivazione manuale via
+   SQL Editor.
 
 ## Debito tecnico noto
 
@@ -144,6 +142,8 @@ SQL Editor.
 | 2026-08-01 | Mobile-first come vincolo | Il telefono è il canale d'uso principale |
 | 2026-08-01 | Sviluppo per onde | Ogni onda deve essere verificabile e distribuibile |
 | 2026-08-01 | God panel differito | La specifica .NET richiede una riprogettazione Supabase |
+| 2026-08-01 | Avatar profilo tramite URL HTTPS | Evita di introdurre Supabase Storage prima che upload, limiti e moderazione siano definiti |
+| 2026-08-01 | PrimeNG come libreria UI predefinita | I componenti della libreria vengono adattati al tema; i controlli custom restano un'eccezione motivata |
 
 ## Decisioni ancora aperte
 
@@ -165,6 +165,10 @@ SQL Editor.
 | 2026-08-01 | Login locale | Superata |
 | 2026-08-01 | Login produzione | Superata |
 | 2026-08-01 | Deploy Vercel | `Ready` |
+| 2026-08-01 | Build profilo giocatore | Superata; chunk lazy `profile` generato |
+| 2026-08-01 | Suite unit test dopo incremento profilo | 294 test superati |
+| 2026-08-01 | Migration profilo e cronologia Supabase CLI | Applicata; `migration list` allineata e `db push --dry-run` aggiornato |
+| 2026-08-01 | Profilo giocatore locale | Salvataggio, refresh, controlli PrimeNG e layout verificati |
 
 ## Protocollo di aggiornamento
 

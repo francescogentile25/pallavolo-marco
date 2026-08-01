@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { FormField, email, form, minLength, required, validate } from '@angular/forms/signals';
 import { RouterLink } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
+import { InputText } from 'primeng/inputtext';
 import { RegisterRequest } from '../models/auth.model';
 import { AuthStore } from '../store/auth.store';
 
 @Component({
   selector: 'app-register',
-  imports: [FormField, RouterLink],
+  imports: [FormField, RouterLink, ButtonModule, InputText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <div class="auth-page">
@@ -38,7 +40,7 @@ import { AuthStore } from '../store/auth.store';
               <div class="form-row">
                 <div class="field">
                   <label for="register-name">Nome</label>
-                  <input id="register-name" autocomplete="given-name" [formField]="registerForm.nome" />
+                  <input id="register-name" pInputText fluid autocomplete="given-name" [formField]="registerForm.nome" />
                   @if (showError(registerForm.nome())) {
                     @for (error of registerForm.nome().errors(); track $index) {
                       <p class="field-error">{{ error.message }}</p>
@@ -47,7 +49,7 @@ import { AuthStore } from '../store/auth.store';
                 </div>
                 <div class="field">
                   <label for="register-surname">Cognome</label>
-                  <input id="register-surname" autocomplete="family-name" [formField]="registerForm.cognome" />
+                  <input id="register-surname" pInputText fluid autocomplete="family-name" [formField]="registerForm.cognome" />
                   @if (showError(registerForm.cognome())) {
                     @for (error of registerForm.cognome().errors(); track $index) {
                       <p class="field-error">{{ error.message }}</p>
@@ -58,7 +60,7 @@ import { AuthStore } from '../store/auth.store';
 
               <div class="field">
                 <label for="register-email">Email</label>
-                <input id="register-email" type="email" autocomplete="email" [formField]="registerForm.email" />
+                <input id="register-email" pInputText fluid type="email" autocomplete="email" [formField]="registerForm.email" />
                 @if (showError(registerForm.email())) {
                   @for (error of registerForm.email().errors(); track $index) {
                     <p class="field-error">{{ error.message }}</p>
@@ -69,7 +71,7 @@ import { AuthStore } from '../store/auth.store';
               <div class="form-row">
                 <div class="field">
                   <label for="register-password">Password</label>
-                  <input id="register-password" type="password" autocomplete="new-password" [formField]="registerForm.password" />
+                  <input id="register-password" pInputText fluid type="password" autocomplete="new-password" [formField]="registerForm.password" />
                   @if (showError(registerForm.password())) {
                     @for (error of registerForm.password().errors(); track $index) {
                       <p class="field-error">{{ error.message }}</p>
@@ -78,7 +80,7 @@ import { AuthStore } from '../store/auth.store';
                 </div>
                 <div class="field">
                   <label for="register-confirm">Conferma password</label>
-                  <input id="register-confirm" type="password" autocomplete="new-password" [formField]="registerForm.confirmPassword" />
+                  <input id="register-confirm" pInputText fluid type="password" autocomplete="new-password" [formField]="registerForm.confirmPassword" />
                   @if (showError(registerForm.confirmPassword())) {
                     @for (error of registerForm.confirmPassword().errors(); track $index) {
                       <p class="field-error">{{ error.message }}</p>
@@ -95,7 +97,7 @@ import { AuthStore } from '../store/auth.store';
                 <p class="auth-error" role="alert">{{ authStore.error() }}</p>
               }
 
-              <button class="submit-button" type="submit" [disabled]="authStore.loading()">
+              <button pButton class="submit-button" type="submit" [disabled]="authStore.loading()">
                 @if (authStore.loading()) {
                   <span class="spinner" aria-hidden="true"></span>
                   Creazione account

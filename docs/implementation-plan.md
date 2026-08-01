@@ -282,6 +282,15 @@ conferma esplicita del valore funzionale e del modello di sicurezza.
 - tastiera virtuale verificata sui form;
 - desktop come adattamento, non come sorgente del layout.
 
+### Componenti UI
+
+- usare i componenti PrimeNG disponibili per select, input, pulsanti, dialog, tabelle e altri
+  controlli interattivi;
+- adattare PrimeNG al tema Beach Volley Hub tramite preset, token e classi locali, evitando di
+  ricreare componenti nativi già coperti dalla libreria;
+- ricorrere a componenti custom solo quando PrimeNG non copre il comportamento o compromette
+  l'esperienza mobile richiesta.
+
 ### Sicurezza e dati
 
 - mai usare chiavi `secret` o `service_role` nel browser;

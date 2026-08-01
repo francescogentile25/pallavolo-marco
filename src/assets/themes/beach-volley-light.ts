@@ -18,6 +18,15 @@ export const BeachVolleyLight = definePreset(Aura, {
     },
     colorScheme: {
       light: {
+        formField: {
+          background: '{surface.50}',
+          borderColor: '{surface.200}',
+          hoverBorderColor: '{primary.600}',
+          focusBorderColor: '{primary.600}',
+          borderRadius: '14px',
+          paddingX: '0.8125rem',
+          paddingY: '0.875rem',
+        },
         surface: {
           0: '#ffffff',
           50: '#f7faf9',
