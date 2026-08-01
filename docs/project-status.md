@@ -83,9 +83,10 @@ Stato: struttura principale implementata; specifica non ancora completata integr
 - [x] Storico livello e affidabilità con policy RLS di sola lettura.
 - [x] Grafici accessibili per livello e affidabilità.
 
-L'incremento è implementato e verificato localmente con un account reale. La migration
-`20260801010000_player_profile.sql` è applicata e la cronologia Supabase CLI è sincronizzata. Il
-deploy e la verifica in produzione devono ancora essere eseguiti prima di considerarlo completato.
+L'incremento è implementato, verificato localmente con un account reale e pubblicato su Vercel. La
+migration `20260801010000_player_profile.sql` è applicata e la cronologia Supabase CLI è
+sincronizzata. Restano la verifica autenticata in produzione e la matrice RLS multiutente prima di
+considerarlo completato end-to-end.
 
 ### Amministrazione
 
@@ -115,7 +116,7 @@ Onda 1, completamento incremento 1: **rilascio del profilo giocatore modificabil
 
 Ordine di lavoro residuo:
 
-1. pubblicare su Vercel e verificare il refresh diretto di `/profilo`;
+1. verificare salvataggio e refresh autenticati su `/profilo` in produzione;
 2. completare la matrice RLS con un secondo giocatore e un admin;
 3. iniziare l'incremento 2, **gestione utenti per admin**, per eliminare l'attivazione manuale via
    SQL Editor.
@@ -169,6 +170,7 @@ Ordine di lavoro residuo:
 | 2026-08-01 | Suite unit test dopo incremento profilo | 294 test superati |
 | 2026-08-01 | Migration profilo e cronologia Supabase CLI | Applicata; `migration list` allineata e `db push --dry-run` aggiornato |
 | 2026-08-01 | Profilo giocatore locale | Salvataggio, refresh, controlli PrimeNG e layout verificati |
+| 2026-08-01 | Deploy incremento profilo | Vercel Production `success`; `/profilo` risponde HTTP 200 |
 
 ## Protocollo di aggiornamento
 
