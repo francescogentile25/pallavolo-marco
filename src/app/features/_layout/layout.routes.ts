@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { adminGuard } from '../../core/guards/admin.guard';
 import { authGuard } from '../../core/guards/auth.guard';
 import { loginGuard } from '../../core/guards/login.guard';
 
@@ -56,6 +57,12 @@ export const layoutRoutes: Routes = [
       {
         path: 'profilo',
         loadComponent: () => import('../profile/profile').then((component) => component.Profile),
+      },
+      {
+        path: 'admin/utenti',
+        canActivate: [adminGuard],
+        loadComponent: () =>
+          import('../admin-users/admin-users').then((component) => component.AdminUsers),
       },
       {
         path: 'notifiche',

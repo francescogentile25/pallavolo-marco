@@ -92,10 +92,16 @@ considerarlo completato end-to-end.
 
 - [x] Ruolo admin nel database.
 - [x] Policy di lettura admin sui profili.
-- [ ] Elenco utenti.
-- [ ] Attivazione/disattivazione da interfaccia.
-- [ ] Cambio ruolo da interfaccia.
-- [ ] Audit delle modifiche amministrative.
+- [x] Elenco utenti mobile-first con ricerca e filtri per stato e ruolo.
+- [x] Attivazione/disattivazione da interfaccia tramite funzione SQL protetta.
+- [x] Cambio ruolo da interfaccia tramite funzione SQL protetta.
+- [x] Audit immutabile delle modifiche amministrative, consultabile dalla pagina utenti.
+- [x] Route e accesso UI riservati agli amministratori.
+
+L'incremento 2 è pubblicato su Vercel. La migration
+`20260801020000_admin_user_management.sql` è applicata e la cronologia Supabase CLI è
+sincronizzata. Il deep link pubblico e il guard anonimo sono verificati a 360 px; resta la matrice
+autenticata con un admin e due giocatori prima di considerare il flusso completato end-to-end.
 
 ## Non iniziato
 
@@ -112,20 +118,20 @@ considerarlo completato end-to-end.
 
 ## Prossimo incremento
 
-Onda 1, completamento incremento 1: **rilascio del profilo giocatore modificabile**.
+Onda 1, chiusura: **verifica autenticata e matrice RLS multiutente**.
 
 Ordine di lavoro residuo:
 
-1. verificare salvataggio e refresh autenticati su `/profilo` in produzione;
-2. completare la matrice RLS con un secondo giocatore e un admin;
-3. iniziare l'incremento 2, **gestione utenti per admin**, per eliminare l'attivazione manuale via
-   SQL Editor.
+1. verificare in produzione elenco, ricerca, attivazione, disattivazione e cambio ruolo con un admin;
+2. verificare che due giocatori non possano leggere l'elenco né invocare la funzione admin;
+3. completare la verifica autenticata del profilo giocatore;
+4. chiudere l'Onda 1 e preparare l'avvio dell'Onda 2.
 
 ## Debito tecnico noto
 
 - bundle iniziale circa 905 kB, sopra il budget di warning ma sotto quello bloccante;
 - alcune route mostrano ancora una pagina `coming-soon`;
-- attivazione utenti ancora manuale tramite SQL;
+- verifica autenticata e matrice RLS multiutente ancora da completare;
 - manca una suite end-to-end;
 - alcune stringhe UI non sono ancora centralizzate in un sistema i18n;
 - la Publishable key di sviluppo è nel file environment: è consentito, ma le policy RLS restano
@@ -171,6 +177,11 @@ Ordine di lavoro residuo:
 | 2026-08-01 | Migration profilo e cronologia Supabase CLI | Applicata; `migration list` allineata e `db push --dry-run` aggiornato |
 | 2026-08-01 | Profilo giocatore locale | Salvataggio, refresh, controlli PrimeNG e layout verificati |
 | 2026-08-01 | Deploy incremento profilo | Vercel Production `success`; `/profilo` risponde HTTP 200 |
+| 2026-08-01 | Build gestione utenti admin | Superata; chunk lazy `admin-users` generato, resta il solo warning noto sul bundle iniziale |
+| 2026-08-01 | Suite unit test dopo incremento admin | 296 test superati |
+| 2026-08-01 | Migration admin e cronologia Supabase CLI | Applicata; `migration list` allineata e `db push --dry-run` senza migration residue |
+| 2026-08-01 | Deploy incremento admin | Vercel Production `READY`, deployment `dpl_Bo41L2JtYMBA1duh1Z69hUGPYNxJ`, alias pubblico aggiornato |
+| 2026-08-01 | Deep link e guard admin a 360 px | `/admin/utenti` risponde HTTP 200 e l'accesso anonimo reindirizza a `/login?returnUrl=%2Fadmin%2Futenti` |
 
 ## Protocollo di aggiornamento
 

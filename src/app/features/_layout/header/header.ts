@@ -26,6 +26,11 @@ import { AuthStore } from '../../auth/store/auth.store';
 
       <div class="account-actions">
         <span class="user-name">{{ authStore.userName() }}</span>
+        @if (authStore.isAdmin()) {
+          <a class="icon-action" routerLink="/admin/utenti" aria-label="Gestione utenti" title="Gestione utenti">
+            <i class="pi pi-users" aria-hidden="true"></i>
+          </a>
+        }
         <a class="icon-action notifications" routerLink="/notifiche" aria-label="Notifiche">
           <i class="pi pi-bell" aria-hidden="true"></i>
           <span aria-hidden="true"></span>
