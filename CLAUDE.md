@@ -9,6 +9,11 @@
 - HTML semantico, focus visibile, touch target minimo 44 px e WCAG AA.
 - Mobile-first: breakpoint principale a 768 px.
 - Form nuovi con Signal Forms.
+- PrimeNG è la scelta predefinita per select, pulsanti, checkbox, dialog e controlli equivalenti;
+  i controlli nativi o custom richiedono un motivo funzionale.
+- Non usare il browser interno o sessioni autenticate dell'utente per simulare click o svolgere QA;
+  limitarsi a build, test automatici da terminale e verifiche statiche, lasciando la validazione
+  interattiva all'utente.
 - Nessuna chiave Supabase secret/service-role nel frontend.
 - Ogni tabella Supabase esposta deve avere RLS e policy least-privilege.
 

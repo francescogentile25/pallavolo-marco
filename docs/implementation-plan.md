@@ -1,6 +1,6 @@
 # Piano di implementazione
 
-Ultimo aggiornamento: 1 agosto 2026
+Ultimo aggiornamento: 2 agosto 2026
 
 Questo documento descrive la roadmap funzionale di Pallavolo Marco. Il lavoro procede per
 **onde**: ogni onda deve produrre un incremento utilizzabile, verificato su mobile e pubblicato
@@ -14,6 +14,8 @@ Lo stato operativo corrente, i blocchi e il prossimo passo sono registrati in
 - Una sola onda può essere `IN CORSO`.
 - Ogni modifica al database nasce come migration versionata in `supabase/migrations`.
 - Ogni onda termina con build, test manuali mobile, deploy Vercel e aggiornamento dello status.
+- La QA interattiva autenticata viene eseguita dall'utente: Codex non usa il browser interno né
+  riutilizza credenziali o sessioni dell'utente per simulare click.
 - Le funzionalità di scrittura devono avere policy RLS e invarianti database prima della UI.
 - Le azioni principali devono essere raggiungibili con una mano e integrate nel mobile dock.
 - Le specifiche tecniche sono adattate allo stack reale: Angular + Supabase, senza backend .NET.
@@ -25,6 +27,7 @@ Lo stato operativo corrente, i blocchi e il prossimo passo sono registrati in
 | --- | --- |
 | `COMPLETATA` | Implementata, verificata e pubblicata |
 | `IN CORSO` | Onda attiva |
+| `IN VERIFICA` | Implementata; restano verifiche end-to-end o di rilascio |
 | `PRONTA` | Requisiti sufficienti per iniziare |
 | `DA DEFINIRE` | Richiede decisioni funzionali |
 | `DIFFERITA` | Fuori dall'MVP attuale |
@@ -60,7 +63,7 @@ Criteri di accettazione raggiunti:
 
 ## Onda 1 — Profilo giocatore e amministrazione utenti
 
-Stato: `IN CORSO`
+Stato: `IN VERIFICA`
 
 Obiettivo: rendere il profilo personale la base affidabile per partite e tornei.
 
@@ -106,7 +109,7 @@ Scala livello iniziale:
 
 ## Onda 2 — Campi, creazione e ricerca partite
 
-Stato: `PRONTA`
+Stato: `IN VERIFICA`
 
 Obiettivo: completare il flusso principale `crea → trova → partecipa`.
 
@@ -145,7 +148,7 @@ Obiettivo: completare il flusso principale `crea → trova → partecipa`.
 
 ## Onda 3 — Chiusura partita, valutazioni e affidabilità
 
-Stato: `PRONTA`
+Stato: `COMPLETATA`
 
 Obiettivo: trasformare le partite concluse in reputazione utile e verificabile.
 
