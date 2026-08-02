@@ -5,6 +5,7 @@ import { Subscription, User } from '@supabase/supabase-js';
 import { MessageService } from 'primeng/api';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AuthState, LoginRequest, RegisterRequest, UserProfile } from '../models/auth.model';
+import { capabilitiesForRole, USER_ROLE_LABELS } from '../auth.utils';
 import { AuthService } from '../services/auth.service';
 
 const initialState: AuthState = {
@@ -31,13 +32,20 @@ function readableAuthError(message: string): string {
 export const AuthStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ profile }) => ({
+  withComputed(({ profile }) => {
+    const capabilities = computed(() => capabilitiesForRole(profile()?.ruolo));
+    return {
     userName: computed(() => {
       const currentProfile = profile();
-      return currentProfile ? currentProfile.nome + ' ' + currentProfile.cognome : 'Giocatore';
+      return currentProfile ? currentProfile.nome + ' ' + currentProfile.cognome : 'Utente';
     }),
     isAdmin: computed(() => profile()?.ruolo === 'admin'),
-  })),
+    isOrganizer: computed(() => profile()?.ruolo === 'organizzatore'),
+    canOrganizeTournaments: computed(() => capabilities().organizeTournaments),
+    canAdministerApplication: computed(() => capabilities().administerApplication),
+    roleLabel: computed(() => profile() ? USER_ROLE_LABELS[profile()!.ruolo] : ''),
+    capabilities,
+  };}),
   withMethods(
     (
       store,

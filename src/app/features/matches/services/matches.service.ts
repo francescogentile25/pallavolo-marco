@@ -6,8 +6,10 @@ import {
   Court,
   CreateCourtRequest,
   CreateMatchRequest,
+  InvitablePlayer,
   MatchDetails,
   MatchParticipant,
+  UpdateMatchRequest,
 } from '../models/match.model';
 
 const MATCH_SELECT = `
@@ -74,6 +76,12 @@ export class MatchesService {
     return (data ?? []) as unknown as Court[];
   }
 
+  async getInvitablePlayers(): Promise<readonly InvitablePlayer[]> {
+    const { data, error } = await this.supabase.client.rpc('list_invitable_players');
+    if (error) throw error;
+    return (data ?? []) as InvitablePlayer[];
+  }
+
   async createCourt(request: CreateCourtRequest): Promise<Court> {
     const { data, error } = await this.supabase.client.rpc('create_court_with_venue', {
       p_venue_name: request.venueName,
@@ -90,6 +98,23 @@ export class MatchesService {
 
   async createMatch(request: CreateMatchRequest): Promise<MatchDetails> {
     const { data, error } = await this.supabase.client.rpc('create_match', {
+      p_court_id: request.courtId,
+      p_gender: request.gender,
+      p_min_level: request.minLevel,
+      p_max_level: request.maxLevel,
+      p_starts_at: request.startsAt,
+      p_duration_minutes: request.durationMinutes,
+      p_capacity: request.capacity,
+      p_notes: request.notes,
+      p_participant_ids: request.invitedPlayerIds,
+    });
+    if (error) throw error;
+    return this.getMatch((data as BeachMatch).id);
+  }
+
+  async updateMatch(request: UpdateMatchRequest): Promise<MatchDetails> {
+    const { data, error } = await this.supabase.client.rpc('update_match', {
+      p_match_id: request.matchId,
       p_court_id: request.courtId,
       p_gender: request.gender,
       p_min_level: request.minLevel,

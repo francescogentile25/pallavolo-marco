@@ -1,6 +1,6 @@
 import { User } from '@supabase/supabase-js';
 
-export type UserRole = 'admin' | 'giocatore';
+export type UserRole = 'giocatore' | 'organizzatore' | 'admin';
 export type PreferredSide = 'sinistra' | 'destra' | 'indifferente';
 
 export interface UserProfile {
@@ -39,4 +39,13 @@ export interface AuthState {
   loading: boolean;
   initialized: boolean;
   error: string | null;
+}
+
+export interface UserCapabilities {
+  manageOwnProfile: boolean;
+  createMatches: boolean;
+  joinMatches: boolean;
+  joinTournaments: boolean;
+  organizeTournaments: boolean;
+  administerApplication: boolean;
 }

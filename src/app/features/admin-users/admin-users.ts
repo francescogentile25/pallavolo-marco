@@ -14,6 +14,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { UserProfile, UserRole } from '../auth/models/auth.model';
+import { USER_ROLE_LABELS } from '../auth/auth.utils';
 import { AuthStore } from '../auth/store/auth.store';
 import { filterAdminUsers } from './admin-users.utils';
 import { AdminUserCard } from './components/admin-user-card';
@@ -31,11 +32,12 @@ import { AdminUsersStore } from './store/admin-users.store';
         <div>
           <p class="eyebrow">Amministrazione</p>
           <h1>Gestione utenti</h1>
-          <p>Attiva i nuovi giocatori e assegna i ruoli senza accedere al database.</p>
+          <p>Attiva i nuovi utenti e assegna ruoli e responsabilità senza accedere al database.</p>
         </div>
         <div class="stats" aria-label="Riepilogo utenti">
           <span><strong>{{ store.users().length }}</strong> totali</span>
           <span><strong>{{ pendingCount() }}</strong> da attivare</span>
+          <span><strong>{{ organizerCount() }}</strong> organizzatori</span>
           <span><strong>{{ adminCount() }}</strong> admin</span>
         </div>
       </header>
@@ -148,7 +150,7 @@ import { AdminUsersStore } from './store/admin-users.store';
     .admin-hero .eyebrow { color: #84efe3; }
     h1 { margin: 0; font: 900 clamp(2rem, 10vw, 4rem)/.95 var(--display-font); letter-spacing: -.045em; }
     .admin-hero > div > p:last-child { max-width: 600px; margin: 12px 0 0; color: rgb(255 255 255 / .72); line-height: 1.5; }
-    .stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; }
+    .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
     .stats span { padding: 10px; border-radius: 14px; background: rgb(255 255 255 / .09); color: rgb(255 255 255 / .7); font-size: .65rem; text-align: center; }
     .stats strong { display: block; color: white; font-size: 1.35rem; }
     .filters, .audit-section { padding: 20px; margin-top: 14px; border: 1px solid var(--color-border); border-radius: 24px; background: var(--color-surface); }
@@ -179,7 +181,7 @@ import { AdminUsersStore } from './store/admin-users.store';
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (min-width: 600px) { .filter-grid { grid-template-columns: 2fr 1fr 1fr; } }
-    @media (min-width: 768px) { .admin-page { padding: 34px 28px 120px; } .admin-hero { grid-template-columns: 1fr auto; align-items: end; padding: 32px; } .stats { min-width: 310px; } }
+    @media (min-width: 768px) { .admin-page { padding: 34px 28px 120px; } .admin-hero { grid-template-columns: 1fr auto; align-items: end; padding: 32px; } .stats { min-width: 420px; grid-template-columns: repeat(4, 1fr); } }
     @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
   `,
 })
@@ -198,17 +200,20 @@ export class AdminUsers implements OnInit, OnDestroy {
   ];
   protected readonly roleFilterOptions: { label: string; value: AdminRoleFilter }[] = [
     { label: 'Tutti', value: 'tutti' },
-    { label: 'Giocatori', value: 'giocatore' },
+    { label: 'Utenti comuni', value: 'giocatore' },
+    { label: 'Organizzatori', value: 'organizzatore' },
     { label: 'Amministratori', value: 'admin' },
   ];
   protected readonly roleOptions: { label: string; value: UserRole }[] = [
-    { label: 'Giocatore', value: 'giocatore' },
+    { label: 'Utente comune', value: 'giocatore' },
+    { label: 'Organizzatore', value: 'organizzatore' },
     { label: 'Amministratore', value: 'admin' },
   ];
   protected readonly filteredUsers = computed(() =>
     filterAdminUsers(this.store.users(), this.search(), this.activeFilter(), this.roleFilter()),
   );
   protected readonly pendingCount = computed(() => this.store.users().filter((user) => !user.attivo).length);
+  protected readonly organizerCount = computed(() => this.store.users().filter((user) => user.ruolo === 'organizzatore').length);
   protected readonly adminCount = computed(() => this.store.users().filter((user) => user.ruolo === 'admin').length);
 
   ngOnInit(): void {
@@ -222,7 +227,7 @@ export class AdminUsers implements OnInit, OnDestroy {
   protected auditDescription(previousActive: boolean, newActive: boolean, previousRole: UserRole, newRole: UserRole): string {
     const changes: string[] = [];
     if (previousActive !== newActive) changes.push(newActive ? 'profilo attivato' : 'profilo disattivato');
-    if (previousRole !== newRole) changes.push(`ruolo cambiato da ${previousRole} a ${newRole}`);
+    if (previousRole !== newRole) changes.push(`ruolo cambiato da ${USER_ROLE_LABELS[previousRole]} a ${USER_ROLE_LABELS[newRole]}`);
     return changes.join('; ');
   }
 
@@ -246,7 +251,7 @@ export class AdminUsers implements OnInit, OnDestroy {
     if (role === user.ruolo) return;
     this.confirmationService.confirm({
       header: 'Cambia ruolo',
-      message: `Assegnare a ${user.nome} ${user.cognome} il ruolo ${role}?`,
+      message: `Assegnare a ${user.nome} ${user.cognome} il ruolo ${USER_ROLE_LABELS[role]}?`,
       icon: 'pi pi-shield',
       acceptLabel: 'Conferma',
       rejectLabel: 'Annulla',

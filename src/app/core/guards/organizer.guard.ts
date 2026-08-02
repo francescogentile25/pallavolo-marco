@@ -4,13 +4,13 @@ import { CanActivateFn, Router } from '@angular/router';
 import { filter, map, take } from 'rxjs';
 import { AuthStore } from '../../features/auth/store/auth.store';
 
-export const adminGuard: CanActivateFn = () => {
+export const organizerGuard: CanActivateFn = () => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
 
   return toObservable(authStore.initialized).pipe(
     filter(Boolean),
     take(1),
-    map(() => (authStore.canAdministerApplication() ? true : router.createUrlTree(['/']))),
+    map(() => authStore.canOrganizeTournaments() ? true : router.createUrlTree(['/tornei'])),
   );
 };

@@ -6,11 +6,13 @@ import {
   OnInit,
 } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
 import { PageActionsService } from '../../core/services/page-actions.service';
+import { AuthStore } from '../auth/store/auth.store';
 
 @Component({
   selector: 'app-home',
-  imports: [RouterLink],
+  imports: [ButtonModule, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="home-page">
@@ -22,14 +24,17 @@ import { PageActionsService } from '../../core/services/page-actions.service';
             Trova giocatori al tuo livello, crea una partita o iscriviti al prossimo torneo.
           </p>
         </div>
-        <a class="hero-cta" routerLink="/partite/nuova">
-          <span class="ball-mark" aria-hidden="true"><i class="pi pi-plus"></i></span>
-          <span>
-            <small>Organizza</small>
-            Crea una partita
-          </span>
-          <i class="pi pi-arrow-right" aria-hidden="true"></i>
-        </a>
+        <div class="hero-actions">
+          <a class="hero-cta" routerLink="/partite/nuova">
+            <span class="ball-mark" aria-hidden="true"><i class="pi pi-plus"></i></span>
+            <span><small>Organizza</small>Crea una partita</span>
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+          <a pButton class="my-matches-button" routerLink="/partite/mie">
+            <i class="pi pi-calendar" pButtonIcon aria-hidden="true"></i>
+            <span pButtonLabel>Le mie partite</span>
+          </a>
+        </div>
       </section>
 
       <section class="section-block" aria-labelledby="matches-title">
@@ -146,6 +151,8 @@ import { PageActionsService } from '../../core/services/page-actions.service';
       text-decoration: none;
     }
 
+    .hero-actions { position: relative; z-index: 1; display: grid; gap: 10px; }
+
     .hero-cta > i { margin-left: auto; }
     .hero-cta small { display: block; color: var(--color-ink-muted); font-size: 0.68rem; }
 
@@ -231,13 +238,14 @@ import { PageActionsService } from '../../core/services/page-actions.service';
     @media (min-width: 768px) {
       .home-page { padding: 36px 28px 120px; }
       .hero { min-height: 370px; display: grid; align-content: center; padding: 48px; }
-      .hero-cta { width: 350px; }
+      .hero-actions { grid-template-columns: 350px auto; align-items: stretch; justify-content: start; }
       .match-scroller { grid-auto-columns: minmax(260px, 1fr); grid-template-columns: repeat(3, 1fr); overflow: visible; }
     }
   `,
 })
 export class Home implements OnInit, OnDestroy {
   private readonly pageActions = inject(PageActionsService);
+  private readonly authStore = inject(AuthStore);
 
   protected readonly matches = [
     { id: 1, level: 'Intermedio', spots: 2, place: 'Pala Beach Tiburtina', when: 'Oggi, 19:30', players: 2 },
@@ -247,6 +255,7 @@ export class Home implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.pageActions.set([
+      ...(this.authStore.canOrganizeTournaments() ? [{ id: 'organize-tournament', label: 'Organizza un torneo', shortLabel: 'Torneo', icon: 'pi-trophy', routerLink: '/tornei/organizza' }] : []),
       {
         id: 'create-match',
         label: 'Crea una partita',

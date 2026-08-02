@@ -2,7 +2,7 @@ import { inject } from '@angular/core';
 import { patchState, signalStore, withMethods, withState } from '@ngrx/signals';
 import { MessageService } from 'primeng/api';
 import { AuthStore } from '../../auth/store/auth.store';
-import { CreateCourtRequest, CreateMatchRequest, MatchesState } from '../models/match.model';
+import { CreateCourtRequest, CreateMatchRequest, MatchesState, UpdateMatchRequest } from '../models/match.model';
 import { matchErrorMessage } from '../matches.utils';
 import { MatchesService } from '../services/matches.service';
 
@@ -11,6 +11,7 @@ const initialState: MatchesState = {
   myMatches: [],
   selected: null,
   courts: [],
+  invitablePlayers: [],
   loading: false,
   saving: false,
   actionMatchId: null,
@@ -82,6 +83,15 @@ export const MatchesStore = signalStore(
           }
         },
 
+        async loadInvitablePlayers(): Promise<void> {
+          try {
+            const invitablePlayers = await service.getInvitablePlayers();
+            patchState(store, { invitablePlayers, error: null });
+          } catch (error) {
+            fail(error);
+          }
+        },
+
         async createCourt(request: CreateCourtRequest): Promise<string | null> {
           patchState(store, { saving: true, error: null });
           try {
@@ -101,7 +111,27 @@ export const MatchesStore = signalStore(
           try {
             const match = await service.createMatch(request);
             patchState(store, { saving: false, selected: match });
-            messages.add({ severity: 'success', summary: 'Partita pubblicata', detail: 'Gli altri giocatori ora possono iscriversi.' });
+            const invitedCount = request.invitedPlayerIds.length;
+            messages.add({
+              severity: 'success',
+              summary: 'Partita pubblicata',
+              detail: invitedCount
+                ? `${invitedCount} ${invitedCount === 1 ? 'giocatore invitato è già partecipante' : 'giocatori invitati sono già partecipanti'}.`
+                : 'Gli altri giocatori ora possono iscriversi.',
+            });
+            return match.id;
+          } catch (error) {
+            fail(error);
+            return null;
+          }
+        },
+
+        async updateMatch(request: UpdateMatchRequest): Promise<string | null> {
+          patchState(store, { saving: true, error: null });
+          try {
+            const match = await service.updateMatch(request);
+            patchState(store, { saving: false, selected: match });
+            messages.add({ severity: 'success', summary: 'Partita aggiornata', detail: 'Le modifiche sono state salvate.' });
             return match.id;
           } catch (error) {
             fail(error);

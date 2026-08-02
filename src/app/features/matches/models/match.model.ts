@@ -67,7 +67,28 @@ export interface MatchDetails extends BeachMatch {
   participantDetails: readonly MatchParticipant[];
 }
 
+export interface InvitablePlayer {
+  id: string;
+  nome: string;
+  cognome: string;
+  avatar_url: string | null;
+  livello: number;
+}
+
 export interface CreateMatchRequest {
+  courtId: string;
+  gender: MatchGender;
+  minLevel: number;
+  maxLevel: number;
+  startsAt: string;
+  durationMinutes: number;
+  capacity: number;
+  notes: string | null;
+  invitedPlayerIds: readonly string[];
+}
+
+export interface UpdateMatchRequest {
+  matchId: string;
   courtId: string;
   gender: MatchGender;
   minLevel: number;
@@ -99,6 +120,7 @@ export interface MatchesState {
   myMatches: readonly BeachMatch[];
   selected: MatchDetails | null;
   courts: readonly Court[];
+  invitablePlayers: readonly InvitablePlayer[];
   loading: boolean;
   saving: boolean;
   actionMatchId: string | null;

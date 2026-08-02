@@ -1,34 +1,36 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FormField, form, maxLength, required } from '@angular/forms/signals';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Button } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
+import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 import { PageActionsService } from '../../../core/services/page-actions.service';
+import { AuthStore } from '../../auth/store/auth.store';
 import { MatchGender } from '../models/match.model';
 import { MatchesStore } from '../store/matches.store';
 
 interface MatchFormModel {
   courtId: string; date: string; time: string; duration: string; capacity: string;
-  gender: MatchGender; minLevel: string; maxLevel: string; notes: string;
+  gender: MatchGender; minLevel: string; maxLevel: string; notes: string; invitedPlayerIds: string[];
 }
 interface CourtFormModel { venueName: string; address: string; city: string; courtName: string; indoor: boolean; }
 
 @Component({
   selector: 'app-match-create',
-  imports: [Button, Checkbox, FormField, FormsModule, InputText, Select],
+  imports: [Button, Checkbox, FormField, FormsModule, InputText, MultiSelect, Select],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="create-page">
       <header>
         <div class="hero-copy">
-          <p>Organizza</p>
-          <h1>Crea una partita</h1>
-          <p class="hero-intro">Tre scelte rapide e il campo è pronto per accogliere i giocatori.</p>
+          <p>{{ editing ? 'Gestisci' : 'Organizza' }}</p>
+          <h1>{{ editing ? 'Modifica partita' : 'Crea una partita' }}</h1>
+          <p class="hero-intro">{{ editing ? 'Aggiorna i dettagli senza perdere le iscrizioni già confermate.' : 'Tre scelte rapide e il campo è pronto per accogliere i giocatori.' }}</p>
         </div>
-        <ol class="progress" aria-label="Avanzamento creazione">
+        <ol class="progress" [attr.aria-label]="editing ? 'Avanzamento modifica' : 'Avanzamento creazione'">
           @for (item of steps; track item.number) {
             <li [class.active]="step() >= item.number" [class.current]="step() === item.number" [attr.aria-current]="step() === item.number ? 'step' : null">
               <span>{{ item.number }}</span>
@@ -38,7 +40,12 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
         </ol>
       </header>
       <form class="wizard-panel" (submit)="submitMatch($event)" novalidate>
-        @if (step() === 1) {
+        @if (initializing()) {
+          <section class="form-card loading-state" role="status"><span class="spinner"></span><p>Caricamento partita…</p></section>
+        } @else if (loadError()) {
+          <section class="form-card loading-state error-state" role="alert"><i class="pi pi-exclamation-circle"></i><h2>Modifica non disponibile</h2><p>{{ loadError() }}</p><p-button type="button" label="Torna alla partita" icon="pi pi-arrow-left" (onClick)="backToMatch()" /></section>
+        }
+        @if (!initializing() && !loadError() && step() === 1) {
           <section class="form-card">
             <div class="heading"><div><p>Passo 1 di 3</p><h2>Dove giochiamo?</h2></div><i class="pi pi-map-marker"></i></div>
             @if (store.courts().length) {
@@ -61,7 +68,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
             }
           </section>
         }
-        @if (step() === 2) {
+        @if (!initializing() && !loadError() && step() === 2) {
           <section class="form-card">
             <div class="heading"><div><p>Passo 2 di 3</p><h2>Quando e per chi?</h2></div><i class="pi pi-calendar"></i></div>
             <div class="grid">
@@ -75,24 +82,48 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
                 <span>–</span>
                 <div class="field"><label for="max-level">Livello max.</label><p-select inputId="max-level" [ngModel]="model().maxLevel" (ngModelChange)="updateMatchField('maxLevel', $event)" [ngModelOptions]="standaloneNgModel" [options]="levelOptions" optionLabel="label" optionValue="value" fluid /></div>
               </div>
+              @if (!editing) { <div class="field wide invite-field">
+                <label for="invited-players">Invita giocatori <small>(opzionale)</small></label>
+                <p-multiselect
+                  inputId="invited-players"
+                  [ngModel]="model().invitedPlayerIds"
+                  (ngModelChange)="updateMatchField('invitedPlayerIds', $event)"
+                  [ngModelOptions]="standaloneNgModel"
+                  [options]="invitablePlayerOptions()"
+                  optionLabel="label"
+                  optionValue="value"
+                  display="chip"
+                  [filter]="true"
+                  filterBy="label"
+                  filterPlaceHolder="Cerca per nome"
+                  placeholder="Cerca giocatori registrati"
+                  emptyMessage="Nessun giocatore disponibile"
+                  emptyFilterMessage="Nessun giocatore trovato"
+                  [selectionLimit]="maxInvites()"
+                  [showToggleAll]="false"
+                  [showClear]="true"
+                  fluid
+                />
+                <small class="field-hint">Puoi aggiungerne fino a {{ maxInvites() }}: saranno subito partecipanti. Sono mostrati solo i giocatori nella fascia di livello scelta.</small>
+              </div> }
             </div>
             @if (stepError()) { <p class="error" role="alert">{{ stepError() }}</p> }
           </section>
         }
-        @if (step() === 3) {
+        @if (!initializing() && !loadError() && step() === 3) {
           <section class="form-card">
-            <div class="heading"><div><p>Passo 3 di 3</p><h2>Controlla e pubblica</h2></div><i class="pi pi-check-circle"></i></div>
-            <div class="summary"><div><span>Campo</span><strong>{{ selectedCourtLabel() }}</strong></div><div><span>Data e ora</span><strong>{{ model().date }} · {{ model().time }}</strong></div><div><span>Formula</span><strong>{{ model().capacity }} giocatori · livello {{ model().minLevel }}–{{ model().maxLevel }}</strong></div></div>
+            <div class="heading"><div><p>Passo 3 di 3</p><h2>{{ editing ? 'Controlla e salva' : 'Controlla e pubblica' }}</h2></div><i class="pi pi-check-circle"></i></div>
+            <div class="summary"><div><span>Campo</span><strong>{{ selectedCourtLabel() }}</strong></div><div><span>Data e ora</span><strong>{{ model().date }} · {{ model().time }}</strong></div><div><span>Formula</span><strong>{{ model().capacity }} giocatori · livello {{ model().minLevel }}–{{ model().maxLevel }}</strong></div><div><span>{{ editing ? 'Partecipanti' : 'Invitati' }}</span><strong>{{ editing ? existingParticipantsSummary() : invitedPlayersSummary() }}</strong></div></div>
             <div class="field"><label for="notes">Note <small>(opzionale)</small></label><textarea id="notes" rows="5" [formField]="matchForm.notes" placeholder="Costo campo, materiale, indicazioni…"></textarea></div>
-            <p class="notice"><i class="pi pi-info-circle"></i> Sarai iscritto automaticamente come organizzatore.</p>
+            <p class="notice"><i class="pi pi-info-circle"></i> {{ editing ? 'Gli iscritti restano partecipanti e devono rientrare nei nuovi limiti.' : 'Sarai iscritto automaticamente come organizzatore.' }}</p>
             @if (store.error()) { <p class="error" role="alert">{{ store.error() }}</p> }
           </section>
         }
-        <footer>
+        @if (!initializing() && !loadError()) { <footer>
           <p-button type="button" severity="secondary" [outlined]="true" [label]="step() === 1 ? 'Annulla' : 'Indietro'" icon="pi pi-arrow-left" (onClick)="back()" />
           @if (step() < 3) { <p-button type="button" label="Continua" icon="pi pi-arrow-right" iconPos="right" (onClick)="next()" /> }
-          @else { <p-button type="submit" label="Pubblica partita" icon="pi pi-send" [loading]="store.saving()" /> }
-        </footer>
+          @else { <p-button type="submit" [label]="editing ? 'Salva modifiche' : 'Pubblica partita'" [icon]="editing ? 'pi pi-check' : 'pi pi-send'" [loading]="store.saving()" /> }
+        </footer> }
       </form>
     </main>
   `,
@@ -122,6 +153,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
     :host ::ng-deep .field .p-invalid { border-color: var(--color-danger); box-shadow: 0 0 0 3px rgb(196 57 57 / .11); }
     .field-error { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--color-danger); font-size: .7rem; font-weight: 700; line-height: 1.35; }
     .field-error i { flex: 0 0 auto; font-size: .76rem; }
+    .field-hint { color: var(--color-ink-muted); font-size: .68rem; line-height: 1.45; }
     .grid, .new-court { display: grid; gap: 15px; }
     .new-court { padding: 16px; margin-top: 12px; border-radius: 18px; background: var(--color-surface-muted); }
     .check { display: flex; min-height: 44px; align-items: center; gap: 9px; font-size: .76rem; font-weight: 800; }
@@ -134,6 +166,11 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
     .summary strong { font-size: .8rem; }
     .notice { display: flex; gap: 8px; padding: 12px; color: var(--color-brand-strong); border-radius: 13px; background: var(--color-brand-soft); font-size: .72rem; }
     .error { padding: 10px 12px; margin: 16px 0 0; color: var(--color-danger); border-left: 3px solid var(--color-danger); border-radius: 0 10px 10px 0; background: rgb(196 57 57 / .07); font-size: .72rem; font-weight: 700; }
+    .loading-state { display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; }
+    .loading-state p, .loading-state h2 { margin: 0; }
+    .error-state > i { color: var(--color-danger); font-size: 2rem; }
+    .spinner { width: 24px; height: 24px; border: 3px solid var(--color-brand-soft); border-right-color: var(--color-brand-strong); border-radius: 50%; animation: spin .7s linear infinite; }
+    @keyframes spin { to { transform: rotate(360deg); } }
     .wide { grid-column: 1 / -1; }
     footer { display: flex; justify-content: space-between; gap: 10px; padding: 16px 0; }
     input:focus-visible, textarea:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
@@ -165,26 +202,30 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
       .heading h2 { font-size: 2rem; }
       .heading > i { width: 54px; height: 54px; border-radius: 17px; font-size: 1.35rem; }
       .grid, .new-court { gap: 20px 18px; }
-      .summary { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+      .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       .summary div { min-height: 86px; align-content: center; padding: 16px; }
       footer { padding: 20px 46px; border-top: 1px solid var(--color-border); background: var(--color-surface-muted); }
     }
   `,
 })
 export class MatchCreate implements OnInit, OnDestroy {
-  protected readonly store = inject(MatchesStore); private readonly router = inject(Router); private readonly actions = inject(PageActionsService);
+  protected readonly store = inject(MatchesStore); private readonly router = inject(Router); private readonly route = inject(ActivatedRoute); private readonly auth = inject(AuthStore); private readonly actions = inject(PageActionsService);
+  private readonly matchId = this.route.snapshot.paramMap.get('id');
+  protected readonly editing = this.matchId !== null;
+  protected readonly initializing = signal(this.editing);
+  protected readonly loadError = signal<string | null>(null);
   protected readonly step = signal(1); protected readonly showNewCourt = signal(false); protected readonly stepError = signal<string | null>(null); protected readonly levels = [1,2,3,4,5,6,7];
   protected readonly steps = [
     { number: 1, label: 'Il campo', hint: 'Scegli dove giocare' },
-    { number: 2, label: 'La partita', hint: 'Data, formula e livello' },
-    { number: 3, label: 'Pubblicazione', hint: 'Controlla e conferma' },
+    { number: 2, label: 'La partita', hint: 'Data, formula e inviti' },
+    { number: 3, label: this.editing ? 'Salvataggio' : 'Pubblicazione', hint: 'Controlla e conferma' },
   ];
   protected readonly standaloneNgModel = { standalone: true };
   protected readonly durationOptions = [{ label: '60 minuti', value: '60' }, { label: '90 minuti', value: '90' }, { label: '120 minuti', value: '120' }];
-  protected readonly capacityOptions = [{ label: '4 giocatori', value: '4' }, { label: '6 giocatori', value: '6' }, { label: '8 giocatori', value: '8' }];
+  protected readonly capacityOptions = [2,4,6,8,10,12].map(capacity => ({ label: `${capacity} giocatori`, value: String(capacity) }));
   protected readonly genderOptions: { label: string; value: MatchGender }[] = [{ label: 'Misto', value: 'mixed' }, { label: 'Maschile', value: 'male' }, { label: 'Femminile', value: 'female' }];
   protected readonly levelOptions = this.levels.map((level) => ({ label: String(level), value: String(level) }));
-  protected readonly model = signal<MatchFormModel>({ courtId:'', date:'', time:'', duration:'90', capacity:'4', gender:'mixed', minLevel:'1', maxLevel:'7', notes:'' });
+  protected readonly model = signal<MatchFormModel>({ courtId:'', date:'', time:'', duration:'90', capacity:'4', gender:'mixed', minLevel:'1', maxLevel:'7', notes:'', invitedPlayerIds:[] });
   protected readonly matchForm = form(this.model, p => {
     required(p.courtId, { message: 'Seleziona il campo della partita.' });
     required(p.date, { message: 'Seleziona la data.' });
@@ -200,10 +241,38 @@ export class MatchCreate implements OnInit, OnDestroy {
   });
   protected readonly courtOptions = computed(() => this.store.courts().map((court) => ({ label: `${court.venue.name} · ${court.name} · ${court.venue.city}`, value: court.id })));
   protected readonly selectedCourtLabel = computed(() => { const c = this.store.courts().find(item => item.id === this.model().courtId); return c ? `${c.venue.name} · ${c.name}` : 'Campo non selezionato'; });
-  ngOnInit(): void { this.actions.set([{ id:'cancel-create', label:'Annulla creazione', shortLabel:'Annulla', icon:'pi-times', danger:true, routerLink:'/partite' }]); void this.store.loadCourts(); }
+  protected readonly maxInvites = computed(() => Math.max(0, +this.model().capacity - 1));
+  protected readonly invitablePlayerOptions = computed(() => {
+    const minLevel = +this.model().minLevel;
+    const maxLevel = +this.model().maxLevel;
+    return this.store.invitablePlayers()
+      .filter(player => player.livello >= minLevel && player.livello <= maxLevel)
+      .map(player => ({ label: `${player.nome} ${player.cognome} · livello ${player.livello}`, value: player.id }));
+  });
+  protected readonly invitedPlayersSummary = computed(() => {
+    const selectedIds = new Set(this.model().invitedPlayerIds);
+    const names = this.store.invitablePlayers()
+      .filter(player => selectedIds.has(player.id))
+      .map(player => `${player.nome} ${player.cognome}`);
+    if (!names.length) return 'Nessun giocatore';
+    if (names.length <= 2) return names.join(', ');
+    return `${names.slice(0, 2).join(', ')} e altri ${names.length - 2}`;
+  });
+  protected readonly existingParticipantsSummary = computed(() => {
+    const count = this.store.selected()?.participantDetails.length ?? 0;
+    return `${count} ${count === 1 ? 'partecipante confermato' : 'partecipanti confermati'}`;
+  });
+  ngOnInit(): void {
+    this.actions.set([{ id:'cancel-create', label:this.editing ? 'Annulla modifica' : 'Annulla creazione', shortLabel:'Annulla', icon:'pi-times', danger:true, routerLink:this.editing && this.matchId ? `/partite/${this.matchId}` : '/partite' }]);
+    if (this.editing) void this.loadMatchForEditing();
+    else void Promise.all([this.store.loadCourts(), this.store.loadInvitablePlayers()]);
+  }
   ngOnDestroy(): void { this.actions.clear(); }
   protected showError(field: { touched(): boolean; valid(): boolean }): boolean { return field.touched() && !field.valid(); }
-  protected updateMatchField<K extends keyof MatchFormModel>(key: K, value: MatchFormModel[K]): void { this.model.update(current => ({ ...current, [key]: value })); }
+  protected updateMatchField<K extends keyof MatchFormModel>(key: K, value: MatchFormModel[K]): void {
+    this.model.update(current => ({ ...current, [key]: value }));
+    if (key === 'capacity' || key === 'minLevel' || key === 'maxLevel') this.normalizeInvites();
+  }
   protected updateCourtField<K extends keyof CourtFormModel>(key: K, value: CourtFormModel[K]): void { this.courtModel.update(current => ({ ...current, [key]: value })); }
   protected async createCourt(): Promise<void> { this.courtForm().markAsTouched(); if (this.courtForm().invalid()) return; const v=this.courtModel(); const id=await this.store.createCourt({venueName:v.venueName.trim(),address:v.address.trim(),city:v.city.trim(),courtName:v.courtName.trim(),indoor:v.indoor}); if(id){this.matchForm.courtId().value.set(id);this.showNewCourt.set(false);} }
   protected next(): void {
@@ -219,17 +288,81 @@ export class MatchCreate implements OnInit, OnDestroy {
       const value = this.model();
       if (!value.date || !value.time) return;
       const startsAt = new Date(`${value.date}T${value.time}`).getTime();
-      if (!Number.isFinite(startsAt) || startsAt <= Date.now() + 15 * 60 * 1000) {
-        this.stepError.set('Data e ora devono essere almeno 15 minuti nel futuro.');
+      const minimumStart = Date.now() + (this.editing ? 0 : 15 * 60 * 1000);
+      if (!Number.isFinite(startsAt) || startsAt <= minimumStart) {
+        this.stepError.set(this.editing ? 'Data e ora devono essere nel futuro.' : 'Data e ora devono essere almeno 15 minuti nel futuro.');
         return;
       }
       if (+value.minLevel > +value.maxLevel) {
         this.stepError.set('Il livello minimo non può superare quello massimo.');
         return;
       }
+      if (value.invitedPlayerIds.length > +value.capacity - 1) {
+        this.stepError.set('Gli invitati superano i posti disponibili oltre al tuo.');
+        return;
+      }
+      if (this.editing) {
+        const participants = this.store.selected()?.participantDetails ?? [];
+        if (participants.length > +value.capacity) {
+          this.stepError.set('La capienza non può essere inferiore al numero di partecipanti attuali.');
+          return;
+        }
+        if (participants.some(participant => participant.livello < +value.minLevel || participant.livello > +value.maxLevel)) {
+          this.stepError.set('La fascia di livello scelta esclude uno o più partecipanti attuali.');
+          return;
+        }
+      }
     }
     this.step.update(value => Math.min(3, value + 1));
   }
-  protected back(): void { if(this.step()===1){void this.router.navigateByUrl('/partite');return;}this.step.update(v=>v-1); }
-  protected async submitMatch(event: Event): Promise<void> { event.preventDefault();this.matchForm().markAsTouched();if(this.matchForm().invalid()||this.store.saving())return;const v=this.model();const id=await this.store.createMatch({courtId:v.courtId,gender:v.gender,minLevel:+v.minLevel,maxLevel:+v.maxLevel,startsAt:new Date(`${v.date}T${v.time}`).toISOString(),durationMinutes:+v.duration,capacity:+v.capacity,notes:v.notes.trim()||null});if(id)await this.router.navigate(['/partite',id]); }
+  protected back(): void { if(this.step()===1){this.backToMatch();return;}this.step.update(v=>v-1); }
+  protected backToMatch(): void { void this.router.navigateByUrl(this.editing && this.matchId ? `/partite/${this.matchId}` : '/partite'); }
+  protected async submitMatch(event: Event): Promise<void> {
+    event.preventDefault();
+    this.matchForm().markAsTouched();
+    if (this.matchForm().invalid() || this.store.saving()) return;
+    const value = this.model();
+    const common = { courtId:value.courtId, gender:value.gender, minLevel:+value.minLevel, maxLevel:+value.maxLevel, startsAt:new Date(`${value.date}T${value.time}`).toISOString(), durationMinutes:+value.duration, capacity:+value.capacity, notes:value.notes.trim()||null };
+    const id = this.editing && this.matchId
+      ? await this.store.updateMatch({ matchId: this.matchId, ...common })
+      : await this.store.createMatch({ ...common, invitedPlayerIds:value.invitedPlayerIds });
+    if (id) await this.router.navigate(['/partite',id]);
+  }
+  private async loadMatchForEditing(): Promise<void> {
+    if (!this.matchId) return;
+    await Promise.all([this.store.loadCourts(), this.store.loadMatch(this.matchId)]);
+    const match = this.store.selected();
+    if (!match) {
+      this.loadError.set(this.store.error() ?? 'Partita non trovata.');
+      this.initializing.set(false);
+      return;
+    }
+    if (match.creator_id !== this.auth.authUser()?.id || !['open','full'].includes(match.status) || new Date(match.starts_at).getTime() <= Date.now()) {
+      this.loadError.set('Solo l’organizzatore può modificare una partita futura aperta o completa.');
+      this.initializing.set(false);
+      return;
+    }
+    const startsAt = new Date(match.starts_at);
+    const pad = (value: number): string => String(value).padStart(2, '0');
+    this.model.set({
+      courtId: match.court_id,
+      date: `${startsAt.getFullYear()}-${pad(startsAt.getMonth() + 1)}-${pad(startsAt.getDate())}`,
+      time: `${pad(startsAt.getHours())}:${pad(startsAt.getMinutes())}`,
+      duration: String(match.duration_minutes),
+      capacity: String(match.capacity),
+      gender: match.gender,
+      minLevel: String(match.min_level),
+      maxLevel: String(match.max_level),
+      notes: match.notes ?? '',
+      invitedPlayerIds: [],
+    });
+    this.initializing.set(false);
+  }
+  private normalizeInvites(): void {
+    const allowed = new Set(this.invitablePlayerOptions().map(option => option.value));
+    this.model.update(current => ({
+      ...current,
+      invitedPlayerIds: current.invitedPlayerIds.filter(id => allowed.has(id)).slice(0, this.maxInvites()),
+    }));
+  }
 }

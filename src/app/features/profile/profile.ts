@@ -1,16 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Button } from 'primeng/button';
+import { RouterLink } from '@angular/router';
+import { ButtonModule } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { PreferredSide } from '../auth/models/auth.model';
+import { capabilitiesForRole, USER_ROLE_LABELS } from '../auth/auth.utils';
 import { ProfileHistoryChart } from './components/profile-history-chart';
 import { ProfileStore } from './store/profile.store';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, Button, InputText, Select, ProfileHistoryChart],
+  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputText, Select, ProfileHistoryChart],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="profile-page">
@@ -24,11 +26,23 @@ import { ProfileStore } from './store/profile.store';
             } @else { <span aria-hidden="true">{{ initials() }}</span> }
           </div>
           <div class="identity">
-            <p class="eyebrow">Il tuo profilo giocatore</p>
+            <p class="eyebrow">Il tuo profilo personale</p>
             <h1>{{ store.fullName() }}</h1>
             <p>{{ profile.email }}</p>
           </div>
-          <span class="role-badge"><i class="pi pi-verified" aria-hidden="true"></i> {{ profile.ruolo }}</span>
+          <div class="profile-hero-actions">
+            <span class="role-badge"><i class="pi pi-verified" aria-hidden="true"></i> {{ roleLabels[profile.ruolo] }}</span>
+            <a pButton class="my-matches-button" routerLink="/partite/mie">
+              <i class="pi pi-calendar" pButtonIcon aria-hidden="true"></i>
+              <span pButtonLabel>Le mie partite</span>
+            </a>
+            @if (canOrganizeTournaments(profile.ruolo)) {
+              <a pButton class="organize-tournament-button" severity="secondary" routerLink="/tornei/organizza">
+                <i class="pi pi-trophy" pButtonIcon aria-hidden="true"></i>
+                <span pButtonLabel>Organizza torneo</span>
+              </a>
+            }
+          </div>
         </header>
 
         <section class="metric-grid" aria-label="Indicatori del profilo">
@@ -100,7 +114,8 @@ import { ProfileStore } from './store/profile.store';
     .profile-hero .eyebrow { color: #84efe3; }
     h1 { overflow: hidden; margin: 0 0 4px; font: 900 clamp(1.7rem, 8vw, 3.6rem)/1 var(--display-font); letter-spacing: -.045em; text-overflow: ellipsis; }
     .identity > p:last-child { overflow: hidden; margin: 0; color: rgb(255 255 255 / .7); font-size: .82rem; text-overflow: ellipsis; }
-    .role-badge { grid-column: 1 / -1; justify-self: start; padding: 6px 9px; border-radius: 9px; background: rgb(255 255 255 / .12); font-size: .7rem; font-weight: 800; text-transform: capitalize; }
+    .profile-hero-actions { display: flex; grid-column: 1 / -1; flex-wrap: wrap; align-items: center; gap: 8px; justify-self: start; }
+    .role-badge { padding: 6px 9px; border-radius: 9px; background: rgb(255 255 255 / .12); font-size: .7rem; font-weight: 800; text-transform: capitalize; }
     .metric-grid, .history-grid { display: grid; gap: 12px; margin-top: 14px; }
     .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     .metric-card { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 16px 14px; border: 1px solid var(--color-border); border-radius: 21px; background: var(--color-surface); }
@@ -126,12 +141,14 @@ import { ProfileStore } from './store/profile.store';
     .error-state h1, .error-state p { margin: 0; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (min-width: 520px) { .metric-icon { display: grid; } .field-grid { grid-template-columns: repeat(2, 1fr); } .avatar-field { grid-column: 1 / -1; } }
-    @media (min-width: 768px) { .profile-page { padding: 34px 28px 120px; } .profile-hero { grid-template-columns: auto 1fr auto; padding: 30px; } .role-badge { grid-column: auto; } .history-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 768px) { .profile-page { padding: 34px 28px 120px; } .profile-hero { grid-template-columns: auto 1fr auto; padding: 30px; } .profile-hero-actions { grid-column: auto; justify-self: end; } .history-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
   `,
 })
 export class Profile implements OnInit, OnDestroy {
   protected readonly store = inject(ProfileStore);
+  protected readonly roleLabels = USER_ROLE_LABELS;
+  protected readonly canOrganizeTournaments = (role: Parameters<typeof capabilitiesForRole>[0]): boolean => capabilitiesForRole(role).organizeTournaments;
   private readonly pageActions = inject(PageActionsService);
   protected readonly avatarPreview = signal<string | null>(null);
   protected readonly avatarBroken = signal(false);

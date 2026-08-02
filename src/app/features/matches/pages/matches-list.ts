@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit
 import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { RealtimeChannel } from '@supabase/supabase-js';
+import { ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
@@ -108,6 +109,7 @@ export class MatchesList implements OnInit, OnDestroy {
   private readonly actions = inject(PageActionsService);
   private readonly service = inject(MatchesService);
   private readonly router = inject(Router);
+  private readonly confirmationService = inject(ConfirmationService);
   protected readonly query = signal('');
   protected readonly gender = signal<MatchGender | 'all'>('all');
   protected readonly level = signal<number | null>(null);
@@ -150,6 +152,7 @@ export class MatchesList implements OnInit, OnDestroy {
   protected resetFilters(): void { this.query.set(''); this.gender.set('all'); this.level.set(null); this.onlyAvailable.set(false); this.dateFilter.set('all'); }
   protected async join(id: string): Promise<void> { if (await this.store.join(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
   protected async withdraw(id: string): Promise<void> { if (await this.store.withdraw(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
-  protected async cancel(id: string): Promise<void> { if (window.confirm('Annullare questa partita per tutti i partecipanti?') && await this.store.cancel(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
+  protected cancel(id: string): void { this.confirmationService.confirm({ header: 'Annulla partita?', message: 'La partita verrà annullata per tutti i partecipanti. Questa azione non può essere annullata.', icon: 'pi pi-exclamation-triangle', acceptLabel: 'Annulla partita', rejectLabel: 'Mantieni partita', acceptButtonProps: { severity: 'danger' }, rejectButtonProps: { severity: 'secondary', variant: 'text' }, accept: () => void this.cancelConfirmed(id) }); }
+  private async cancelConfirmed(id: string): Promise<void> { if (await this.store.cancel(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
   private scheduleRefresh(): void { if (this.refreshTimer) clearTimeout(this.refreshTimer); this.refreshTimer = setTimeout(() => void this.store.loadMatches(true), 250); }
 }

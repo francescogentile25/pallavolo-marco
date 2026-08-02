@@ -97,6 +97,8 @@ Scala livello iniziale:
 - ricerca e filtro utenti;
 - attivazione/disattivazione profilo;
 - assegnazione ruolo;
+- ruoli cumulativi: utente comune, organizzatore e amministratore;
+- organizzazione tornei riservata a organizzatori e amministratori;
 - azioni contestuali nel dock/pill.
 
 ### Criteri di accettazione

@@ -11,6 +11,8 @@
 - Form nuovi con Signal Forms.
 - PrimeNG è la scelta predefinita per select, pulsanti, checkbox, dialog e controlli equivalenti;
   i controlli nativi o custom richiedono un motivo funzionale.
+- Non usare mai `window.confirm`, `window.alert` o `window.prompt`: conferme, avvisi e richieste di
+  input devono usare i dialog PrimeNG con lo stile globale Beach Volley Hub.
 - Non usare il browser interno o sessioni autenticate dell'utente per simulare click o svolgere QA;
   limitarsi a build, test automatici da terminale e verifiche statiche, lasciando la validazione
   interattiva all'utente.

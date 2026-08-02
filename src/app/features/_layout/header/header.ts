@@ -25,7 +25,12 @@ import { AuthStore } from '../../auth/store/auth.store';
       </nav>
 
       <div class="account-actions">
-        <span class="user-name">{{ authStore.userName() }}</span>
+        <span class="user-name">{{ authStore.userName() }} · {{ authStore.roleLabel() }}</span>
+        @if (authStore.canOrganizeTournaments()) {
+          <a class="icon-action" routerLink="/tornei/organizza" aria-label="Organizza torneo" title="Organizza torneo">
+            <i class="pi pi-trophy" aria-hidden="true"></i>
+          </a>
+        }
         @if (authStore.isAdmin()) {
           <a class="icon-action" routerLink="/admin/utenti" aria-label="Gestione utenti" title="Gestione utenti">
             <i class="pi pi-users" aria-hidden="true"></i>

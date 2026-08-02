@@ -95,6 +95,7 @@ considerarlo completato end-to-end.
 - [x] Elenco utenti mobile-first con ricerca e filtri per stato e ruolo.
 - [x] Attivazione/disattivazione da interfaccia tramite funzione SQL protetta.
 - [x] Cambio ruolo da interfaccia tramite funzione SQL protetta.
+- [x] Gerarchia cumulativa utente comune → organizzatore → admin, condivisa tra database, guardie e UI.
 - [x] Audit immutabile delle modifiche amministrative, consultabile dalla pagina utenti.
 - [x] Route e accesso UI riservati agli amministratori.
 

@@ -1,5 +1,5 @@
 import { BeachMatch, MatchFilters } from './models/match.model';
-import { availableSpots, filterMatches, isUserJoined, levelRangeLabel } from './matches.utils';
+import { availableSpots, filterMatches, isUserJoined, levelRangeLabel, matchErrorMessage } from './matches.utils';
 
 const match = {
   id: 'm1', status: 'open', gender: 'mixed', min_level: 3, max_level: 5,
@@ -22,4 +22,13 @@ describe('match utilities', () => {
     expect(filterMatches([{ ...match, status: 'full' }], { ...filters, onlyAvailable: true })).toEqual([]);
   });
   it('formats ranges', () => expect(levelRangeLabel(match)).toBe('Livello 3–5'));
+  it('maps invitation validation errors', () => {
+    expect(matchErrorMessage(new Error('Gli invitati superano i posti disponibili'))).toBe('Riduci il numero di giocatori invitati.');
+    expect(matchErrorMessage(new Error('Uno o piu invitati hanno gia una partita in questa fascia oraria'))).toBe('Uno o più invitati hanno già una partita in questa fascia oraria.');
+  });
+  it('maps match editing validation errors', () => {
+    expect(matchErrorMessage(new Error('Solo il creatore puo modificare la partita'))).toBe('Solo l’organizzatore può modificare questa partita.');
+    expect(matchErrorMessage(new Error('La capienza non puo essere inferiore ai partecipanti attuali'))).toBe('La capienza non può essere inferiore ai partecipanti attuali.');
+    expect(matchErrorMessage(new Error('Il nuovo orario si sovrappone a un impegno di uno o piu partecipanti'))).toBe('Il nuovo orario si sovrappone a un impegno di uno o più partecipanti.');
+  });
 });

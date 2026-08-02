@@ -114,6 +114,153 @@ svg {
   background: #a8bbb7;
 }
 
+.p-drawer.match-action-sheet.p-drawer-bottom {
+  width: 100% !important;
+  height: auto !important;
+  max-height: min(78dvh, 470px);
+  overflow: hidden;
+  border-radius: 26px 26px 0 0;
+}
+
+.p-drawer.match-action-sheet .p-drawer-content {
+  display: grid;
+  overflow-y: auto;
+  align-content: start;
+  gap: 10px;
+  padding-bottom: calc(20px + var(--safe-bottom));
+}
+
+a.my-matches-button.p-button {
+  min-height: 44px;
+  justify-content: center;
+  color: white;
+  border-color: rgb(255 255 255 / .35);
+  background: rgb(255 255 255 / .1);
+  text-decoration: none;
+}
+
+a.my-matches-button.p-button:hover {
+  border-color: rgb(255 255 255 / .6);
+  background: rgb(255 255 255 / .16);
+}
+
+.p-dialog.app-confirm-dialog,
+.p-dialog.app-form-dialog {
+  width: min(440px, calc(100vw - 32px));
+  overflow: hidden;
+  border: 1px solid var(--color-border);
+  border-radius: 26px;
+  background: var(--color-surface);
+  box-shadow: 0 28px 80px rgb(7 29 38 / .28);
+}
+
+.p-dialog.app-confirm-dialog::before,
+.p-dialog.app-form-dialog::before {
+  display: block;
+  height: 5px;
+  background: linear-gradient(90deg, var(--color-brand), var(--color-tournament));
+  content: '';
+}
+
+.app-confirm-dialog .p-dialog-header,
+.app-form-dialog .p-dialog-header {
+  padding: 22px 24px 10px;
+  border: 0;
+  background: var(--color-surface);
+}
+
+.app-confirm-dialog .p-dialog-title,
+.app-form-dialog .p-dialog-title {
+  color: var(--color-ink);
+  font: 900 1.55rem/1 var(--display-font);
+  letter-spacing: -.035em;
+}
+
+.app-confirm-dialog .p-dialog-content,
+.app-form-dialog .p-dialog-content {
+  padding: 14px 24px 22px;
+  color: var(--color-ink-muted);
+  background: var(--color-surface);
+  font-size: .86rem;
+  line-height: 1.55;
+}
+
+.app-confirm-dialog .p-dialog-content {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 12px;
+}
+
+.app-confirm-dialog .p-confirmdialog-icon {
+  display: grid;
+  width: 44px;
+  height: 44px;
+  place-items: center;
+  color: var(--color-brand-strong);
+  border-radius: 14px;
+  background: var(--color-brand-soft);
+  font-size: 1.15rem;
+}
+
+.app-confirm-dialog .p-dialog-footer,
+.app-form-dialog .p-dialog-footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  padding: 16px 24px 22px;
+  border-top: 1px solid var(--color-border);
+  background: var(--color-surface-muted);
+}
+
+.app-form-dialog .dialog-field {
+  display: grid;
+  gap: 8px;
+}
+
+.app-form-dialog .dialog-field label {
+  color: var(--color-ink);
+  font-size: .76rem;
+  font-weight: 850;
+}
+
+.app-form-dialog .dialog-field input {
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .app-confirm-dialog .p-dialog-footer,
+  .app-form-dialog .p-dialog-footer {
+    flex-direction: column-reverse;
+  }
+
+  .app-confirm-dialog .p-dialog-footer p-button,
+  .app-form-dialog .p-dialog-footer p-button {
+    width: 100%;
+  }
+}
+
+@media (min-width: 700px) {
+  .p-drawer.match-action-sheet.p-drawer-bottom {
+    top: 50% !important;
+    right: auto !important;
+    bottom: auto !important;
+    left: 50% !important;
+    width: min(460px, calc(100vw - 48px)) !important;
+    max-height: min(80dvh, 560px);
+    border: 1px solid var(--color-border);
+    border-radius: 26px;
+    box-shadow: 0 24px 70px rgb(0 0 0 / 24%);
+    transform: translate(-50%, -50%) !important;
+    animation: none !important;
+  }
+
+  .p-drawer.match-action-sheet .p-drawer-content {
+    overflow-y: visible;
+    padding-bottom: 24px;
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   html {
     scroll-behavior: auto;

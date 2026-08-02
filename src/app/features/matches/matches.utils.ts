@@ -69,6 +69,15 @@ export function filterMatches(
 export function matchErrorMessage(error: unknown): string {
   const raw = error instanceof Error ? error.message : String(error ?? '');
   const normalized = raw.toLocaleLowerCase('it');
+  if (normalized.includes('invitati superano')) return 'Riduci il numero di giocatori invitati.';
+  if (normalized.includes('invitati non sono disponibili')) return 'Uno o più giocatori invitati non sono più disponibili.';
+  if (normalized.includes('invitati non rientrano') || normalized.includes('giocatori invitati non rientrano')) return 'Uno o più invitati non rientrano nella fascia di livello scelta.';
+  if (normalized.includes('invitati hanno gia una partita')) return 'Uno o più invitati hanno già una partita in questa fascia oraria.';
+  if (normalized.includes('solo il creatore puo modificare')) return 'Solo l’organizzatore può modificare questa partita.';
+  if (normalized.includes('non puo piu essere modificata')) return 'Questa partita non può più essere modificata.';
+  if (normalized.includes('capienza non puo essere inferiore')) return 'La capienza non può essere inferiore ai partecipanti attuali.';
+  if (normalized.includes('fascia di livello esclude')) return 'La fascia di livello esclude uno o più partecipanti attuali.';
+  if (normalized.includes('nuovo orario si sovrappone')) return 'Il nuovo orario si sovrappone a un impegno di uno o più partecipanti.';
   if (normalized.includes('completo')) return 'La partita è appena diventata completa.';
   if (normalized.includes('gia iscritto')) return 'Sei già iscritto a questa partita.';
   if (normalized.includes('livello')) return 'Il tuo livello non rientra nella fascia ammessa.';
