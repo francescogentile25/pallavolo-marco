@@ -1,18 +1,22 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  computed,
   inject,
   OnDestroy,
   OnInit,
 } from '@angular/core';
+import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { AuthStore } from '../auth/store/auth.store';
+import { TournamentsStore } from '../tournaments/store/tournaments.store';
+import { Tournament } from '../tournaments/models/tournament.model';
 
 @Component({
   selector: 'app-home',
-  imports: [ButtonModule, RouterLink],
+  imports: [ButtonModule, DatePipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="home-page">
@@ -69,13 +73,17 @@ import { AuthStore } from '../auth/store/auth.store';
       </div>
 
       <section class="tournament-card" aria-labelledby="tournament-title">
-        <div class="tournament-number" aria-hidden="true">16</div>
+        <div class="tournament-number" aria-hidden="true">{{ nextTournament()?.starts_at | date:'dd' }}</div>
         <div>
-          <p class="eyebrow">Torneo del mese</p>
-          <h2 id="tournament-title">Sunset Cup</h2>
-          <p>Sabato 16 agosto · Ostia</p>
+          <p class="eyebrow">{{ nextTournament() ? 'Prossimo torneo' : 'Tornei' }}</p>
+          <h2 id="tournament-title">{{ nextTournament()?.title ?? 'La prossima sfida' }}</h2>
+          @if (nextTournament(); as tournament) {
+            <p>{{ tournament.starts_at | date:'EEE d MMM, HH:mm':'':'it' }} · {{ tournament.venue.city }}</p>
+          } @else {
+            <p>Scopri i tornei e scegli come partecipare.</p>
+          }
         </div>
-        <a routerLink="/tornei">Scopri <i class="pi pi-arrow-up-right"></i></a>
+        <a [routerLink]="nextTournament() ? ['/tornei', nextTournament()!.id] : '/tornei'">Scopri <i class="pi pi-arrow-up-right"></i></a>
       </section>
     </main>
   `,
@@ -260,6 +268,13 @@ import { AuthStore } from '../auth/store/auth.store';
 export class Home implements OnInit, OnDestroy {
   private readonly pageActions = inject(PageActionsService);
   private readonly authStore = inject(AuthStore);
+  private readonly tournamentsStore = inject(TournamentsStore);
+
+  protected readonly nextTournament = computed<Tournament | null>(() =>
+    [...this.tournamentsStore.tournaments()]
+      .filter(({ status, ends_at }) => !['draft', 'cancelled', 'archived'].includes(status) && new Date(ends_at).getTime() >= Date.now())
+      .sort((first, second) => new Date(first.starts_at).getTime() - new Date(second.starts_at).getTime())[0] ?? null,
+  );
 
   protected readonly matches = [
     { id: 1, level: 'Intermedio', spots: 2, place: 'Pala Beach Tiburtina', when: 'Oggi, 19:30', players: 2 },
@@ -268,6 +283,7 @@ export class Home implements OnInit, OnDestroy {
   ] as const;
 
   ngOnInit(): void {
+    void this.tournamentsStore.loadList(true);
     this.pageActions.set([
       ...(this.authStore.canOrganizeTournaments() ? [{ id: 'organize-tournament', label: 'Organizza un torneo', shortLabel: 'Torneo', icon: 'pi-trophy', routerLink: '/tornei/organizza' }] : []),
       {

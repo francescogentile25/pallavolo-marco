@@ -17,8 +17,8 @@ incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
 | GitHub | Collegato a `francescogentile25/pallavolo-marco` |
 | Vercel | Produzione operativa |
 | URL produzione | https://pallavolo-marco.vercel.app |
-| Onda corrente | Nessuna — Onda 3 completata |
-| Blocchi correnti | Nessuno per l'Onda 3 |
+| Onda corrente | Onda 4 — implementata localmente, rilascio in verifica |
+| Blocchi correnti | Applicazione migration Supabase, matrice remota e deploy Vercel |
 
 ## Funzionalità completate
 
@@ -106,7 +106,7 @@ autenticata con un admin e due giocatori prima di considerare il flusso completa
 
 ## Non iniziato
 
-- tornei;
+- notifiche persistite per i tornei (il ciclo torneo è implementato nell'Onda 4);
 - notifiche persistite e realtime;
 - chat;
 - PWA;
@@ -155,15 +155,31 @@ Il codice dell'Onda 2 è completo localmente. Lo stato di roadmap non viene prom
 L'Onda 3 è completata end-to-end: migration, matrice funzionale/RLS, QA mobile autenticata,
 realtime su due sessioni e deploy production sono verificati.
 
+## Onda 4 — implementazione in verifica
+
+- [x] Modalità separate: solo coppie, solo individuale e ibrida.
+- [x] Formula sportiva indipendente: gironi, eliminazione diretta o mista.
+- [x] Coppie e inviti soggetti al consenso degli utenti registrati.
+- [x] Giocatori liberi e abbinamento manuale dell'organizzatore.
+- [x] Lista d'attesa e capienza espresse in coppie.
+- [x] Pagamento soltanto informativo.
+- [x] Strategia UI mobile/desktop per gironi, risultati e tabellone.
+- [x] Bracketry individuata come candidata da validare per la fase a eliminazione.
+- [x] Regole sportive esatte, preset e criteri di spareggio.
+- [x] Migration, RLS, RPC e frontend.
+- [ ] Applicazione migration remote, matrice SQL, deploy e QA utente.
+
+La specifica completa è in `docs/wave-4-functional-spec.md`. L'Onda 4 è implementata localmente;
+restano verifica remota, pubblicazione e QA autenticata affidata all'utente.
+
 ## Prossimo incremento
 
-Definizione funzionale dell'Onda 4 — Tornei.
+Per chiudere l'Onda 4:
 
-Ordine di lavoro residuo:
-
-1. decidere iscrizione individuale o a coppie;
-2. definire formato, punteggi, lista d'attesa e gestione risultati;
-3. trasformare le decisioni in migration e criteri di accettazione dell'Onda 4.
+1. applicare e validare le migration Supabase;
+2. eseguire la matrice SQL con rollback;
+3. pubblicare su Vercel e verificare i deep link senza browser autenticato Codex;
+4. completare la QA interattiva autenticata affidata all'utente.
 
 ## Debito tecnico noto
 
@@ -191,6 +207,8 @@ Ordine di lavoro residuo:
 | 2026-08-01 | PrimeNG come libreria UI predefinita | I componenti della libreria vengono adattati al tema; i controlli custom restano un'eccezione motivata |
 | 2026-08-02 | Regole reputazione Onda 3 | Voti entro 7 giorni; livello 75% peer e 25% autovalutazione; no-show solo organizzatore entro 48 ore con penalità di 1 punto |
 | 2026-08-02 | QA interattiva affidata all'utente | Codex non usa il browser interno né sessioni autenticate dell'utente per simulare click |
+| 2026-08-02 | Iscrizioni tornei Onda 4 | Modalità solo coppie, solo individuale o ibrida; consenso obbligatorio e abbinamento manuale |
+| 2026-08-02 | Tabellone tornei Onda 4 | PrimeNG per gironi/risultati; Bracketry candidata solo per eliminazione; mobile a un turno per volta |
 
 ## Decisioni ancora aperte
 
@@ -199,7 +217,6 @@ Ordine di lavoro residuo:
 - formula esatta del livello calcolato;
 - formula e soglie dell'affidabilità;
 - chi può dichiarare un no-show e come si gestisce una contestazione;
-- regole complete dei tornei;
 - eventuale dominio pubblico personalizzato.
 
 ## Registro verifiche

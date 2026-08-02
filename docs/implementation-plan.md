@@ -186,7 +186,9 @@ Obiettivo: trasformare le partite concluse in reputazione utile e verificabile.
 
 ## Onda 4 — Tornei
 
-Stato: `DA DEFINIRE`
+Stato: `IN VERIFICA`
+
+Specifica approvata: [wave-4-functional-spec.md](wave-4-functional-spec.md).
 
 Obiettivo: supportare organizzatori e giocatori nell'intero ciclo di un torneo.
 
@@ -198,17 +200,20 @@ Requisiti già disponibili:
 - livelli ammessi;
 - separazione fra esperienza organizzatore e partecipante.
 
-Decisioni necessarie prima di iniziare:
+Decisioni principali definite:
 
-- iscrizione individuale o a coppie;
-- coppie fisse o generate dall'organizzatore;
-- numero minimo/massimo di partecipanti;
-- gironi, eliminazione diretta o formato misto;
-- regole di punteggio e spareggio;
-- gestione pagamento: informativa o transazione online;
-- cancellazioni, rimborsi e lista d'attesa;
-- inserimento e conferma risultati;
-- visibilità pubblica del tabellone.
+- iscrizione configurabile: solo coppie, solo individuale o ibrida;
+- coppie proposte da giocatori o organizzatore, sempre soggette a consenso;
+- abbinamento manuale con suggerimenti visivi, senza matchmaking automatico;
+- formula indipendente: gironi, eliminazione diretta o formato misto;
+- capienza e lista d'attesa basate su coppie complete;
+- pagamento soltanto informativo;
+- PrimeNG per gironi e risultati;
+- Bracketry candidata per la sola visualizzazione dell'eliminazione diretta;
+- vista mobile a un turno per volta e vista lineare accessibile sempre disponibile.
+
+Le regole sportive, i preset e le combinazioni vietate sono definiti e implementati. Restano le
+verifiche remote, la pubblicazione e la QA autenticata dell'utente.
 
 Deliverable previsti:
 
