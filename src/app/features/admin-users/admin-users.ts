@@ -181,7 +181,9 @@ import { AdminUsersStore } from './store/admin-users.store';
     .users-section { margin-top: 14px; }
     .user-list { display: grid; gap: 10px; }
     p-paginator { display: block; margin-top: 12px; }
-    :host ::ng-deep .admin-paginator .p-paginator { justify-content: center; flex-wrap: wrap; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
+    :host ::ng-deep .admin-paginator,
+    :host ::ng-deep .admin-paginator .p-paginator { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 2px; padding: 4px; background: transparent; border: 0; }
+    :host ::ng-deep .admin-paginator .p-paginator-current { color: var(--color-ink-muted); font-size: .75rem; }
     .loading-state, .empty-state { display: grid; min-height: 240px; place-content: center; justify-items: center; gap: 10px; color: var(--color-ink-muted); text-align: center; }
     .empty-state { border: 1px dashed var(--color-border); border-radius: 22px; background: var(--color-surface); }
     .empty-state i { font-size: 2rem; }
