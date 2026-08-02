@@ -17,8 +17,8 @@
   padding: 64px;
   color: white;
   background:
-    radial-gradient(circle at 75% 20%, rgb(25 199 181 / 0.65), transparent 34%),
-    linear-gradient(155deg, #071d26 0%, #0d3944 100%);
+    radial-gradient(circle at 78% 18%, rgb(212 86 42 / .45), transparent 32%),
+    var(--color-ocean);
 }
 
 .auth-brand::after {
@@ -44,8 +44,9 @@
   margin-bottom: 24px;
   place-items: center;
   color: white;
-  border: 2px solid rgb(255 255 255 / 0.76);
-  border-radius: 50%;
+  border: 1px solid rgb(255 255 255 / 0.22);
+  border-radius: 16px;
+  background: rgb(255 255 255 / .08);
   font-size: 1.35rem;
 }
 
@@ -172,7 +173,7 @@
 
 .field input:focus {
   border-color: var(--color-brand);
-  box-shadow: 0 0 0 4px rgb(25 199 181 / 0.16);
+  box-shadow: 0 0 0 4px rgb(212 86 42 / 0.14);
 }
 
 .field input[aria-invalid='true'] {
@@ -219,7 +220,7 @@
   color: white;
   border: 0;
   border-radius: 16px;
-  background: var(--color-ocean);
+  background: var(--color-brand);
   font-weight: 850;
   cursor: pointer;
 }

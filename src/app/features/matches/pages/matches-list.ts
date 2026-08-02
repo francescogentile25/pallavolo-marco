@@ -27,7 +27,9 @@ import { MatchesStore } from '../store/matches.store';
         <p>Filtra per luogo, livello e disponibilità. I posti si aggiornano in tempo reale.</p>
       </header>
 
+      <div class="results-layout">
       <section class="filters" aria-label="Filtri partite">
+        <div class="filters-title"><span><i class="pi pi-sliders-h" aria-hidden="true"></i> Filtri</span><button type="button" (click)="resetFilters()">Azzera</button></div>
         <div class="search-field">
           <i class="pi pi-search" aria-hidden="true"></i>
           <label class="sr-only" for="match-search">Cerca luogo o città</label>
@@ -69,6 +71,7 @@ import { MatchesStore } from '../store/matches.store';
           </div>
         }
       </section>
+      </div>
     </main>
 
     <app-match-action-sheet [visible]="sheetOpen()" (visibleChange)="sheetOpen.set($event)" [match]="selectedMatch()" [userId]="authStore.authUser()?.id ?? null" [busy]="store.actionMatchId() !== null" (join)="join($event)" (withdraw)="withdraw($event)" (cancel)="cancel($event)" />
@@ -76,11 +79,15 @@ import { MatchesStore } from '../store/matches.store';
   styles: `
     :host { display: block; }
     .matches-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
-    .page-hero { display: grid; gap: 12px; padding: 24px 20px; color: white; border-radius: 27px; background: radial-gradient(circle at 90% 0, rgb(25 199 181 / .55), transparent 42%), linear-gradient(145deg, #071d26, #123945); }
-    .eyebrow { margin: 0 0 5px; color: #84efe3; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .page-hero { display: grid; gap: 12px; padding: 24px 20px; color: white; border-radius: 24px; background: var(--color-ocean); }
+    .eyebrow { margin: 0 0 5px; color: #f2b08e; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0; font: 900 clamp(2rem, 10vw, 4rem)/.95 var(--display-font); letter-spacing: -.05em; }
     .page-hero > p { max-width: 34rem; margin: 0; color: rgb(255 255 255 / .72); font-size: .82rem; line-height: 1.5; }
     .filters { display: grid; gap: 12px; padding: 16px; margin: 14px 0 24px; border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); }
+    .filters-title { display: flex; align-items: center; justify-content: space-between; color: var(--color-ink); font-size: .84rem; font-weight: 850; }
+    .filters-title span { display: inline-flex; align-items: center; gap: 7px; }
+    .filters-title i { color: var(--color-brand); }
+    .filters-title button { min-height: 36px; padding: 0 7px; color: var(--color-brand-strong); border: 0; background: transparent; font-size: .68rem; font-weight: 800; cursor: pointer; }
     .search-field { position: relative; }
     .search-field i { position: absolute; top: 50%; left: 14px; color: var(--color-ink-muted); transform: translateY(-50%); }
     .search-field input { width: 100%; min-height: 48px; padding-left: 42px; }
@@ -99,8 +106,9 @@ import { MatchesStore } from '../store/matches.store';
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }
     input:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (min-width: 700px) { .matches-page { padding: 34px 28px 120px; }.page-hero { grid-template-columns: 1fr 1fr; align-items: end; padding: 34px; }.filters { grid-template-columns: minmax(260px, 1.4fr) 2fr auto; align-items: end; }.match-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
-    @media (min-width: 1040px) { .match-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); } }
+    @media (min-width: 700px) { .matches-page { padding: 34px 28px 120px; }.page-hero { grid-template-columns: 1fr 1fr; align-items: end; padding: 34px; }.filter-row { grid-template-columns: 1fr; }.match-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 900px) { .results-layout { display: grid; grid-template-columns: 250px minmax(0, 1fr); gap: 22px; align-items: start; margin-top: 20px; }.filters { position: sticky; top: calc(var(--header-height) + 18px); margin: 0; }.results-heading { min-height: 42px; }.filter-row { grid-template-columns: 1fr; } }
+    @media (min-width: 1100px) { .match-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
   `,
 })
 export class MatchesList implements OnInit, OnDestroy {

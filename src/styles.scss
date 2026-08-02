@@ -13,27 +13,27 @@
 
 :root {
   --base-font-size: 16px;
-  --base-font-family: 'Aptos', 'Segoe UI', system-ui, sans-serif;
-  --display-font: 'Arial Narrow', 'Aptos Display', 'Segoe UI', sans-serif;
-  --color-ocean: #071d26;
-  --color-ink: #102c34;
-  --color-ink-muted: #60777c;
-  --color-brand: #19c7b5;
-  --color-brand-strong: #087c73;
-  --color-brand-soft: #e5f8f5;
-  --color-tournament: #ff5a1f;
-  --color-tournament-soft: #fff0e9;
-  --color-sand: #f0d7aa;
+  --base-font-family: 'Aptos', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
+  --display-font: 'Space Grotesk', 'Aptos Display', 'Segoe UI Variable Display', sans-serif;
+  --color-ocean: #14181a;
+  --color-ink: #14181a;
+  --color-ink-muted: #7a7062;
+  --color-brand: #d4562a;
+  --color-brand-strong: #b3402a;
+  --color-brand-soft: #fbeae5;
+  --color-tournament: #d4562a;
+  --color-tournament-soft: #fbeae5;
+  --color-sand: #ead9b8;
   --color-surface: #ffffff;
-  --color-surface-muted: #eef4f2;
-  --color-canvas: #f7faf9;
-  --color-border: #dce7e4;
-  --color-danger: #c43842;
-  --color-danger-soft: #fcecef;
-  --color-success: #167a4e;
-  --color-success-soft: #e9f7f0;
-  --color-focus: #48ddcf;
-  --header-height: 66px;
+  --color-surface-muted: #f4f0e6;
+  --color-canvas: #f7f3ea;
+  --color-border: #e4ddcd;
+  --color-danger: #b3402a;
+  --color-danger-soft: #fbeae5;
+  --color-success: #1f6f54;
+  --color-success-soft: #e6f3ec;
+  --color-focus: #d4562a;
+  --header-height: 68px;
   --bottom-nav-height: 72px;
   --bottom-actions-height: 0px;
   --safe-bottom: env(safe-area-inset-bottom, 0px);
@@ -71,7 +71,7 @@ body {
   min-width: 320px;
   margin: 0;
   background:
-    linear-gradient(180deg, rgb(25 199 181 / 0.055), transparent 220px),
+    radial-gradient(circle at 8% 0%, rgb(212 86 42 / 0.055), transparent 280px),
     var(--color-canvas);
   font-family: var(--base-font-family);
   text-rendering: optimizeLegibility;
@@ -98,6 +98,30 @@ svg {
 ::selection {
   color: white;
   background: var(--color-brand-strong);
+}
+
+a,
+button,
+input,
+textarea,
+select {
+  transition:
+    color var(--duration-fast) var(--ease-out),
+    background-color var(--duration-fast) var(--ease-out),
+    border-color var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.p-button {
+  border-radius: 12px;
+  font-weight: 800;
+}
+
+.p-inputtext,
+.p-select,
+.p-multiselect {
+  border-radius: 12px;
 }
 
 ::-webkit-scrollbar {
@@ -151,14 +175,14 @@ a.my-matches-button.p-button:hover {
   border: 1px solid var(--color-border);
   border-radius: 26px;
   background: var(--color-surface);
-  box-shadow: 0 28px 80px rgb(7 29 38 / .28);
+  box-shadow: 0 28px 80px rgb(20 24 26 / .22);
 }
 
 .p-dialog.app-confirm-dialog::before,
 .p-dialog.app-form-dialog::before {
   display: block;
   height: 5px;
-  background: linear-gradient(90deg, var(--color-brand), var(--color-tournament));
+  background: var(--color-brand);
   content: '';
 }
 

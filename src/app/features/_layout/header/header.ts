@@ -1,125 +1,70 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '../../auth/store/auth.store';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink],
+  imports: [RouterLink, RouterLinkActive],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="app-header">
       <a class="brand" routerLink="/" aria-label="Beach Volley Hub, home">
-        <span class="brand-ball" aria-hidden="true">
-          <span></span>
-        </span>
-        <span>
-          <strong>Beach Volley</strong>
-          <small>Hub</small>
-        </span>
+        <span class="brand-mark" aria-hidden="true"><i class="pi pi-sun"></i></span>
+        <strong>Beach Volley <span>Hub</span></strong>
       </a>
 
       <nav aria-label="Navigazione desktop">
-        <a routerLink="/partite">Partite</a>
-        <a routerLink="/tornei">Tornei</a>
-        <a routerLink="/profilo">Profilo</a>
+        <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"><i class="pi pi-home"></i> Home</a>
+        <a routerLink="/partite" routerLinkActive="is-active"><i class="pi pi-users"></i> Partite</a>
+        <a routerLink="/tornei" routerLinkActive="is-active"><i class="pi pi-trophy"></i> Tornei</a>
+        <a routerLink="/profilo" routerLinkActive="is-active"><i class="pi pi-user"></i> Profilo</a>
       </nav>
 
       <div class="account-actions">
-        <span class="user-name">{{ authStore.userName() }} · {{ authStore.roleLabel() }}</span>
+        <span class="user-name">{{ authStore.userName() }} <small>{{ authStore.roleLabel() }}</small></span>
         @if (authStore.canOrganizeTournaments()) {
-          <a class="icon-action" routerLink="/tornei/organizza" aria-label="Organizza torneo" title="Organizza torneo">
-            <i class="pi pi-trophy" aria-hidden="true"></i>
-          </a>
+          <a class="icon-action" routerLink="/tornei/organizza" aria-label="Organizza torneo" title="Organizza torneo"><i class="pi pi-trophy" aria-hidden="true"></i></a>
         }
         @if (authStore.isAdmin()) {
-          <a class="icon-action" routerLink="/admin/utenti" aria-label="Gestione utenti" title="Gestione utenti">
-            <i class="pi pi-users" aria-hidden="true"></i>
-          </a>
+          <a class="icon-action" routerLink="/admin/utenti" aria-label="Gestione utenti" title="Gestione utenti"><i class="pi pi-users" aria-hidden="true"></i></a>
         }
-        <a class="icon-action notifications" routerLink="/notifiche" aria-label="Notifiche">
-          <i class="pi pi-bell" aria-hidden="true"></i>
-          <span aria-hidden="true"></span>
-        </a>
-        <button class="icon-action logout" type="button" aria-label="Esci" (click)="logout()">
-          <i class="pi pi-sign-out" aria-hidden="true"></i>
-        </button>
+        <a class="icon-action notifications" routerLink="/notifiche" aria-label="Notifiche"><i class="pi pi-bell" aria-hidden="true"></i><span aria-hidden="true"></span></a>
+        <button class="icon-action logout" type="button" aria-label="Esci" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i></button>
+        <a class="user-avatar" routerLink="/profilo" aria-label="Apri il tuo profilo">{{ userInitials() }}</a>
       </div>
     </header>
   `,
   styles: `
     :host { display: block; }
-
-    .app-header {
-      position: sticky;
-      z-index: var(--z-sticky);
-      top: 0;
-      display: flex;
-      height: var(--header-height);
-      align-items: center;
-      justify-content: space-between;
-      padding: max(8px, env(safe-area-inset-top)) 18px 8px;
-      color: white;
-      background: var(--color-ocean);
-    }
-
-    .brand { display: inline-flex; align-items: center; gap: 10px; color: white; text-decoration: none; }
-    .brand > span:last-child { display: flex; flex-direction: column; line-height: 0.92; text-transform: uppercase; }
-    .brand strong { font-family: var(--display-font); font-size: 0.86rem; letter-spacing: 0.02em; }
-    .brand small { color: var(--color-brand); font-size: 0.69rem; font-weight: 900; letter-spacing: 0.18em; }
-
-    .brand-ball {
-      position: relative;
-      display: block;
-      width: 34px;
-      height: 34px;
-      overflow: hidden;
-      border: 2px solid white;
-      border-radius: 50%;
-    }
-    .brand-ball::before, .brand-ball::after, .brand-ball span {
-      position: absolute;
-      content: '';
-      border: 1.5px solid white;
-      border-radius: 50%;
-    }
-    .brand-ball::before { inset: 6px -15px 6px 13px; }
-    .brand-ball::after { inset: -14px 6px 13px 6px; }
-    .brand-ball span { inset: 15px 12px -18px -10px; }
-
-    nav { display: none; align-items: center; gap: 26px; }
-    nav a { color: rgb(255 255 255 / 0.78); font-weight: 750; text-decoration: none; }
-    nav a:hover { color: white; }
-
-    .account-actions { display: flex; align-items: center; gap: 8px; }
-    .user-name { display: none; color: rgb(255 255 255 / 0.72); font-size: 0.78rem; font-weight: 750; }
-    .icon-action {
-      position: relative;
-      display: grid;
-      width: 42px;
-      height: 42px;
-      place-items: center;
-      color: white;
-      border: 0;
-      border-radius: 50%;
-      background: rgb(255 255 255 / 0.08);
-      font: inherit;
-      text-decoration: none;
-      cursor: pointer;
-    }
-    .notifications span { position: absolute; top: 9px; right: 9px; width: 7px; height: 7px; border: 2px solid var(--color-ocean); border-radius: 50%; background: var(--color-tournament); }
+    .app-header { position: sticky; z-index: var(--z-sticky); top: 0; display: flex; height: var(--header-height); align-items: center; justify-content: space-between; padding: max(8px, env(safe-area-inset-top)) 16px 8px; color: var(--color-ink); border-bottom: 1px solid var(--color-border); background: rgb(255 255 255 / .92); box-shadow: 0 5px 20px rgb(20 24 26 / .035); backdrop-filter: blur(18px); }
+    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--color-ink); text-decoration: none; }
+    .brand strong { font: 800 .93rem/1 var(--display-font); letter-spacing: -.025em; white-space: nowrap; }
+    .brand strong span { color: var(--color-brand); }
+    .brand-mark { display: grid; width: 36px; height: 36px; place-items: center; color: white; border-radius: 11px; background: var(--color-ocean); box-shadow: 0 7px 16px rgb(20 24 26 / .16); }
+    nav { display: none; align-items: center; gap: 24px; }
+    nav a { display: inline-flex; align-items: center; gap: 7px; padding: 9px 0; color: var(--color-ink-muted); border-bottom: 2px solid transparent; font-size: .81rem; font-weight: 750; text-decoration: none; }
+    nav a i { font-size: .76rem; }
+    nav a:hover, nav a.is-active { color: var(--color-ink); }
+    nav a.is-active { border-bottom-color: var(--color-brand); }
+    .account-actions { display: flex; align-items: center; gap: 7px; }
+    .user-name { display: none; color: var(--color-ink); font-size: .74rem; font-weight: 800; }
+    .user-name small { display: block; color: var(--color-ink-muted); font-size: .62rem; font-weight: 650; text-align: right; }
+    .icon-action { position: relative; display: none; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: 12px; background: var(--color-surface-muted); font: inherit; text-decoration: none; cursor: pointer; }
+    .icon-action.notifications, .icon-action.logout { display: grid; }
+    .icon-action:hover { color: var(--color-brand-strong); transform: translateY(-1px); }
+    .notifications span { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border: 2px solid var(--color-surface-muted); border-radius: 50%; background: var(--color-brand); }
+    .user-avatar { display: grid; width: 38px; height: 38px; place-items: center; color: white; border-radius: 11px; background: var(--color-brand); font-size: .68rem; font-weight: 850; text-decoration: none; }
     a:focus-visible, button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
-
-    @media (min-width: 768px) {
-      .app-header { padding-inline: 32px; }
-      nav { display: flex; }
-      .user-name { display: inline; }
-    }
+    @media (max-width: 420px) { .brand strong { max-width: 74px; white-space: normal; } .icon-action.logout { display: none; } }
+    @media (min-width: 768px) { .app-header { padding-inline: clamp(24px, 4vw, 52px); } nav { display: flex; } .user-name { display: inline; } .icon-action { display: grid; } }
   `,
 })
 export class Header {
   protected readonly authStore = inject(AuthStore);
 
-  protected logout(): void {
-    void this.authStore.logout();
+  protected logout(): void { void this.authStore.logout(); }
+
+  protected userInitials(): string {
+    return this.authStore.userName().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'BV';
   }
 }

@@ -102,10 +102,10 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       left: var(--space-3);
       overflow: visible;
       color: var(--color-ink);
-      border: 1px solid rgb(255 255 255 / 0.7);
-      border-radius: 24px;
-      background: rgb(255 255 255 / 0.86);
-      box-shadow: 0 18px 44px rgb(7 29 38 / 0.18), 0 2px 8px rgb(7 29 38 / 0.08);
+      border: 1px solid var(--color-border);
+      border-radius: 22px;
+      background: rgb(255 255 255 / 0.92);
+      box-shadow: 0 18px 44px rgb(20 24 26 / 0.16), 0 2px 8px rgb(20 24 26 / 0.07);
       backdrop-filter: saturate(1.4) blur(22px);
       -webkit-backdrop-filter: saturate(1.4) blur(22px);
     }
@@ -147,6 +147,7 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
     }
 
     .dock-nav-list a.is-active { color: var(--color-brand-strong); }
+    .dock-nav-list a.is-active .nav-icon { background: var(--color-brand-soft); }
     .dock-nav-list a.is-active .nav-icon { transform: translateY(-2px); }
 
     .dock-nav-list .is-create .nav-icon {
@@ -156,8 +157,8 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       color: white;
       border: 4px solid rgb(255 255 255 / 0.95);
       border-radius: 50%;
-      background: var(--color-tournament);
-      box-shadow: 0 8px 18px rgb(255 90 31 / 0.32);
+      background: var(--color-brand);
+      box-shadow: 0 8px 18px rgb(212 86 42 / 0.3);
     }
 
     .dock-actions {
@@ -180,7 +181,7 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       padding: 0 14px;
       color: var(--color-ink);
       border: 0;
-      border-radius: 15px;
+      border-radius: 13px;
       background: var(--color-surface-muted);
       font: inherit;
       font-size: 0.78rem;
@@ -197,7 +198,7 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       order: 9;
       flex: 1 1 auto;
       color: white;
-      background: var(--color-brand-strong);
+      background: var(--color-brand);
     }
 
     .label-short { display: none; }

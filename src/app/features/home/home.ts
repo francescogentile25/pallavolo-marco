@@ -16,6 +16,7 @@ import { AuthStore } from '../auth/store/auth.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="home-page">
+      <div class="home-feature-grid">
       <section class="hero" aria-labelledby="home-title">
         <div>
           <p class="eyebrow">La tua prossima partita</p>
@@ -35,6 +36,7 @@ import { AuthStore } from '../auth/store/auth.store';
             <span pButtonLabel>Le mie partite</span>
           </a>
         </div>
+        <div class="hero-stamp" aria-hidden="true"><i class="pi pi-sun"></i><span>Beach<br />Volley</span></div>
       </section>
 
       <section class="section-block" aria-labelledby="matches-title">
@@ -43,7 +45,7 @@ import { AuthStore } from '../auth/store/auth.store';
             <p class="eyebrow">Vicino a te</p>
             <h2 id="matches-title">Partite aperte</h2>
           </div>
-          <a routerLink="/partite">Vedi tutte</a>
+          <a routerLink="/partite">Vedi tutte <i class="pi pi-arrow-right"></i></a>
         </div>
 
         <div class="match-scroller">
@@ -64,6 +66,7 @@ import { AuthStore } from '../auth/store/auth.store';
           }
         </div>
       </section>
+      </div>
 
       <section class="tournament-card" aria-labelledby="tournament-title">
         <div class="tournament-number" aria-hidden="true">16</div>
@@ -91,10 +94,8 @@ import { AuthStore } from '../auth/store/auth.store';
       padding: 28px 22px 22px;
       color: white;
       border-radius: 28px;
-      background:
-        radial-gradient(circle at 88% 8%, rgb(39 203 187 / 0.75) 0 12%, transparent 38%),
-        linear-gradient(145deg, #071d26 0%, #123945 100%);
-      box-shadow: 0 18px 38px rgb(7 29 38 / 0.2);
+      background: var(--color-ocean);
+      box-shadow: 0 18px 38px rgb(20 24 26 / 0.18);
     }
 
     .hero::after {
@@ -104,7 +105,7 @@ import { AuthStore } from '../auth/store/auth.store';
       right: -55px;
       bottom: -76px;
       content: '';
-      border: 18px solid rgb(255 255 255 / 0.1);
+      border: 18px solid rgb(255 255 255 / 0.065);
       border-radius: 50%;
     }
 
@@ -117,7 +118,7 @@ import { AuthStore } from '../auth/store/auth.store';
       text-transform: uppercase;
     }
 
-    .hero .eyebrow { color: #84efe3; }
+    .hero .eyebrow { color: #f2b08e; }
     h1, h2, h3, p { margin-top: 0; }
 
     h1 {
@@ -144,9 +145,9 @@ import { AuthStore } from '../auth/store/auth.store';
       align-items: center;
       gap: 12px;
       padding: 8px 14px 8px 9px;
-      color: var(--color-ink);
-      border-radius: 20px;
-      background: white;
+      color: white;
+      border-radius: 16px;
+      background: var(--color-brand);
       font-weight: 850;
       text-decoration: none;
     }
@@ -154,7 +155,7 @@ import { AuthStore } from '../auth/store/auth.store';
     .hero-actions { position: relative; z-index: 1; display: grid; gap: 10px; }
 
     .hero-cta > i { margin-left: auto; }
-    .hero-cta small { display: block; color: var(--color-ink-muted); font-size: 0.68rem; }
+    .hero-cta small { display: block; color: rgb(255 255 255 / .68); font-size: 0.68rem; }
 
     .ball-mark {
       display: grid;
@@ -164,8 +165,11 @@ import { AuthStore } from '../auth/store/auth.store';
       place-items: center;
       color: white;
       border-radius: 50%;
-      background: var(--color-tournament);
+      background: rgb(255 255 255 / .16);
     }
+
+    .hero-stamp { position: absolute; right: 24px; bottom: 22px; display: none; align-items: center; gap: 8px; color: rgb(255 255 255 / .32); font: 800 .63rem/.95 var(--display-font); letter-spacing: .08em; text-transform: uppercase; }
+    .hero-stamp i { font-size: 1.65rem; }
 
     .section-block { padding: 28px 0 8px; }
     .section-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 14px; }
@@ -187,15 +191,15 @@ import { AuthStore } from '../auth/store/auth.store';
       min-height: 180px;
       padding: 18px;
       border: 1px solid var(--color-border);
-      border-radius: 22px;
+      border-radius: 18px;
       background: var(--color-surface);
-      box-shadow: 0 8px 24px rgb(7 29 38 / 0.06);
+      box-shadow: 0 8px 24px rgb(20 24 26 / 0.045);
       scroll-snap-align: start;
     }
 
     .match-topline { display: flex; justify-content: space-between; margin-bottom: 22px; }
     .level, .spots { padding: 5px 8px; border-radius: 9px; font-size: 0.68rem; font-weight: 850; }
-    .level { color: var(--color-brand-strong); background: var(--color-brand-soft); }
+    .level { color: var(--color-ink); background: var(--color-surface-muted); }
     .spots { color: var(--color-tournament); background: var(--color-tournament-soft); }
     .match-card h3 { margin-bottom: 8px; font-size: 1.08rem; }
     .match-card p { color: var(--color-ink-muted); font-size: 0.82rem; }
@@ -224,8 +228,8 @@ import { AuthStore } from '../auth/store/auth.store';
       overflow: hidden;
       padding: 22px;
       color: white;
-      border-radius: 26px;
-      background: var(--color-tournament);
+      border-radius: 22px;
+      background: var(--color-brand);
     }
 
     .tournament-card .eyebrow { color: rgb(255 255 255 / 0.7); }
@@ -237,9 +241,19 @@ import { AuthStore } from '../auth/store/auth.store';
 
     @media (min-width: 768px) {
       .home-page { padding: 36px 28px 120px; }
-      .hero { min-height: 370px; display: grid; align-content: center; padding: 48px; }
-      .hero-actions { grid-template-columns: 350px auto; align-items: stretch; justify-content: start; }
-      .match-scroller { grid-auto-columns: minmax(260px, 1fr); grid-template-columns: repeat(3, 1fr); overflow: visible; }
+      .home-feature-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(310px, .85fr); gap: 20px; align-items: stretch; }
+      .hero { min-height: 430px; display: grid; align-content: center; padding: 48px; }
+      .hero-actions { grid-template-columns: minmax(260px, 350px); align-items: stretch; justify-content: start; }
+      .hero-stamp { display: flex; }
+      .section-block { display: grid; grid-template-rows: auto 1fr; padding: 4px 0; }
+      .match-scroller { grid-auto-flow: row; grid-template-columns: 1fr; overflow: visible; }
+      .match-card { min-height: 0; padding: 16px; }
+      .match-topline { margin-bottom: 12px; }
+      .players { margin-top: 12px; }
+      .tournament-card { margin-top: 20px; }
+    }
+    @media (min-width: 1040px) {
+      .home-feature-grid { grid-template-columns: minmax(0, 1.3fr) minmax(340px, .7fr); }
     }
   `,
 })

@@ -63,9 +63,9 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       gap: 8px;
       padding: 8px;
       border: 1px solid var(--color-border);
-      border-radius: 22px;
-      background: rgb(255 255 255 / 0.9);
-      box-shadow: 0 18px 44px rgb(7 29 38 / 0.16);
+      border-radius: 999px;
+      background: rgb(255 255 255 / 0.94);
+      box-shadow: 0 18px 44px rgb(20 24 26 / 0.16);
       backdrop-filter: blur(20px);
     }
 
@@ -79,7 +79,7 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       padding: 0 15px;
       color: var(--color-ink);
       border: 0;
-      border-radius: 14px;
+      border-radius: 999px;
       background: var(--color-surface-muted);
       font: inherit;
       font-weight: 800;
@@ -91,7 +91,8 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
     .is-danger { order: 1; color: var(--color-danger); background: var(--color-danger-soft); }
     .is-default { order: 2; }
     .is-success { order: 3; color: var(--color-success); background: var(--color-success-soft); }
-    .is-primary { order: 9; color: white; background: var(--color-brand-strong); }
+    .is-primary { order: 9; color: white; background: var(--color-brand); }
+    .pill-action:hover { transform: translateY(-2px); }
 
     a:focus-visible, button:focus-visible {
       outline: 3px solid var(--color-focus);
