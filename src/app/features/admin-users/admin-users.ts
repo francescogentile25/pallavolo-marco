@@ -11,6 +11,7 @@ import {
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { InputText } from 'primeng/inputtext';
+import { Paginator, PaginatorState } from 'primeng/paginator';
 import { Select } from 'primeng/select';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { UserProfile, UserRole } from '../auth/models/auth.model';
@@ -23,7 +24,7 @@ import { AdminUsersStore } from './store/admin-users.store';
 
 @Component({
   selector: 'app-admin-users',
-  imports: [DatePipe, FormsModule, InputText, Select, AdminUserCard],
+  imports: [DatePipe, FormsModule, InputText, Paginator, Select, AdminUserCard],
   providers: [AdminUsersStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -59,7 +60,7 @@ import { AdminUsersStore } from './store/admin-users.store';
                 type="search"
                 autocomplete="off"
                 placeholder="Cerca un utente"
-                (input)="search.set(searchInput.value)"
+                (input)="onSearch(searchInput.value)"
               />
             </span>
           </div>
@@ -71,7 +72,7 @@ import { AdminUsersStore } from './store/admin-users.store';
               optionLabel="label"
               optionValue="value"
               [ngModel]="activeFilter()"
-              (ngModelChange)="activeFilter.set($event)"
+              (ngModelChange)="onActiveFilter($event)"
               fluid
             />
           </div>
@@ -83,7 +84,7 @@ import { AdminUsersStore } from './store/admin-users.store';
               optionLabel="label"
               optionValue="value"
               [ngModel]="roleFilter()"
-              (ngModelChange)="roleFilter.set($event)"
+              (ngModelChange)="onRoleFilter($event)"
               fluid
             />
           </div>
@@ -100,7 +101,7 @@ import { AdminUsersStore } from './store/admin-users.store';
         <section class="users-section" aria-labelledby="users-title">
           <h2 id="users-title" class="sr-only">Elenco utenti</h2>
           <div class="user-list">
-            @for (user of filteredUsers(); track user.id) {
+            @for (user of pagedUsers(); track user.id) {
               <app-admin-user-card
                 [user]="user"
                 [currentUserId]="authStore.authUser()?.id ?? null"
@@ -117,6 +118,18 @@ import { AdminUsersStore } from './store/admin-users.store';
               </div>
             }
           </div>
+          @if (filteredUsers().length > rows()) {
+            <p-paginator
+              styleClass="admin-paginator"
+              [first]="first()"
+              [rows]="rows()"
+              [totalRecords]="filteredUsers().length"
+              [rowsPerPageOptions]="[10, 20, 50]"
+              [showCurrentPageReport]="true"
+              currentPageReportTemplate="{first}-{last} di {totalRecords}"
+              (onPageChange)="onPage($event)"
+            />
+          }
         </section>
       }
 
@@ -167,6 +180,8 @@ import { AdminUsersStore } from './store/admin-users.store';
     .page-error { display: flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--color-danger); border-radius: 14px; background: var(--color-danger-soft); }
     .users-section { margin-top: 14px; }
     .user-list { display: grid; gap: 10px; }
+    p-paginator { display: block; margin-top: 12px; }
+    :host ::ng-deep .admin-paginator .p-paginator { justify-content: center; flex-wrap: wrap; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
     .loading-state, .empty-state { display: grid; min-height: 240px; place-content: center; justify-items: center; gap: 10px; color: var(--color-ink-muted); text-align: center; }
     .empty-state { border: 1px dashed var(--color-border); border-radius: 22px; background: var(--color-surface); }
     .empty-state i { font-size: 2rem; }
@@ -212,6 +227,13 @@ export class AdminUsers implements OnInit, OnDestroy {
   protected readonly filteredUsers = computed(() =>
     filterAdminUsers(this.store.users(), this.search(), this.activeFilter(), this.roleFilter()),
   );
+  protected readonly first = signal(0);
+  protected readonly rows = signal(10);
+  protected readonly pagedUsers = computed(() => {
+    const list = this.filteredUsers();
+    const start = this.first() < list.length ? this.first() : 0;
+    return list.slice(start, start + this.rows());
+  });
   protected readonly pendingCount = computed(() => this.store.users().filter((user) => !user.attivo).length);
   protected readonly organizerCount = computed(() => this.store.users().filter((user) => user.ruolo === 'organizzatore').length);
   protected readonly adminCount = computed(() => this.store.users().filter((user) => user.ruolo === 'admin').length);
@@ -222,6 +244,14 @@ export class AdminUsers implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void { this.pageActions.clear(); }
+
+  protected onPage(event: PaginatorState): void {
+    this.first.set(event.first ?? 0);
+    this.rows.set(event.rows ?? this.rows());
+  }
+  protected onSearch(value: string): void { this.search.set(value); this.first.set(0); }
+  protected onActiveFilter(value: AdminActiveFilter): void { this.activeFilter.set(value); this.first.set(0); }
+  protected onRoleFilter(value: AdminRoleFilter): void { this.roleFilter.set(value); this.first.set(0); }
 
   protected userName(id: string): string { const user = this.store.users().find((item) => item.id === id); return user ? `${user.nome} ${user.cognome}` : 'Utente'; }
   protected auditDescription(previousActive: boolean, newActive: boolean, previousRole: UserRole, newRole: UserRole): string {
