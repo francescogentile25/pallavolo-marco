@@ -19,6 +19,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
         <a routerLink="/partite" routerLinkActive="is-active"><i class="pi pi-users"></i> Partite</a>
         <a routerLink="/tornei" routerLinkActive="is-active"><i class="pi pi-trophy"></i> Tornei</a>
         <a routerLink="/campi" routerLinkActive="is-active"><i class="pi pi-map-marker"></i> Campi</a>
+        <a routerLink="/amici" routerLinkActive="is-active"><i class="pi pi-user-plus"></i> Amici</a>
         <a routerLink="/profilo" routerLinkActive="is-active"><i class="pi pi-user"></i> Profilo</a>
       </nav>
 

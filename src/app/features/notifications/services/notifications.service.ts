@@ -27,6 +27,8 @@ const META: Record<AppNotificationType, TypeMeta> = {
   tournament_result_recorded: { icon: 'pi-trophy', title: 'Nuovo risultato', text: () => 'È stato registrato un nuovo risultato in un tuo torneo.' },
   tournament_result_pending: { icon: 'pi-hourglass', title: 'Conferma richiesta', text: () => 'Un risultato attende la tua conferma.' },
   tournament_waitlist_promoted: { icon: 'pi-arrow-up', title: 'Promossi dalla lista d\'attesa', text: () => 'La tua coppia è passata da riserva a confermata.' },
+  friend_request_received: { icon: 'pi-user-plus', title: 'Richiesta di amicizia', text: (a) => `${a} ti ha inviato una richiesta di amicizia.` },
+  friend_request_accepted: { icon: 'pi-users', title: 'Amicizia accettata', text: (a) => `${a} ha accettato la tua richiesta di amicizia.` },
 };
 
 @Injectable({ providedIn: 'root' })
@@ -116,6 +118,7 @@ export class NotificationsService {
   }
 
   link(n: AppNotification): string[] {
+    if (n.type === 'friend_request_received' || n.type === 'friend_request_accepted') return ['/amici'];
     if (n.tournament_id) return ['/tornei', n.tournament_id];
     if (n.match_id) return ['/partite', n.match_id];
     return ['/'];

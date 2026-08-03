@@ -9,6 +9,7 @@ import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 import { PageActionsService } from '../../../core/services/page-actions.service';
 import { AuthStore } from '../../auth/store/auth.store';
+import { FriendsService } from '../../friends/services/friends.service';
 import { MatchGender } from '../models/match.model';
 import { MatchesStore } from '../store/matches.store';
 
@@ -84,6 +85,10 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
               </div>
               @if (!editing) { <div class="field wide invite-field">
                 <label for="invited-players">Invita giocatori <small>(opzionale)</small></label>
+                <div class="pill-toggle" role="group" aria-label="Filtro giocatori">
+                  <button type="button" [class.active]="playerFilter() === 'all'" (click)="playerFilter.set('all')">Tutti</button>
+                  <button type="button" [class.active]="playerFilter() === 'friends'" (click)="playerFilter.set('friends')">Amici</button>
+                </div>
                 <p-multiselect
                   inputId="invited-players"
                   [ngModel]="model().invitedPlayerIds"
@@ -154,6 +159,9 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
     .field-error { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--color-danger); font-size: .7rem; font-weight: 700; line-height: 1.35; }
     .field-error i { flex: 0 0 auto; font-size: .76rem; }
     .field-hint { color: var(--color-ink-muted); font-size: .68rem; line-height: 1.45; }
+    .pill-toggle { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface-muted); }
+    .pill-toggle button { padding: 7px 16px; color: var(--color-ink-muted); border: 0; border-radius: 9px; background: none; font: inherit; font-size: .74rem; font-weight: 750; cursor: pointer; }
+    .pill-toggle button.active { color: var(--color-brand-strong); background: white; box-shadow: 0 1px 3px rgb(20 24 26 / .1); }
     .grid, .new-court { display: grid; gap: 15px; }
     .new-court { padding: 16px; margin-top: 12px; border-radius: 18px; background: var(--color-surface-muted); }
     .check { display: flex; min-height: 44px; align-items: center; gap: 9px; font-size: .76rem; font-weight: 800; }
@@ -209,7 +217,8 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
   `,
 })
 export class MatchCreate implements OnInit, OnDestroy {
-  protected readonly store = inject(MatchesStore); private readonly router = inject(Router); private readonly route = inject(ActivatedRoute); private readonly auth = inject(AuthStore); private readonly actions = inject(PageActionsService);
+  protected readonly store = inject(MatchesStore); private readonly router = inject(Router); private readonly route = inject(ActivatedRoute); private readonly auth = inject(AuthStore); private readonly actions = inject(PageActionsService); private readonly friends = inject(FriendsService);
+  protected readonly playerFilter = signal<'all' | 'friends'>('all');
   private readonly matchId = this.route.snapshot.paramMap.get('id');
   protected readonly editing = this.matchId !== null;
   protected readonly initializing = signal(this.editing);
@@ -245,8 +254,10 @@ export class MatchCreate implements OnInit, OnDestroy {
   protected readonly invitablePlayerOptions = computed(() => {
     const minLevel = +this.model().minLevel;
     const maxLevel = +this.model().maxLevel;
+    const friendsOnly = this.playerFilter() === 'friends';
+    const friendIds = this.friends.friendIds();
     return this.store.invitablePlayers()
-      .filter(player => player.livello >= minLevel && player.livello <= maxLevel)
+      .filter(player => player.livello >= minLevel && player.livello <= maxLevel && (!friendsOnly || friendIds.has(player.id)))
       .map(player => ({ label: `${player.nome} ${player.cognome} · livello ${player.livello}`, value: player.id }));
   });
   protected readonly invitedPlayersSummary = computed(() => {
@@ -265,7 +276,7 @@ export class MatchCreate implements OnInit, OnDestroy {
   ngOnInit(): void {
     this.actions.set([{ id:'cancel-create', label:this.editing ? 'Annulla modifica' : 'Annulla creazione', shortLabel:'Annulla', icon:'pi-times', danger:true, routerLink:this.editing && this.matchId ? `/partite/${this.matchId}` : '/partite' }]);
     if (this.editing) void this.loadMatchForEditing();
-    else void Promise.all([this.store.loadCourts(), this.store.loadInvitablePlayers()]);
+    else void Promise.all([this.store.loadCourts(), this.store.loadInvitablePlayers(), this.friends.ensureLoaded()]);
   }
   ngOnDestroy(): void { this.actions.clear(); }
   protected showError(field: { touched(): boolean; valid(): boolean }): boolean { return field.touched() && !field.valid(); }

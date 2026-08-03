@@ -229,7 +229,7 @@ export class BottomDock {
     { id: 'matches', route: '/partite', icon: 'pi-users', label: 'Partite' },
     { id: 'create', route: '/partite/nuova', icon: 'pi-plus', label: 'Crea' },
     { id: 'tournaments', route: '/tornei', icon: 'pi-trophy', label: 'Tornei' },
-    { id: 'profile', route: '/profilo', icon: 'pi-user', label: 'Profilo' },
+    { id: 'courts', route: '/campi', icon: 'pi-map-marker', label: 'Campi' },
   ] as const;
 
   protected showsLabel(action: PageAction): boolean {

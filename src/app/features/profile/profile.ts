@@ -41,6 +41,10 @@ import { ProfileStore } from './store/profile.store';
               <i class="pi pi-map-marker" pButtonIcon aria-hidden="true"></i>
               <span pButtonLabel>I miei campi</span>
             </a>
+            <a pButton class="my-friends-button" severity="secondary" routerLink="/amici">
+              <i class="pi pi-user-plus" pButtonIcon aria-hidden="true"></i>
+              <span pButtonLabel>Amici</span>
+            </a>
             @if (canOrganizeTournaments(profile.ruolo)) {
               <a pButton class="organize-tournament-button" severity="secondary" routerLink="/tornei/organizza">
                 <i class="pi pi-trophy" pButtonIcon aria-hidden="true"></i>

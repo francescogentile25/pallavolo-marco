@@ -13,7 +13,9 @@ export type AppNotificationType =
   | 'tournament_cancelled'
   | 'tournament_result_recorded'
   | 'tournament_result_pending'
-  | 'tournament_waitlist_promoted';
+  | 'tournament_waitlist_promoted'
+  | 'friend_request_received'
+  | 'friend_request_accepted';
 
 export interface AppNotification {
   id: number;
