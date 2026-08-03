@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
-import { FormControl, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
+import { ToggleSwitch } from 'primeng/toggleswitch';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { PreferredSide } from '../auth/models/auth.model';
 import { capabilitiesForRole, USER_ROLE_LABELS } from '../auth/auth.utils';
@@ -12,7 +13,7 @@ import { ProfileStore } from './store/profile.store';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, RouterLink, ButtonModule, InputText, Select, ProfileHistoryChart],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, ButtonModule, InputText, Select, ToggleSwitch, ProfileHistoryChart],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="profile-page">
@@ -94,6 +95,23 @@ import { ProfileStore } from './store/profile.store';
           </form>
         </section>
 
+        <section class="pref-card" aria-labelledby="pref-title">
+          <div class="section-heading">
+            <div><p class="eyebrow">Preferenze</p><h2 id="pref-title">Notifiche</h2></div>
+          </div>
+          <div class="pref-row">
+            <div class="pref-copy">
+              <strong>Notifiche in-app</strong>
+              <small>Ricevi avvisi su iscrizioni, inviti, risultati e cambi partita. Se disattivi, non verranno più create.</small>
+            </div>
+            <p-toggleswitch
+              [ngModel]="profile.in_app_notifications_enabled"
+              (ngModelChange)="store.setNotifications($event)"
+              ariaLabel="Attiva o disattiva le notifiche in-app"
+            />
+          </div>
+        </section>
+
         <section class="history-grid" aria-label="Storico del profilo">
           <app-profile-history-chart title="Andamento livello" eyebrow="Valutazioni" [points]="levelPoints()" />
           <app-profile-history-chart title="Andamento affidabilità" eyebrow="Presenze" [points]="reliabilityPoints()" />
@@ -135,6 +153,11 @@ import { ProfileStore } from './store/profile.store';
     .field .field-error, .form-error { color: var(--color-danger); }
     .form-error { margin: 16px 0 0; font-size: .78rem; }
     .save-button { display: inline-block; margin-top: 20px; }
+    .pref-card { padding: 20px; margin-top: 14px; border: 1px solid var(--color-border); border-radius: 25px; background: var(--color-surface); box-shadow: 0 10px 28px rgb(7 29 38 / .05); }
+    .pref-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+    .pref-copy { display: grid; gap: 4px; min-width: 0; }
+    .pref-copy strong { font-size: .86rem; }
+    .pref-copy small { color: var(--color-ink-muted); font-size: .72rem; line-height: 1.45; }
     .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
     .loading-state, .error-state { display: grid; min-height: 60dvh; place-content: center; justify-items: center; gap: 12px; color: var(--color-ink-muted); text-align: center; }
     .error-state i { color: var(--color-danger); font-size: 2rem; }

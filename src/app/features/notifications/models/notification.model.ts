@@ -3,12 +3,17 @@ export type AppNotificationType =
   | 'match_participant_withdrew'
   | 'match_cancelled'
   | 'match_closed'
+  | 'match_invited'
+  | 'match_rating_received'
+  | 'match_no_show_reported'
   | 'tournament_team_invite'
   | 'tournament_invite_accepted'
   | 'tournament_invite_rejected'
   | 'tournament_registration_closed'
   | 'tournament_cancelled'
-  | 'tournament_result_recorded';
+  | 'tournament_result_recorded'
+  | 'tournament_result_pending'
+  | 'tournament_waitlist_promoted';
 
 export interface AppNotification {
   id: number;

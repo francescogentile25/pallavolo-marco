@@ -44,6 +44,11 @@ export class ProfileService {
     return (data ?? []) as ReliabilityHistoryEntry[];
   }
 
+  async setNotifications(enabled: boolean): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_in_app_notifications', { p_enabled: enabled });
+    if (error) throw error;
+  }
+
   async updateMyProfile(request: UpdatePlayerProfileRequest): Promise<UserProfile> {
     const { data, error } = await this.supabase.client.rpc('update_my_profile', {
       p_nome: request.nome,

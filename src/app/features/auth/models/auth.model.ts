@@ -15,6 +15,7 @@ export interface UserProfile {
   lato_preferito: PreferredSide;
   avatar_url: string | null;
   autovalutazione: number;
+  in_app_notifications_enabled: boolean;
   created_at: string;
   updated_at: string;
 }

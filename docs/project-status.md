@@ -180,6 +180,18 @@ Notifiche in-app persistite + realtime. Fonte: `MD Repository/NOTIFICHE-SPEC.md`
 Angular + Supabase (tabella `notifications`, RLS, RPC sink, trigger di dominio, Supabase Realtime al
 posto di SignalR; testo composto lato frontend). Vedi `implementation-plan.md`.
 
+Fatto finora (applicato su remoto + deploy):
+
+- [x] Tabella `notifications`, RLS solo-destinatario, sink `create_notifications`, RPC mark/preferenza.
+- [x] Campanella header con badge + dropdown, pagina `/notifiche` paginata.
+- [x] Toggle preferenza notifiche in `/profilo` (`set_in_app_notifications`).
+- [x] 10 trigger di dominio: tornei (invito, risposta, chiusura, annullo, risultato, conferma,
+      promozione lista d'attesa) e partite (iscrizione, invito diretto, ritiro, annullo, chiusura,
+      valutazione ricevuta, no-show).
+- [x] Funzioni trigger `security definer` revocate da PUBLIC (advisor pulito).
+- [ ] QA autenticata mobile realtime su due sessioni (affidata all'utente).
+- [ ] Sync live liste/detail via broadcast: non necessaria (realtime per-feature già presente).
+
 ## Prossimo incremento
 
 Onda 5 — Notifiche:

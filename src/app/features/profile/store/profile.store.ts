@@ -63,6 +63,19 @@ export const ProfileStore = signalStore(
         }
       },
 
+      async setNotifications(enabled: boolean): Promise<void> {
+        const current = store.profile();
+        if (!current) return;
+        try {
+          await profileService.setNotifications(enabled);
+          const profile = { ...current, in_app_notifications_enabled: enabled };
+          patchState(store, { profile });
+          authStore.updateProfileSnapshot(profile);
+        } catch {
+          messageService.add({ severity: 'error', summary: 'Preferenza non salvata', detail: 'Riprova.' });
+        }
+      },
+
       async save(request: UpdatePlayerProfileRequest): Promise<boolean> {
         if (store.saving()) return false;
         patchState(store, { saving: true, error: null });

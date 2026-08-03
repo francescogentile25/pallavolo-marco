@@ -16,12 +16,17 @@ const META: Record<AppNotificationType, TypeMeta> = {
   match_participant_withdrew: { icon: 'pi-user-minus', title: 'Ritiro dalla partita', text: (a) => `${a} si è ritirato dalla tua partita.` },
   match_cancelled: { icon: 'pi-times-circle', title: 'Partita annullata', text: () => 'Una partita a cui partecipi è stata annullata.' },
   match_closed: { icon: 'pi-flag', title: 'Partita conclusa', text: () => 'Una partita si è conclusa: lascia le tue valutazioni.' },
+  match_invited: { icon: 'pi-envelope', title: 'Invito a una partita', text: (a) => `${a} ti ha aggiunto a una partita.` },
+  match_rating_received: { icon: 'pi-star', title: 'Nuova valutazione', text: () => 'Hai ricevuto una nuova valutazione.' },
+  match_no_show_reported: { icon: 'pi-exclamation-triangle', title: 'Assenza segnalata', text: () => 'Sei stato segnalato come assente a una partita.' },
   tournament_team_invite: { icon: 'pi-envelope', title: 'Invito a un torneo', text: (a) => `${a} ti ha invitato in coppia per un torneo.` },
   tournament_invite_accepted: { icon: 'pi-check-circle', title: 'Invito accettato', text: (a) => `${a} ha accettato il tuo invito in coppia.` },
   tournament_invite_rejected: { icon: 'pi-times-circle', title: 'Invito rifiutato', text: (a) => `${a} ha rifiutato il tuo invito in coppia.` },
   tournament_registration_closed: { icon: 'pi-lock', title: 'Iscrizioni chiuse', text: () => 'Le iscrizioni di un torneo sono chiuse: consulta il calendario.' },
   tournament_cancelled: { icon: 'pi-ban', title: 'Torneo annullato', text: () => 'Un torneo a cui partecipi è stato annullato.' },
   tournament_result_recorded: { icon: 'pi-trophy', title: 'Nuovo risultato', text: () => 'È stato registrato un nuovo risultato in un tuo torneo.' },
+  tournament_result_pending: { icon: 'pi-hourglass', title: 'Conferma richiesta', text: () => 'Un risultato attende la tua conferma.' },
+  tournament_waitlist_promoted: { icon: 'pi-arrow-up', title: 'Promossi dalla lista d\'attesa', text: () => 'La tua coppia è passata da riserva a confermata.' },
 };
 
 @Injectable({ providedIn: 'root' })
