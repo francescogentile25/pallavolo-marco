@@ -3,13 +3,12 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { ChatMessage, ChatReaction, ChatResource } from '../models/chat.model';
 
+// L'embed auto-referenziale (chat_messages -> chat_messages) non è affidabile in
+// PostgREST; la citazione reply viene risolta lato client dalla stessa timeline.
 const CHAT_SELECT = `
   id, resource_type, resource_id, author_id, body, reply_to_id, reactions,
   text_edited_at, deleted, deleted_at, deleted_by, created_at,
-  author:profiles!chat_messages_author_id_fkey(id, nome, cognome),
-  reply_to:chat_messages!chat_messages_reply_to_id_fkey(
-    id, body, deleted, author:profiles!chat_messages_author_id_fkey(id, nome, cognome)
-  )
+  author:profiles!chat_messages_author_id_fkey(id, nome, cognome)
 `;
 
 @Injectable({ providedIn: 'root' })
@@ -25,7 +24,15 @@ export class ChatService {
       .order('created_at', { ascending: true })
       .order('id', { ascending: true });
     if (error) throw error;
-    return (data ?? []) as unknown as ChatMessage[];
+    const rows = (data ?? []) as unknown as ChatMessage[];
+    const byId = new Map(rows.map((row) => [row.id, row]));
+    for (const row of rows) {
+      const target = row.reply_to_id != null ? byId.get(row.reply_to_id) : undefined;
+      row.reply_to = target
+        ? { id: target.id, body: target.deleted ? '' : target.body, deleted: target.deleted, author: target.author }
+        : null;
+    }
+    return rows;
   }
 
   async post(type: ChatResource, resourceId: string, body: string, replyTo: number | null): Promise<void> {
