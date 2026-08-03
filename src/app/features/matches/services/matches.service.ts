@@ -67,13 +67,18 @@ export class MatchesService {
   }
 
   async getCourts(): Promise<readonly Court[]> {
-    const { data, error } = await this.supabase.client
-      .from('courts')
-      .select(`id, venue_id, name, surface, indoor,
-        venue:venues!courts_venue_id_fkey(id, name, address, city, latitude, longitude)`)
-      .order('name');
+    // Solo i campi personali (creati o ereditati giocando), via RPC.
+    const { data, error } = await this.supabase.client.rpc('list_my_courts');
     if (error) throw error;
-    return (data ?? []) as unknown as Court[];
+    type Row = { id: string; name: string; indoor: boolean; surface: string; venue_id: string; venue_name: string; address: string; city: string };
+    return ((data ?? []) as Row[]).map((r) => ({
+      id: r.id,
+      venue_id: r.venue_id,
+      name: r.name,
+      surface: r.surface,
+      indoor: r.indoor,
+      venue: { id: r.venue_id, name: r.venue_name, address: r.address, city: r.city, latitude: null, longitude: null },
+    }));
   }
 
   async getInvitablePlayers(): Promise<readonly InvitablePlayer[]> {

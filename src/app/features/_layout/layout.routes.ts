@@ -19,6 +19,7 @@ export const layoutRoutes: Routes = [
       { path: 'tornei/organizza', canActivate: [organizerGuard], loadComponent: () => import('../tournaments/pages/tournament-create').then(c => c.TournamentCreate) },
       { path: 'tornei/:id', loadComponent: () => import('../tournaments/pages/tournament-detail').then(c => c.TournamentDetail) },
       { path: 'tornei', loadComponent: () => import('../tournaments/pages/tournaments-list').then(c => c.TournamentsList) },
+      { path: 'campi', loadComponent: () => import('../courts/pages/courts-page').then(c => c.CourtsPage) },
       { path: 'profilo', loadComponent: () => import('../profile/profile').then(c => c.Profile) },
       { path: 'admin/utenti', canActivate: [adminGuard], loadComponent: () => import('../admin-users/admin-users').then(c => c.AdminUsers) },
       { path: 'notifiche', loadComponent: () => import('../notifications/pages/notifications-page').then(c => c.NotificationsPage) },

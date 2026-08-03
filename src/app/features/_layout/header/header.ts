@@ -18,6 +18,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
         <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"><i class="pi pi-home"></i> Home</a>
         <a routerLink="/partite" routerLinkActive="is-active"><i class="pi pi-users"></i> Partite</a>
         <a routerLink="/tornei" routerLinkActive="is-active"><i class="pi pi-trophy"></i> Tornei</a>
+        <a routerLink="/campi" routerLinkActive="is-active"><i class="pi pi-map-marker"></i> Campi</a>
         <a routerLink="/profilo" routerLinkActive="is-active"><i class="pi pi-user"></i> Profilo</a>
       </nav>
 
