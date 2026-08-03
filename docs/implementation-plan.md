@@ -227,7 +227,7 @@ Deliverable previsti:
 
 ## Onda 5 — Notifiche in-app e realtime
 
-Stato: `IN CORSO`
+Stato: `COMPLETATA`
 
 Fonte: `MD Repository/NOTIFICHE-SPEC.md`, adattata a Supabase Realtime.
 
@@ -243,7 +243,7 @@ Fonte: `MD Repository/NOTIFICHE-SPEC.md`, adattata a Supabase Realtime.
 
 ## Onda 6 — Chat di partita e torneo
 
-Stato: `PRONTA`
+Stato: `IN CORSO`
 
 Fonte: `MD Repository/CHAT-SPEC.md`, adattata a Supabase Realtime.
 

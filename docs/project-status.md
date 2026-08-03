@@ -17,7 +17,7 @@ incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
 | GitHub | Collegato a `francescogentile25/pallavolo-marco` |
 | Vercel | Produzione operativa |
 | URL produzione | https://pallavolo-marco.vercel.app |
-| Onda corrente | Onda 5 — Notifiche in-app e realtime (in corso) |
+| Onda corrente | Onda 6 — Chat di partita e torneo (in corso) |
 | Blocchi correnti | Nessuno |
 
 ## Funzionalità completate
@@ -174,13 +174,13 @@ sono applicate su Supabase remoto, il codice è pubblicato su `main` e distribui
 lint di sicurezza non riporta errori; restano soltanto QA autenticate affidate all'utente, non
 bloccanti per la chiusura dell'onda.
 
-## Onda 5 — in corso
+## Onda 5 — COMPLETATA
 
 Notifiche in-app persistite + realtime. Fonte: `MD Repository/NOTIFICHE-SPEC.md`, adattata ad
 Angular + Supabase (tabella `notifications`, RLS, RPC sink, trigger di dominio, Supabase Realtime al
 posto di SignalR; testo composto lato frontend). Vedi `implementation-plan.md`.
 
-Fatto finora (applicato su remoto + deploy):
+Fatto (applicato su remoto + deploy):
 
 - [x] Tabella `notifications`, RLS solo-destinatario, sink `create_notifications`, RPC mark/preferenza.
 - [x] Campanella header con badge + dropdown, pagina `/notifiche` paginata.
@@ -189,8 +189,16 @@ Fatto finora (applicato su remoto + deploy):
       promozione lista d'attesa) e partite (iscrizione, invito diretto, ritiro, annullo, chiusura,
       valutazione ricevuta, no-show).
 - [x] Funzioni trigger `security definer` revocate da PUBLIC (advisor pulito).
-- [ ] QA autenticata mobile realtime su due sessioni (affidata all'utente).
-- [ ] Sync live liste/detail via broadcast: non necessaria (realtime per-feature già presente).
+- [x] Toggle preferenza notifiche + notifiche demo seedate su remoto.
+- [x] Sync live liste/detail via broadcast: non necessaria (realtime per-feature già presente).
+
+QA autenticata mobile realtime su due sessioni affidata all'utente (non bloccante per la chiusura).
+
+## Onda 6 — in corso
+
+Chat di partita e torneo. Fonte: `MD Repository/CHAT-SPEC.md`, adattata ad Angular + Supabase
+(tabella unica `chat_messages` con reazioni/menzioni in JSONB, RLS per partecipazione, RPC per le
+mutazioni, Supabase Realtime al posto di SignalR). Vedi `implementation-plan.md`.
 
 ## Prossimo incremento
 

@@ -1,11 +1,12 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { ConfirmationService } from 'primeng/api';
 import { Button, ButtonModule } from 'primeng/button';
 import { PageActionsService } from '../../../core/services/page-actions.service';
 import { AuthStore } from '../../auth/store/auth.store';
+import { ChatDialog } from '../../chat/components/chat-dialog';
 import { MatchFeedbackCard } from '../components/match-feedback-card';
 import { availableSpots, isUserJoined, levelRangeLabel, MATCH_GENDER_LABELS, MATCH_STATUS_LABELS } from '../matches.utils';
 import { MatchesService } from '../services/matches.service';
@@ -13,7 +14,7 @@ import { MatchesStore } from '../store/matches.store';
 
 @Component({
   selector: 'app-match-detail',
-  imports: [Button, ButtonModule, DatePipe, RouterLink, MatchFeedbackCard],
+  imports: [Button, ButtonModule, DatePipe, RouterLink, MatchFeedbackCard, ChatDialog],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="detail-page">
@@ -28,6 +29,11 @@ import { MatchesStore } from '../store/matches.store';
           <p>{{ match.court.name }} · {{ match.court.venue.city }}</p>
           <div class="date-block"><span>{{ match.starts_at | date: 'dd' }}</span><div><strong>{{ match.starts_at | date: 'EEEE MMMM' : undefined : 'it-IT' }}</strong><small>{{ match.starts_at | date: 'HH:mm' }} · {{ match.duration_minutes }} minuti</small></div></div>
         </header>
+
+        @if (joined() || match.creator_id === authStore.authUser()?.id) {
+          <button type="button" class="chat-open" (click)="chatOpen.set(true)"><i class="pi pi-comments" aria-hidden="true"></i> Chat della partita</button>
+          <app-chat-dialog [open]="chatOpen()" (openChange)="chatOpen.set($event)" resourceType="match" [resourceId]="match.id" [title]="'Chat · ' + match.court.venue.name" />
+        }
 
         <div class="detail-grid">
           <section class="card" aria-labelledby="participants-title">
@@ -74,6 +80,8 @@ import { MatchesStore } from '../store/matches.store';
     </main>
   `,
   styles: `
+    .chat-open { display: inline-flex; align-items: center; gap: 8px; margin-top: 12px; padding: 10px 16px; color: var(--color-brand-strong); border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); font: inherit; font-size: .8rem; font-weight: 750; cursor: pointer; }
+    .chat-open:hover { background: var(--color-surface-muted); }
     .feedback-card { margin-top: 14px; }.feedback-help { margin: -6px 0 16px; color: var(--color-ink-muted); font-size: .76rem; line-height: 1.5; }.feedback-grid { display: grid; gap: 10px; }
     :host { display: block; }.detail-page { width: min(100%, 1040px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 80px); margin: 0 auto; }.back-link { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; color: var(--color-brand-strong); font-size: .78rem; font-weight: 850; text-decoration: none; }.match-hero { padding: 22px; color: white; border-radius: 28px; background: radial-gradient(circle at 90% 0, rgb(25 199 181 / .55), transparent 42%), linear-gradient(145deg, #071d26, #123945); box-shadow: 0 18px 38px rgb(7 29 38 / .16); }.hero-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 34px; font-size: .72rem; font-weight: 850; }.status { padding: 5px 8px; border-radius: 9px; color: var(--color-brand-strong); background: #dffffa; text-transform: uppercase; }.status-full,.status-cancelled { color: var(--color-danger); background: var(--color-danger-soft); }.eyebrow { margin: 0 0 6px; color: var(--color-brand); font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }.match-hero .eyebrow { color: #84efe3; }.match-hero h1 { margin: 0 0 5px; font: 900 clamp(2rem, 10vw, 4.3rem)/.95 var(--display-font); letter-spacing: -.05em; }.match-hero > p:not(.eyebrow) { margin: 0; color: rgb(255 255 255 / .7); }.date-block { display: flex; align-items: center; gap: 12px; padding-top: 18px; margin-top: 20px; border-top: 1px solid rgb(255 255 255 / .15); text-transform: capitalize; }.date-block > span { font: 900 2.5rem/1 var(--display-font); }.date-block div { display: grid; gap: 3px; }.date-block small { color: rgb(255 255 255 / .68); }.detail-grid { display: grid; gap: 14px; margin-top: 14px; }.card { padding: 20px; border: 1px solid var(--color-border); border-radius: 24px; background: var(--color-surface); }.section-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 16px; }.section-heading h2 { margin: 0; font: 900 1.45rem/1 var(--display-font); }.section-heading > strong { color: var(--color-brand-strong); }.participants { display: grid; gap: 8px; }.participant,.empty-slot { display: flex; min-height: 58px; align-items: center; gap: 11px; padding: 8px; border-radius: 16px; background: var(--color-surface-muted); }.avatar { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; overflow: hidden; border-radius: 14px; color: white; background: var(--color-brand-strong); font-size: .7rem; font-weight: 900; }.avatar img { width: 100%; height: 100%; object-fit: cover; }.participant > div:nth-child(2) { display: grid; min-width: 0; }.participant small { color: var(--color-ink-muted); font-size: .68rem; }.participant > i { margin-left: auto; color: var(--color-tournament); }.empty-slot { color: var(--color-ink-muted); border: 1px dashed var(--color-border); background: transparent; font-size: .75rem; }.empty-slot i { display: grid; width: 42px; height: 42px; place-items: center; border-radius: 14px; background: var(--color-surface-muted); }.info-card dl { display: grid; gap: 15px; margin: 0; }.info-card dl div { display: grid; gap: 4px; }.info-card dt { color: var(--color-ink-muted); font-size: .68rem; font-weight: 800; }.info-card dt i { width: 20px; color: var(--color-brand-strong); }.info-card dd { margin: 0 0 0 24px; font-size: .82rem; font-weight: 750; }.notes { padding: 14px; margin-top: 18px; border-radius: 15px; background: var(--color-brand-soft); }.notes strong { font-size: .72rem; }.notes p { margin: 6px 0 0; font-size: .78rem; line-height: 1.5; white-space: pre-wrap; }.mobile-cta { display: grid; gap: 8px; padding-top: 14px; }.mobile-cta a[pButton] { justify-content: center; text-decoration: none; }.state { display: grid; min-height: 60dvh; place-content: center; justify-items: center; gap: 10px; color: var(--color-ink-muted); text-align: center; }.spinner { width: 20px; height: 20px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }@keyframes spin { to { transform: rotate(360deg); } }a:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }@media (min-width: 768px) { .detail-page { padding: 34px 28px 120px; }.match-hero { padding: 34px; }.detail-grid { grid-template-columns: minmax(0, 1.2fr) minmax(280px, .8fr); }.mobile-cta { display: none; } }
   `,
@@ -82,6 +90,7 @@ export class MatchDetail implements OnInit, OnDestroy {
   protected readonly store = inject(MatchesStore); protected readonly authStore = inject(AuthStore);
   private readonly route = inject(ActivatedRoute); private readonly actions = inject(PageActionsService); private readonly service = inject(MatchesService); private readonly confirmationService = inject(ConfirmationService);
   private readonly matchId = this.route.snapshot.paramMap.get('id') ?? '';
+  protected readonly chatOpen = signal(false);
   protected readonly statusLabels = MATCH_STATUS_LABELS; protected readonly genderLabels = MATCH_GENDER_LABELS; protected readonly levelRange = levelRangeLabel;
   protected readonly spots = computed(() => this.store.selected() ? availableSpots(this.store.selected()!) : 0);
   protected readonly emptySlots = computed(() => Array.from({ length: Math.min(this.spots(), 4) }, (_, index) => index));
