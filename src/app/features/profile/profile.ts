@@ -5,6 +5,7 @@ import { ButtonModule } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { ToggleSwitch } from 'primeng/toggleswitch';
+import { Tooltip } from 'primeng/tooltip';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { PreferredSide } from '../auth/models/auth.model';
 import { capabilitiesForRole, USER_ROLE_LABELS } from '../auth/auth.utils';
@@ -13,75 +14,78 @@ import { ProfileStore } from './store/profile.store';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, ButtonModule, InputText, Select, ToggleSwitch, ProfileHistoryChart],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, ButtonModule, InputText, Select, ToggleSwitch, Tooltip, ProfileHistoryChart],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="profile-page">
       @if (store.loading() && !store.profile()) {
         <div class="loading-state" role="status"><span class="spinner"></span> Caricamento profilo</div>
       } @else if (store.profile(); as profile) {
-        <header class="profile-hero">
-          <div class="avatar">
+        <header class="hero">
+          <span class="hero-avatar" aria-hidden="true">
             @if (avatarPreview() && !avatarBroken()) {
               <img [src]="avatarPreview()" [alt]="'Avatar di ' + store.fullName()" (error)="avatarBroken.set(true)" />
-            } @else { <span aria-hidden="true">{{ initials() }}</span> }
-          </div>
-          <div class="identity">
-            <p class="eyebrow">Il tuo profilo personale</p>
-            <h1>{{ store.fullName() }}</h1>
-            <p>{{ profile.email }}</p>
-          </div>
-          <div class="profile-hero-actions">
+            } @else { {{ initials() }} }
+          </span>
+          <div class="hero-id">
+            <p class="eyebrow">Il tuo profilo</p>
+            <h1>{{ profile.nome }} {{ profile.cognome }}</h1>
+            <p class="hero-email">{{ profile.email }}</p>
             <span class="role-badge"><i class="pi pi-verified" aria-hidden="true"></i> {{ roleLabels[profile.ruolo] }}</span>
-            <a pButton class="my-matches-button" routerLink="/partite/mie">
-              <i class="pi pi-calendar" pButtonIcon aria-hidden="true"></i>
-              <span pButtonLabel>Le mie partite</span>
-            </a>
-            <a pButton class="my-courts-button" severity="secondary" routerLink="/campi">
-              <i class="pi pi-map-marker" pButtonIcon aria-hidden="true"></i>
-              <span pButtonLabel>I miei campi</span>
-            </a>
-            <a pButton class="my-friends-button" severity="secondary" routerLink="/amici">
-              <i class="pi pi-user-plus" pButtonIcon aria-hidden="true"></i>
-              <span pButtonLabel>Amici</span>
-            </a>
-            @if (canOrganizeTournaments(profile.ruolo)) {
-              <a pButton class="organize-tournament-button" severity="secondary" routerLink="/tornei/organizza">
-                <i class="pi pi-trophy" pButtonIcon aria-hidden="true"></i>
-                <span pButtonLabel>Organizza torneo</span>
-              </a>
-            }
           </div>
         </header>
 
-        <section class="metric-grid" aria-label="Indicatori del profilo">
-          <article class="metric-card">
-            <span class="metric-icon"><i class="pi pi-chart-line" aria-hidden="true"></i></span>
-            <div><p>Livello corrente</p><strong>{{ profile.livello.toFixed(1) }}</strong><small>{{ levelLabel(profile.livello) }}</small></div>
+        <nav class="quick-links" aria-label="Scorciatoie">
+          <a routerLink="/partite/mie"><i class="pi pi-calendar" aria-hidden="true"></i> Le mie partite</a>
+          <a routerLink="/campi"><i class="pi pi-map-marker" aria-hidden="true"></i> I miei campi</a>
+          <a routerLink="/amici"><i class="pi pi-user-plus" aria-hidden="true"></i> Amici</a>
+          @if (canOrganizeTournaments(profile.ruolo)) {
+            <a routerLink="/tornei/organizza"><i class="pi pi-trophy" aria-hidden="true"></i> Organizza torneo</a>
+          }
+        </nav>
+
+        <section class="metrics" aria-label="Indicatori">
+          <article class="metric">
+            <div class="metric-head">
+              <span class="metric-icon"><i class="pi pi-chart-line" aria-hidden="true"></i></span>
+              <i class="pi pi-info-circle info" tabindex="0"
+                 pTooltip="Il livello corrente è calcolato dalle valutazioni ricevute dagli altri giocatori a fine partita. Non è modificabile direttamente."
+                 tooltipPosition="top" aria-label="Cos'è il livello corrente"></i>
+            </div>
+            <p>Livello corrente</p>
+            <strong>{{ profile.livello.toFixed(1) }}</strong>
+            <small>{{ levelLabel(profile.livello) }}</small>
           </article>
-          <article class="metric-card reliability-card">
-            <span class="metric-icon"><i class="pi pi-shield" aria-hidden="true"></i></span>
-            <div><p>Affidabilità</p><strong>{{ profile.affidabilita.toFixed(1) }}</strong><small>{{ reliabilityLabel(profile.affidabilita) }}</small></div>
+          <article class="metric reliability">
+            <div class="metric-head">
+              <span class="metric-icon"><i class="pi pi-shield" aria-hidden="true"></i></span>
+              <i class="pi pi-info-circle info" tabindex="0"
+                 pTooltip="L'affidabilità riflette presenze e puntualità: le assenze segnalate (no-show) la riducono. Aiuta gli altri a sapere se sei un compagno affidabile."
+                 tooltipPosition="top" aria-label="Cos'è l'affidabilità"></i>
+            </div>
+            <p>Affidabilità</p>
+            <strong>{{ profile.affidabilita.toFixed(1) }}</strong>
+            <small>{{ reliabilityLabel(profile.affidabilita) }}</small>
           </article>
         </section>
 
-        <section class="edit-card" aria-labelledby="edit-profile-title">
-          <div class="section-heading">
-            <div><p class="eyebrow">Dati pubblici</p><h2 id="edit-profile-title">Modifica profilo</h2></div>
-            <span>I campi amministrativi sono protetti</span>
-          </div>
+        <section class="card" aria-labelledby="edit-title">
+          <div class="card-head"><div><p class="eyebrow">Dati pubblici</p><h2 id="edit-title">Modifica profilo</h2></div></div>
           <form [formGroup]="profileForm" (ngSubmit)="save()" novalidate>
-            <div class="field-grid">
+            <div class="grid">
               <div class="field">
                 <label for="profile-name">Nome</label>
-                <input id="profile-name" pInputText fluid type="text" formControlName="nome" autocomplete="given-name" maxlength="80" [invalid]="showError('nome')" />
-                @if (showError('nome')) { <small class="field-error">Inserisci un nome valido.</small> }
+                <input id="profile-name" pInputText fluid type="text" formControlName="nome" autocomplete="given-name" maxlength="80" [readonly]="!isAdmin()" [invalid]="showError('nome')" />
+                @if (showError('nome')) { <small class="err">Inserisci un nome valido.</small> }
               </div>
               <div class="field">
                 <label for="profile-surname">Cognome</label>
-                <input id="profile-surname" pInputText fluid type="text" formControlName="cognome" autocomplete="family-name" maxlength="80" [invalid]="showError('cognome')" />
-                @if (showError('cognome')) { <small class="field-error">Inserisci un cognome valido.</small> }
+                <input id="profile-surname" pInputText fluid type="text" formControlName="cognome" autocomplete="family-name" maxlength="80" [readonly]="!isAdmin()" [invalid]="showError('cognome')" />
+                @if (showError('cognome')) { <small class="err">Inserisci un cognome valido.</small> }
               </div>
+              @if (!isAdmin()) {
+                <p class="lock-note wide"><i class="pi pi-lock" aria-hidden="true"></i> Nome e cognome sono gestiti dall'amministratore. Per una correzione, contattalo.</p>
+              }
               <div class="field">
                 <label for="profile-side">Lato preferito</label>
                 <p-select inputId="profile-side" formControlName="lato_preferito" [options]="sideOptions" optionLabel="label" optionValue="value" [invalid]="showError('lato_preferito')" fluid />
@@ -89,38 +93,29 @@ import { ProfileStore } from './store/profile.store';
               <div class="field">
                 <label for="profile-rating">Autovalutazione</label>
                 <p-select inputId="profile-rating" formControlName="autovalutazione" [options]="ratingOptions" optionLabel="label" optionValue="value" [invalid]="showError('autovalutazione')" fluid />
-                <small id="rating-help">È distinta dal livello calcolato tramite le valutazioni.</small>
+                <small>È distinta dal livello calcolato tramite le valutazioni.</small>
               </div>
-              <div class="field avatar-field">
+              <div class="field wide">
                 <label for="profile-avatar">URL avatar</label>
                 <input id="profile-avatar" pInputText fluid type="url" formControlName="avatar_url" inputmode="url" placeholder="https://esempio.it/avatar.jpg" [invalid]="showError('avatar_url')" (input)="updateAvatarPreview()" />
                 <small>Opzionale. Usa un indirizzo HTTPS pubblico.</small>
-                @if (showError('avatar_url')) { <small class="field-error">Inserisci un URL HTTPS valido.</small> }
+                @if (showError('avatar_url')) { <small class="err">Inserisci un URL HTTPS valido.</small> }
               </div>
             </div>
             @if (store.error()) { <p class="form-error" role="alert">{{ store.error() }}</p> }
-            <p-button class="save-button" type="submit" label="Salva modifiche" icon="pi pi-check" [loading]="store.saving()" [disabled]="profileForm.pristine" />
+            <p-button class="save" type="submit" label="Salva modifiche" icon="pi pi-check" [loading]="store.saving()" [disabled]="profileForm.pristine" />
           </form>
         </section>
 
-        <section class="pref-card" aria-labelledby="pref-title">
-          <div class="section-heading">
-            <div><p class="eyebrow">Preferenze</p><h2 id="pref-title">Notifiche</h2></div>
-          </div>
+        <section class="card" aria-labelledby="pref-title">
+          <div class="card-head"><div><p class="eyebrow">Preferenze</p><h2 id="pref-title">Notifiche</h2></div></div>
           <div class="pref-row">
-            <div class="pref-copy">
-              <strong>Notifiche in-app</strong>
-              <small>Ricevi avvisi su iscrizioni, inviti, risultati e cambi partita. Se disattivi, non verranno più create.</small>
-            </div>
-            <p-toggleswitch
-              [ngModel]="profile.in_app_notifications_enabled"
-              (ngModelChange)="store.setNotifications($event)"
-              ariaLabel="Attiva o disattiva le notifiche in-app"
-            />
+            <div class="pref-copy"><strong>Notifiche in-app</strong><small>Avvisi su iscrizioni, inviti, risultati e amicizie. Se disattivi, non verranno create.</small></div>
+            <p-toggleswitch [ngModel]="profile.in_app_notifications_enabled" (ngModelChange)="store.setNotifications($event)" ariaLabel="Notifiche in-app" />
           </div>
         </section>
 
-        <section class="history-grid" aria-label="Storico del profilo">
+        <section class="history" aria-label="Storico del profilo">
           <app-profile-history-chart title="Andamento livello" eyebrow="Valutazioni" [points]="levelPoints()" />
           <app-profile-history-chart title="Andamento affidabilità" eyebrow="Presenze" [points]="reliabilityPoints()" />
         </section>
@@ -131,49 +126,63 @@ import { ProfileStore } from './store/profile.store';
   `,
   styles: `
     :host { display: block; }
-    .profile-page { width: min(100%, 1040px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
-    .profile-hero { position: relative; display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 16px; overflow: hidden; padding: 22px; color: white; border-radius: 28px; background: radial-gradient(circle at 90% 0, rgb(25 199 181 / .5), transparent 42%), linear-gradient(145deg, #071d26, #123945); box-shadow: 0 18px 38px rgb(7 29 38 / .18); }
-    .avatar { display: grid; width: 76px; height: 76px; place-items: center; overflow: hidden; border: 3px solid rgb(255 255 255 / .75); border-radius: 24px; background: var(--color-tournament); font-size: 1.45rem; font-weight: 900; }
-    .avatar img { width: 100%; height: 100%; object-fit: cover; }
-    .identity { min-width: 0; }
+    .profile-page { width: min(100%, 1040px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; display: grid; gap: 14px; }
+    .hero { display: grid; grid-template-columns: auto 1fr; align-items: center; gap: 18px; padding: 24px 22px; color: white; border-radius: 26px; background: radial-gradient(circle at 88% 0, rgb(25 199 181 / .5), transparent 45%), linear-gradient(145deg, #071d26, #123945); box-shadow: 0 18px 38px rgb(7 29 38 / .18); }
+    .hero-avatar { display: grid; width: 84px; height: 84px; place-items: center; overflow: hidden; border: 3px solid rgb(255 255 255 / .7); border-radius: 26px; background: var(--color-tournament); font-size: 1.6rem; font-weight: 900; }
+    .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-id { min-width: 0; }
     .eyebrow { margin: 0 0 6px; color: var(--color-brand); font-size: .68rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
-    .profile-hero .eyebrow { color: #84efe3; }
-    h1 { overflow: hidden; margin: 0 0 4px; font: 900 clamp(1.7rem, 8vw, 3.6rem)/1 var(--display-font); letter-spacing: -.045em; text-overflow: ellipsis; }
-    .identity > p:last-child { overflow: hidden; margin: 0; color: rgb(255 255 255 / .7); font-size: .82rem; text-overflow: ellipsis; }
-    .profile-hero-actions { display: flex; grid-column: 1 / -1; flex-wrap: wrap; align-items: center; gap: 8px; justify-self: start; }
-    .role-badge { padding: 6px 9px; border-radius: 9px; background: rgb(255 255 255 / .12); font-size: .7rem; font-weight: 800; text-transform: capitalize; }
-    .metric-grid, .history-grid { display: grid; gap: 12px; margin-top: 14px; }
-    .metric-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .metric-card { display: flex; min-width: 0; align-items: center; gap: 12px; padding: 16px 14px; border: 1px solid var(--color-border); border-radius: 21px; background: var(--color-surface); }
-    .metric-icon { display: none; width: 44px; height: 44px; flex: 0 0 44px; place-items: center; border-radius: 14px; background: var(--color-brand-soft); color: var(--color-brand-strong); }
-    .metric-card p, .metric-card small { display: block; margin: 0; color: var(--color-ink-muted); font-size: .67rem; }
-    .metric-card strong { display: block; margin: 2px 0; font-size: 1.6rem; line-height: 1; }
-    .reliability-card .metric-icon { color: var(--color-success); background: var(--color-success-soft); }
-    .edit-card { padding: 20px; margin-top: 14px; border: 1px solid var(--color-border); border-radius: 25px; background: var(--color-surface); box-shadow: 0 10px 28px rgb(7 29 38 / .05); }
-    .section-heading { display: flex; align-items: start; justify-content: space-between; gap: 12px; margin-bottom: 20px; }
-    .section-heading h2 { margin: 0; font: 900 1.55rem/1 var(--display-font); letter-spacing: -.03em; }
-    .section-heading > span { max-width: 150px; color: var(--color-ink-muted); font-size: .68rem; text-align: right; }
-    .field-grid { display: grid; gap: 16px; }
-    .field { display: grid; align-content: start; gap: 7px; }
-    .field label { font-size: .78rem; font-weight: 800; }
+    .hero .eyebrow { color: #84efe3; }
+    .hero h1 { margin: 0 0 6px; font: 900 clamp(1.6rem, 6vw, 2.6rem)/1.02 var(--display-font); letter-spacing: -.03em; overflow-wrap: anywhere; }
+    .hero-email { margin: 0 0 10px; color: rgb(255 255 255 / .72); font-size: .82rem; overflow-wrap: anywhere; }
+    .role-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; background: rgb(255 255 255 / .14); font-size: .7rem; font-weight: 800; text-transform: capitalize; }
+    .quick-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+    .quick-links a { display: inline-flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--color-ink); border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); font-size: .8rem; font-weight: 750; text-decoration: none; }
+    .quick-links a:hover { border-color: var(--color-brand); color: var(--color-brand-strong); }
+    .quick-links i { color: var(--color-brand-strong); }
+    .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+    .metric { padding: 16px; border: 1px solid var(--color-border); border-radius: 20px; background: var(--color-surface); }
+    .metric-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+    .metric-icon { display: grid; width: 42px; height: 42px; place-items: center; color: var(--color-brand-strong); border-radius: 13px; background: var(--color-brand-soft); }
+    .metric.reliability .metric-icon { color: var(--color-success); background: var(--color-success-soft); }
+    .info { color: var(--color-ink-muted); cursor: help; font-size: 1rem; }
+    .info:hover, .info:focus-visible { color: var(--color-brand-strong); }
+    .metric p { margin: 0; color: var(--color-ink-muted); font-size: .68rem; font-weight: 700; }
+    .metric strong { display: block; margin: 3px 0; font-size: 1.9rem; line-height: 1; }
+    .metric small { color: var(--color-ink-muted); font-size: .68rem; }
+    .card { padding: 20px; border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); }
+    .card-head { margin-bottom: 18px; }
+    .card-head h2 { margin: 0; font: 900 1.4rem/1 var(--display-font); letter-spacing: -.03em; }
+    .grid { display: grid; gap: 15px; }
+    .field { display: grid; align-content: start; gap: 7px; min-width: 0; }
+    .field label { font-size: .76rem; font-weight: 800; }
     .field input, .field p-select { width: 100%; min-height: 48px; }
+    .field input[readonly] { color: var(--color-ink-muted); background: var(--color-surface-muted); cursor: not-allowed; }
     .field small { color: var(--color-ink-muted); font-size: .68rem; line-height: 1.4; }
-    .field .field-error, .form-error { color: var(--color-danger); }
-    .form-error { margin: 16px 0 0; font-size: .78rem; }
-    .save-button { display: inline-block; margin-top: 20px; }
-    .pref-card { padding: 20px; margin-top: 14px; border: 1px solid var(--color-border); border-radius: 25px; background: var(--color-surface); box-shadow: 0 10px 28px rgb(7 29 38 / .05); }
+    .err { color: var(--color-danger); }
+    .lock-note { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; color: var(--color-ink-muted); border-radius: 12px; background: var(--color-surface-muted); font-size: .72rem; }
+    .lock-note i { color: var(--color-brand-strong); }
+    .form-error { margin: 16px 0 0; color: var(--color-danger); font-size: .78rem; }
+    .save { display: inline-block; margin-top: 18px; }
     .pref-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
-    .pref-copy { display: grid; gap: 4px; min-width: 0; }
+    .pref-copy { display: grid; gap: 3px; min-width: 0; }
     .pref-copy strong { font-size: .86rem; }
     .pref-copy small { color: var(--color-ink-muted); font-size: .72rem; line-height: 1.45; }
+    .history { display: grid; gap: 12px; }
+    .wide { grid-column: 1 / -1; }
     .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
     .loading-state, .error-state { display: grid; min-height: 60dvh; place-content: center; justify-items: center; gap: 12px; color: var(--color-ink-muted); text-align: center; }
     .error-state i { color: var(--color-danger); font-size: 2rem; }
     .error-state h1, .error-state p { margin: 0; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (min-width: 520px) { .metric-icon { display: grid; } .field-grid { grid-template-columns: repeat(2, 1fr); } .avatar-field { grid-column: 1 / -1; } }
-    @media (min-width: 768px) { .profile-page { padding: 34px 28px 120px; } .profile-hero { grid-template-columns: auto 1fr auto; padding: 30px; } .profile-hero-actions { grid-column: auto; justify-self: end; } .history-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
     @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
+    @media (min-width: 768px) {
+      .profile-page { padding: 34px 28px 120px; gap: 16px; }
+      .hero { grid-template-columns: auto 1fr; padding: 32px; }
+      .quick-links { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .history { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+    }
   `,
 })
 export class Profile implements OnInit, OnDestroy {
@@ -183,6 +192,7 @@ export class Profile implements OnInit, OnDestroy {
   private readonly pageActions = inject(PageActionsService);
   protected readonly avatarPreview = signal<string | null>(null);
   protected readonly avatarBroken = signal(false);
+  protected readonly isAdmin = computed(() => this.store.profile()?.ruolo === 'admin');
   protected readonly sideOptions: { label: string; value: PreferredSide }[] = [
     { label: 'Indifferente', value: 'indifferente' },
     { label: 'Sinistra', value: 'sinistra' },
@@ -230,13 +240,8 @@ export class Profile implements OnInit, OnDestroy {
   protected levelLabel(value: number): string { if (value <= 2) return 'Principiante'; if (value <= 4) return 'Intermedio'; if (value === 5) return 'Intermedio avanzato'; if (value === 6) return 'Avanzato'; return 'Pro player'; }
   protected selfRatingLabel(value: number): string {
     const labels: Record<number, string> = {
-      1: 'Principiante iniziale',
-      2: 'Principiante',
-      3: 'Intermedio iniziale',
-      4: 'Intermedio',
-      5: 'Intermedio avanzato',
-      6: 'Avanzato',
-      7: 'Pro player',
+      1: 'Principiante iniziale', 2: 'Principiante', 3: 'Intermedio iniziale', 4: 'Intermedio',
+      5: 'Intermedio avanzato', 6: 'Avanzato', 7: 'Pro player',
     };
     return labels[value] ?? 'Non definito';
   }

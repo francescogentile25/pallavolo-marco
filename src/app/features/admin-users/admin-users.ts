@@ -10,6 +10,8 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
+import { Button } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Paginator, PaginatorState } from 'primeng/paginator';
 import { Select } from 'primeng/select';
@@ -24,7 +26,7 @@ import { AdminUsersStore } from './store/admin-users.store';
 
 @Component({
   selector: 'app-admin-users',
-  imports: [DatePipe, FormsModule, InputText, Paginator, Select, AdminUserCard],
+  imports: [DatePipe, FormsModule, Button, Dialog, InputText, Paginator, Select, AdminUserCard],
   providers: [AdminUsersStore],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
@@ -109,6 +111,7 @@ import { AdminUsersStore } from './store/admin-users.store';
                 [roleOptions]="roleOptions"
                 (activationRequested)="confirmActivationChange($event)"
                 (roleRequested)="confirmRoleChange($event.user, $event.role)"
+                (nameRequested)="openNameEdit($event)"
               />
             } @empty {
               <div class="empty-state">
@@ -153,6 +156,30 @@ import { AdminUsersStore } from './store/admin-users.store';
           </ol>
         </section>
       }
+
+      <p-dialog [visible]="createOpen()" (visibleChange)="createOpen.set($event)" [modal]="true" [draggable]="false" header="Nuovo utente" [style]="{ width: '440px', maxWidth: '96vw' }">
+        <div class="admin-form">
+          <div class="af-field"><label for="nu-email">Email</label><input id="nu-email" pInputText type="email" autocomplete="off" [ngModel]="createForm().email" (ngModelChange)="setCreateField('email', $event)" /></div>
+          <div class="af-field"><label for="nu-nome">Nome</label><input id="nu-nome" pInputText [ngModel]="createForm().nome" (ngModelChange)="setCreateField('nome', $event)" maxlength="80" /></div>
+          <div class="af-field"><label for="nu-cognome">Cognome</label><input id="nu-cognome" pInputText [ngModel]="createForm().cognome" (ngModelChange)="setCreateField('cognome', $event)" maxlength="80" /></div>
+          <div class="af-field"><label for="nu-pass">Password provvisoria</label><input id="nu-pass" pInputText type="text" autocomplete="off" [ngModel]="createForm().password" (ngModelChange)="setCreateField('password', $event)" /><small>Min 6 caratteri. Comunicala all'utente: potrà accedere subito.</small></div>
+        </div>
+        <div class="admin-form-actions">
+          <p-button severity="secondary" [outlined]="true" label="Annulla" (onClick)="createOpen.set(false)" />
+          <p-button label="Crea utente" icon="pi pi-check" [loading]="creating()" [disabled]="!createValid()" (onClick)="createUser()" />
+        </div>
+      </p-dialog>
+
+      <p-dialog [visible]="nameDialogOpen()" (visibleChange)="nameDialogOpen.set($event)" [modal]="true" [draggable]="false" header="Modifica nome" [style]="{ width: '420px', maxWidth: '96vw' }">
+        <div class="admin-form">
+          <div class="af-field"><label for="en-nome">Nome</label><input id="en-nome" pInputText [ngModel]="nameForm().nome" (ngModelChange)="setNameField('nome', $event)" maxlength="80" /></div>
+          <div class="af-field"><label for="en-cognome">Cognome</label><input id="en-cognome" pInputText [ngModel]="nameForm().cognome" (ngModelChange)="setNameField('cognome', $event)" maxlength="80" /></div>
+        </div>
+        <div class="admin-form-actions">
+          <p-button severity="secondary" [outlined]="true" label="Annulla" (onClick)="nameDialogOpen.set(false)" />
+          <p-button label="Salva" icon="pi pi-check" [loading]="store.updatingId() === nameTarget()?.id" [disabled]="!nameForm().nome.trim() || !nameForm().cognome.trim()" (onClick)="saveName()" />
+        </div>
+      </p-dialog>
     </main>
   `,
   styles: `
@@ -196,6 +223,12 @@ import { AdminUsersStore } from './store/admin-users.store';
     .audit-list p, .audit-list small { display: block; margin: 3px 0 0; color: var(--color-ink-muted); font-size: .72rem; line-height: 1.4; }
     .audit-list strong { font-size: .8rem; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
+    .admin-form { display: grid; gap: 12px; }
+    .af-field { display: grid; gap: 6px; }
+    .af-field label { font-size: .76rem; font-weight: 800; }
+    .af-field input { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+    .af-field small { color: var(--color-ink-muted); font-size: .68rem; }
+    .admin-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (min-width: 600px) { .filter-grid { grid-template-columns: 2fr 1fr 1fr; } }
     @media (min-width: 768px) { .admin-page { padding: 34px 28px 120px; } .admin-hero { grid-template-columns: 1fr auto; align-items: end; padding: 32px; } .stats { min-width: 420px; grid-template-columns: repeat(4, 1fr); } }
@@ -231,6 +264,12 @@ export class AdminUsers implements OnInit, OnDestroy {
   );
   protected readonly first = signal(0);
   protected readonly rows = signal(10);
+  protected readonly createOpen = signal(false);
+  protected readonly creating = signal(false);
+  protected readonly createForm = signal<{ email: string; nome: string; cognome: string; password: string }>({ email: '', nome: '', cognome: '', password: '' });
+  protected readonly nameDialogOpen = signal(false);
+  protected readonly nameTarget = signal<UserProfile | null>(null);
+  protected readonly nameForm = signal<{ nome: string; cognome: string }>({ nome: '', cognome: '' });
   protected readonly pagedUsers = computed(() => {
     const list = this.filteredUsers();
     const start = this.first() < list.length ? this.first() : 0;
@@ -241,7 +280,10 @@ export class AdminUsers implements OnInit, OnDestroy {
   protected readonly adminCount = computed(() => this.store.users().filter((user) => user.ruolo === 'admin').length);
 
   ngOnInit(): void {
-    this.pageActions.set([{ id: 'refresh-users', label: 'Aggiorna utenti', shortLabel: 'Aggiorna', icon: 'pi-refresh', primary: true, click: () => void this.store.load() }]);
+    this.pageActions.set([
+      { id: 'new-user', label: 'Nuovo utente', shortLabel: 'Nuovo', icon: 'pi-user-plus', primary: true, click: () => this.openCreate() },
+      { id: 'refresh-users', label: 'Aggiorna utenti', shortLabel: 'Aggiorna', icon: 'pi-refresh', click: () => void this.store.load() },
+    ]);
     void this.store.load();
   }
 
@@ -254,6 +296,27 @@ export class AdminUsers implements OnInit, OnDestroy {
   protected onSearch(value: string): void { this.search.set(value); this.first.set(0); }
   protected onActiveFilter(value: AdminActiveFilter): void { this.activeFilter.set(value); this.first.set(0); }
   protected onRoleFilter(value: AdminRoleFilter): void { this.roleFilter.set(value); this.first.set(0); }
+
+  protected openCreate(): void { this.createForm.set({ email: '', nome: '', cognome: '', password: '' }); this.createOpen.set(true); }
+  protected setCreateField<K extends 'email' | 'nome' | 'cognome' | 'password'>(key: K, value: string): void { this.createForm.update((f) => ({ ...f, [key]: value })); }
+  protected createValid(): boolean { const f = this.createForm(); return /.+@.+\..+/.test(f.email) && !!f.nome.trim() && !!f.cognome.trim() && f.password.length >= 6; }
+  protected async createUser(): Promise<void> {
+    if (!this.createValid() || this.creating()) return;
+    this.creating.set(true);
+    const f = this.createForm();
+    const ok = await this.store.createUser({ email: f.email.trim(), nome: f.nome.trim(), cognome: f.cognome.trim(), password: f.password });
+    this.creating.set(false);
+    if (ok) this.createOpen.set(false);
+  }
+  protected openNameEdit(user: UserProfile): void { this.nameTarget.set(user); this.nameForm.set({ nome: user.nome, cognome: user.cognome }); this.nameDialogOpen.set(true); }
+  protected setNameField<K extends 'nome' | 'cognome'>(key: K, value: string): void { this.nameForm.update((f) => ({ ...f, [key]: value })); }
+  protected async saveName(): Promise<void> {
+    const target = this.nameTarget();
+    const f = this.nameForm();
+    if (!target || !f.nome.trim() || !f.cognome.trim()) return;
+    const ok = await this.store.updateName(target.id, f.nome.trim(), f.cognome.trim());
+    if (ok) this.nameDialogOpen.set(false);
+  }
 
   protected userName(id: string): string { const user = this.store.users().find((item) => item.id === id); return user ? `${user.nome} ${user.cognome}` : 'Utente'; }
   protected auditDescription(previousActive: boolean, newActive: boolean, previousRole: UserRole, newRole: UserRole): string {

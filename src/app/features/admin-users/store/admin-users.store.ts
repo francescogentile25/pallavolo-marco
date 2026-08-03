@@ -58,6 +58,39 @@ export const AdminUsersStore = signalStore(
           return false;
         }
       },
+
+      async createUser(payload: { email: string; nome: string; cognome: string; password: string }): Promise<boolean> {
+        patchState(store, { error: null });
+        try {
+          await service.createUser(payload);
+          const users = await service.getUsers();
+          patchState(store, { users });
+          messageService.add({ severity: 'success', summary: 'Utente creato', detail: `${payload.nome} ${payload.cognome} può accedere.` });
+          return true;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Creazione non riuscita.';
+          patchState(store, { error: message });
+          messageService.add({ severity: 'error', summary: 'Creazione non riuscita', detail: message });
+          return false;
+        }
+      },
+
+      async updateName(profileId: string, nome: string, cognome: string): Promise<boolean> {
+        if (store.updatingId()) return false;
+        patchState(store, { updatingId: profileId, error: null });
+        try {
+          const updated = await service.updateName(profileId, nome, cognome);
+          const users = store.users().map((user) => (user.id === updated.id ? updated : user));
+          patchState(store, { users, updatingId: null });
+          messageService.add({ severity: 'success', summary: 'Nome aggiornato', detail: `${updated.nome} ${updated.cognome}` });
+          return true;
+        } catch (error) {
+          const message = readableError(error);
+          patchState(store, { updatingId: null, error: message });
+          messageService.add({ severity: 'error', summary: 'Modifica non riuscita', detail: message });
+          return false;
+        }
+      },
     }),
   ),
 );

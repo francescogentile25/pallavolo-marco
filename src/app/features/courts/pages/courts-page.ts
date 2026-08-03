@@ -37,8 +37,7 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
                 <strong>{{ c.venue.name }} · {{ c.name }}</strong>
                 <small>{{ c.venue.address }}, {{ c.venue.city }}</small>
                 <div class="court-tags">
-                  <span class="tag">{{ c.indoor ? 'Coperto' : "All'aperto" }}</span>
-                  <span class="tag">{{ c.surface }}</span>
+                  <span class="tag">{{ c.indoor ? 'Coperto' : 'Scoperto' }}</span>
                   @if (!c.owned) { <span class="tag tag-inherited">Ereditato</span> }
                 </div>
               </div>

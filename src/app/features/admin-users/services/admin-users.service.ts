@@ -35,4 +35,26 @@ export class AdminUsersService {
     if (error) throw error;
     return data as UserProfile;
   }
+
+  async updateName(profileId: string, nome: string, cognome: string): Promise<UserProfile> {
+    const { data, error } = await this.supabase.client.rpc('admin_update_profile_name', {
+      p_profile_id: profileId,
+      p_nome: nome,
+      p_cognome: cognome,
+    });
+    if (error) throw error;
+    return data as UserProfile;
+  }
+
+  async createUser(payload: { email: string; nome: string; cognome: string; password: string }): Promise<void> {
+    const { error } = await this.supabase.client.functions.invoke('admin-create-user', { body: payload });
+    if (error) {
+      let message = error.message;
+      try {
+        const body = await (error as { context?: { json?: () => Promise<{ error?: string }> } }).context?.json?.();
+        if (body?.error) message = body.error;
+      } catch { /* keep default */ }
+      throw new Error(message);
+    }
+  }
 }

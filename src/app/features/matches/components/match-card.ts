@@ -30,7 +30,7 @@ import {
         <div class="facts">
           <span><i class="pi pi-users" aria-hidden="true"></i> {{ genderLabels[match().gender] }}</span>
           <span><i class="pi pi-chart-line" aria-hidden="true"></i> {{ levelRange(match()) }}</span>
-          <span><i class="pi pi-clock" aria-hidden="true"></i> {{ match().duration_minutes }} min</span>
+          <span><i class="pi pi-clock" aria-hidden="true"></i> {{ match().duration_minutes ? match().duration_minutes + ' min' : 'durata libera' }}</span>
         </div>
         <div class="availability">
           <div class="avatars" aria-hidden="true">

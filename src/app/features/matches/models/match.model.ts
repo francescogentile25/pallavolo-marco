@@ -53,7 +53,7 @@ export interface BeachMatch {
   min_level: number;
   max_level: number;
   starts_at: string;
-  duration_minutes: number;
+  duration_minutes: number | null;
   capacity: number;
   notes: string | null;
   created_at: string;
@@ -81,7 +81,7 @@ export interface CreateMatchRequest {
   minLevel: number;
   maxLevel: number;
   startsAt: string;
-  durationMinutes: number;
+  durationMinutes: number | null;
   capacity: number;
   notes: string | null;
   invitedPlayerIds: readonly string[];
@@ -94,7 +94,7 @@ export interface UpdateMatchRequest {
   minLevel: number;
   maxLevel: number;
   startsAt: string;
-  durationMinutes: number;
+  durationMinutes: number | null;
   capacity: number;
   notes: string | null;
 }

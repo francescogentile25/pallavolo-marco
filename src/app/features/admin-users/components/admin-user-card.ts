@@ -15,6 +15,7 @@ import { UserProfile, UserRole } from '../../auth/models/auth.model';
         <div class="name-line">
           <h3>{{ user().nome }} {{ user().cognome }}</h3>
           @if (isCurrentUser()) { <span class="you-badge">Tu</span> }
+          <button type="button" class="edit-name" (click)="nameRequested.emit(user())" [disabled]="updatingId() !== null" aria-label="Modifica nome e cognome"><i class="pi pi-pencil" aria-hidden="true"></i></button>
         </div>
         <p>{{ user().email }}</p>
         <span class="status" [class.active]="user().attivo">
@@ -63,6 +64,8 @@ import { UserProfile, UserRole } from '../../auth/models/auth.model';
     .user-identity p { overflow: hidden; margin: 0 0 9px; color: var(--color-ink-muted); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
     .you-badge, .status { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; font-size: .65rem; font-weight: 800; }
     .you-badge { padding: 3px 6px; color: var(--color-brand-strong); background: var(--color-brand-soft); }
+    .edit-name { display: grid; width: 26px; height: 26px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: 8px; background: none; cursor: pointer; font-size: .72rem; }
+    .edit-name:hover { color: var(--color-brand-strong); background: var(--color-surface-muted); }
     .status { padding: 4px 7px; color: var(--color-tournament); background: var(--color-tournament-soft); }
     .status.active { color: var(--color-success); background: var(--color-success-soft); }
     .user-controls { display: grid; grid-column: 1 / -1; grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 10px; padding-top: 12px; border-top: 1px solid var(--color-border); }
@@ -79,6 +82,7 @@ export class AdminUserCard {
   readonly roleOptions = input.required<{ label: string; value: UserRole }[]>();
   readonly activationRequested = output<UserProfile>();
   readonly roleRequested = output<{ user: UserProfile; role: UserRole }>();
+  readonly nameRequested = output<UserProfile>();
   protected readonly isCurrentUser = computed(() => this.user().id === this.currentUserId());
   protected readonly locked = computed(() => this.isCurrentUser() || this.updatingId() !== null);
   protected readonly initials = computed(() =>

@@ -230,7 +230,7 @@ export class MatchCreate implements OnInit, OnDestroy {
     { number: 3, label: this.editing ? 'Salvataggio' : 'Pubblicazione', hint: 'Controlla e conferma' },
   ];
   protected readonly standaloneNgModel = { standalone: true };
-  protected readonly durationOptions = [{ label: '60 minuti', value: '60' }, { label: '90 minuti', value: '90' }, { label: '120 minuti', value: '120' }];
+  protected readonly durationOptions = [{ label: '60 minuti', value: '60' }, { label: '90 minuti', value: '90' }, { label: '120 minuti', value: '120' }, { label: 'Non definita', value: '0' }];
   protected readonly capacityOptions = [2,4,6,8,10,12].map(capacity => ({ label: `${capacity} giocatori`, value: String(capacity) }));
   protected readonly genderOptions: { label: string; value: MatchGender }[] = [{ label: 'Misto', value: 'mixed' }, { label: 'Maschile', value: 'male' }, { label: 'Femminile', value: 'female' }];
   protected readonly levelOptions = this.levels.map((level) => ({ label: String(level), value: String(level) }));
@@ -333,7 +333,7 @@ export class MatchCreate implements OnInit, OnDestroy {
     this.matchForm().markAsTouched();
     if (this.matchForm().invalid() || this.store.saving()) return;
     const value = this.model();
-    const common = { courtId:value.courtId, gender:value.gender, minLevel:+value.minLevel, maxLevel:+value.maxLevel, startsAt:new Date(`${value.date}T${value.time}`).toISOString(), durationMinutes:+value.duration, capacity:+value.capacity, notes:value.notes.trim()||null };
+    const common = { courtId:value.courtId, gender:value.gender, minLevel:+value.minLevel, maxLevel:+value.maxLevel, startsAt:new Date(`${value.date}T${value.time}`).toISOString(), durationMinutes:value.duration === '0' ? null : +value.duration, capacity:+value.capacity, notes:value.notes.trim()||null };
     const id = this.editing && this.matchId
       ? await this.store.updateMatch({ matchId: this.matchId, ...common })
       : await this.store.createMatch({ ...common, invitedPlayerIds:value.invitedPlayerIds });
@@ -359,7 +359,7 @@ export class MatchCreate implements OnInit, OnDestroy {
       courtId: match.court_id,
       date: `${startsAt.getFullYear()}-${pad(startsAt.getMonth() + 1)}-${pad(startsAt.getDate())}`,
       time: `${pad(startsAt.getHours())}:${pad(startsAt.getMinutes())}`,
-      duration: String(match.duration_minutes),
+      duration: match.duration_minutes ? String(match.duration_minutes) : '0',
       capacity: String(match.capacity),
       gender: match.gender,
       minLevel: String(match.min_level),
