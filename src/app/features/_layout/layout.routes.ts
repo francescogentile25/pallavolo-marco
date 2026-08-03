@@ -21,6 +21,7 @@ export const layoutRoutes: Routes = [
       { path: 'tornei', loadComponent: () => import('../tournaments/pages/tournaments-list').then(c => c.TournamentsList) },
       { path: 'campi', loadComponent: () => import('../courts/pages/courts-page').then(c => c.CourtsPage) },
       { path: 'amici', loadComponent: () => import('../friends/pages/friends-page').then(c => c.FriendsPage) },
+      { path: 'giocatori/:id', loadComponent: () => import('../friends/pages/friend-profile-page').then(c => c.FriendProfilePage) },
       { path: 'profilo', loadComponent: () => import('../profile/profile').then(c => c.Profile) },
       { path: 'admin/utenti', canActivate: [adminGuard], loadComponent: () => import('../admin-users/admin-users').then(c => c.AdminUsers) },
       { path: 'notifiche', loadComponent: () => import('../notifications/pages/notifications-page').then(c => c.NotificationsPage) },

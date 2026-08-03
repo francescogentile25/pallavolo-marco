@@ -41,12 +41,10 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
                   @if (!c.owned) { <span class="tag tag-inherited">Ereditato</span> }
                 </div>
               </div>
-              @if (c.owned) {
-                <div class="court-actions">
-                  <button type="button" aria-label="Modifica" (click)="openEdit(c)"><i class="pi pi-pencil"></i></button>
-                  <button type="button" class="danger" aria-label="Elimina" (click)="askDelete(c)"><i class="pi pi-trash"></i></button>
-                </div>
-              }
+              <div class="court-actions">
+                <button type="button" aria-label="Modifica" (click)="openEdit(c)"><i class="pi pi-pencil"></i></button>
+                <button type="button" class="danger" aria-label="Elimina" (click)="askDelete(c)"><i class="pi pi-trash"></i></button>
+              </div>
             </article>
           } @empty {
             <div class="state empty">

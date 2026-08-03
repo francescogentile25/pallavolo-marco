@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
+import { Paginator, PaginatorState } from 'primeng/paginator';
 import { AddableUser } from '../models/friend.model';
 import { FriendsService } from '../services/friends.service';
 
 @Component({
   selector: 'app-friends-page',
-  imports: [FormsModule, Button, InputText],
+  imports: [FormsModule, RouterLink, Button, InputText, Paginator],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="friends-page">
@@ -38,8 +40,10 @@ import { FriendsService } from '../services/friends.service';
         <h2>I tuoi amici ({{ service.friends().length }})</h2>
         @for (f of service.friends(); track f.id) {
           <article class="row">
-            <span class="avatar">{{ initials(f.nome, f.cognome) }}</span>
-            <div class="row-body"><strong>{{ f.nome }} {{ f.cognome }}</strong><small>Livello {{ f.livello }}</small></div>
+            <a class="row-body link" [routerLink]="['/giocatori', f.id]">
+              <span class="avatar">{{ initials(f.nome, f.cognome) }}</span>
+              <span class="row-text"><strong>{{ f.nome }} {{ f.cognome }}</strong><small>Livello {{ f.livello }}</small></span>
+            </a>
             <div class="row-actions">
               <p-button size="small" severity="secondary" [text]="true" label="Rimuovi" icon="pi pi-user-minus" [loading]="busy() === f.id" (onClick)="remove(f.id)" />
             </div>
@@ -53,9 +57,9 @@ import { FriendsService } from '../services/friends.service';
         <h2>Aggiungi amici</h2>
         <span class="search">
           <i class="pi pi-search" aria-hidden="true"></i>
-          <input pInputText type="search" placeholder="Cerca un giocatore" [ngModel]="search()" (ngModelChange)="search.set($event)" />
+          <input pInputText type="search" placeholder="Cerca un giocatore" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
         </span>
-        @for (u of filteredAddable(); track u.id) {
+        @for (u of pagedAddable(); track u.id) {
           <article class="row">
             <span class="avatar">{{ initials(u.nome, u.cognome) }}</span>
             <div class="row-body"><strong>{{ u.nome }} {{ u.cognome }}</strong><small>Livello {{ u.livello }}</small></div>
@@ -70,6 +74,9 @@ import { FriendsService } from '../services/friends.service';
           </article>
         } @empty {
           <p class="empty">Nessun giocatore trovato.</p>
+        }
+        @if (filteredAddable().length > rows()) {
+          <p-paginator [first]="first()" [rows]="rows()" [totalRecords]="filteredAddable().length" (onPageChange)="onPage($event)" />
         }
       </section>
     </main>
@@ -88,6 +95,12 @@ import { FriendsService } from '../services/friends.service';
     .row-body { display: grid; gap: 2px; min-width: 0; }
     .row-body strong { font-size: .84rem; }
     .row-body small { color: var(--color-ink-muted); font-size: .7rem; }
+    a.row-body.link { grid-column: 1 / 3; display: flex; align-items: center; gap: 12px; text-decoration: none; color: inherit; }
+    a.row-body.link:hover strong { color: var(--color-brand-strong); }
+    .row-text { display: grid; gap: 2px; min-width: 0; }
+    .row-text strong { font-size: .84rem; }
+    .row-text small { color: var(--color-ink-muted); font-size: .7rem; }
+    :host ::ng-deep .p-paginator { justify-content: center; flex-wrap: wrap; margin-top: 6px; background: transparent; border: 0; }
     .row-actions { display: flex; flex-wrap: wrap; gap: 6px; justify-content: flex-end; }
     .badge { display: inline-flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 99px; background: var(--color-surface-muted); color: var(--color-ink-muted); font-size: .68rem; font-weight: 750; }
     .badge.ok { color: var(--color-success); background: var(--color-success-soft); }
@@ -104,12 +117,20 @@ export class FriendsPage implements OnInit {
   protected readonly addable = signal<AddableUser[]>([]);
   protected readonly search = signal('');
   protected readonly busy = signal<string | null>(null);
+  protected readonly first = signal(0);
+  protected readonly rows = signal(10);
   protected readonly filteredAddable = computed(() => {
     const q = this.search().trim().toLocaleLowerCase('it');
     const list = this.addable();
-    if (!q) return list.slice(0, 30);
-    return list.filter((u) => `${u.nome} ${u.cognome}`.toLocaleLowerCase('it').includes(q)).slice(0, 30);
+    return q ? list.filter((u) => `${u.nome} ${u.cognome}`.toLocaleLowerCase('it').includes(q)) : list;
   });
+  protected readonly pagedAddable = computed(() => {
+    const list = this.filteredAddable();
+    const start = this.first() < list.length ? this.first() : 0;
+    return list.slice(start, start + this.rows());
+  });
+  protected onSearch(value: string): void { this.search.set(value); this.first.set(0); }
+  protected onPage(event: PaginatorState): void { this.first.set(event.first ?? 0); this.rows.set(event.rows ?? 10); }
 
   ngOnInit(): void {
     void this.reload();

@@ -76,6 +76,29 @@ export const ProfileStore = signalStore(
         }
       },
 
+      async requestNameChange(nome: string, cognome: string): Promise<boolean> {
+        try {
+          await profileService.requestNameChange(nome, cognome);
+          messageService.add({ severity: 'success', summary: 'Richiesta inviata', detail: 'L’amministratore riceverà la tua richiesta.' });
+          return true;
+        } catch {
+          messageService.add({ severity: 'error', summary: 'Invio non riuscito', detail: 'Riprova.' });
+          return false;
+        }
+      },
+
+      async changePassword(password: string): Promise<boolean> {
+        try {
+          await profileService.changePassword(password);
+          messageService.add({ severity: 'success', summary: 'Password aggiornata', detail: 'Usa la nuova password al prossimo accesso.' });
+          return true;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Aggiornamento non riuscito.';
+          messageService.add({ severity: 'error', summary: 'Password non aggiornata', detail: message });
+          return false;
+        }
+      },
+
       async save(request: UpdatePlayerProfileRequest): Promise<boolean> {
         if (store.saving()) return false;
         patchState(store, { saving: true, error: null });

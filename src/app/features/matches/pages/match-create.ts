@@ -64,7 +64,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
                 <div class="field wide"><label for="address">Indirizzo <span aria-hidden="true">*</span></label><input id="address" pInputText [formField]="courtForm.address" autocomplete="street-address" [class.p-invalid]="showError(courtForm.address())" [attr.aria-invalid]="showError(courtForm.address())" />@if (showError(courtForm.address())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Inserisci l'indirizzo.</p> }</div>
                 <div class="field"><label for="city">Città <span aria-hidden="true">*</span></label><input id="city" pInputText [formField]="courtForm.city" autocomplete="address-level2" [class.p-invalid]="showError(courtForm.city())" [attr.aria-invalid]="showError(courtForm.city())" />@if (showError(courtForm.city())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Inserisci la città.</p> }</div>
                 <div class="check"><p-checkbox inputId="indoor" [ngModel]="courtModel().indoor" (ngModelChange)="updateCourtField('indoor', $event)" [ngModelOptions]="standaloneNgModel" [binary]="true" /><label for="indoor">Campo coperto</label></div>
-                <p-button class="wide" type="button" severity="secondary" label="Salva e seleziona campo" icon="pi pi-check" [loading]="store.saving()" (onClick)="createCourt()" />
+                <p-button class="wide save-court" styleClass="save-court-btn" type="button" [outlined]="true" label="Salva e seleziona campo" icon="pi pi-check" [loading]="store.saving()" (onClick)="createCourt()" />
               </div>
             }
           </section>
@@ -164,6 +164,9 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
     .pill-toggle button.active { color: var(--color-brand-strong); background: white; box-shadow: 0 1px 3px rgb(20 24 26 / .1); }
     .grid, .new-court { display: grid; gap: 15px; }
     .new-court { padding: 16px; margin-top: 12px; border-radius: 18px; background: var(--color-surface-muted); }
+    .save-court { margin-top: 4px; }
+    :host ::ng-deep .save-court-btn { width: 100%; justify-content: center; border-width: 2px; border-color: var(--color-brand); color: var(--color-brand-strong); font-weight: 800; }
+    :host ::ng-deep .save-court-btn:hover { background: var(--color-brand-soft); }
     .check { display: flex; min-height: 44px; align-items: center; gap: 9px; font-size: .76rem; font-weight: 800; }
     .check label { cursor: pointer; }
     .level-fields { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; }

@@ -1,6 +1,6 @@
 import { computed, inject, Injectable, signal } from '@angular/core';
 import { SupabaseService } from '../../../core/services/supabase.service';
-import { AddableUser, FriendProfile, FriendRequest } from '../models/friend.model';
+import { AddableUser, FriendProfile, FriendProfileDetails, FriendRequest } from '../models/friend.model';
 
 @Injectable({ providedIn: 'root' })
 export class FriendsService {
@@ -53,5 +53,12 @@ export class FriendsService {
   async remove(otherId: string): Promise<void> {
     const { error } = await this.supabase.client.rpc('remove_friend', { p_other: otherId });
     if (error) throw error;
+  }
+
+  async getProfile(id: string): Promise<FriendProfileDetails | null> {
+    const { data, error } = await this.supabase.client.rpc('get_friend_profile', { p_id: id });
+    if (error) throw error;
+    const row = ((data ?? []) as FriendProfileDetails[])[0];
+    return row ?? null;
   }
 }

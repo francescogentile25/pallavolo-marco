@@ -49,6 +49,16 @@ export class ProfileService {
     if (error) throw error;
   }
 
+  async requestNameChange(nome: string, cognome: string): Promise<void> {
+    const { error } = await this.supabase.client.rpc('request_name_change', { p_nome: nome, p_cognome: cognome });
+    if (error) throw error;
+  }
+
+  async changePassword(password: string): Promise<void> {
+    const { error } = await this.supabase.client.auth.updateUser({ password });
+    if (error) throw error;
+  }
+
   async updateMyProfile(request: UpdatePlayerProfileRequest): Promise<UserProfile> {
     const { data, error } = await this.supabase.client.rpc('update_my_profile', {
       p_nome: request.nome,

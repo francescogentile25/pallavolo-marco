@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
+import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { ToggleSwitch } from 'primeng/toggleswitch';
@@ -14,7 +15,7 @@ import { ProfileStore } from './store/profile.store';
 
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, ButtonModule, InputText, Select, ToggleSwitch, Tooltip, ProfileHistoryChart],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, ButtonModule, Dialog, InputText, Select, ToggleSwitch, Tooltip, ProfileHistoryChart],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="profile-page">
@@ -84,7 +85,10 @@ import { ProfileStore } from './store/profile.store';
                 @if (showError('cognome')) { <small class="err">Inserisci un cognome valido.</small> }
               </div>
               @if (!isAdmin()) {
-                <p class="lock-note wide"><i class="pi pi-lock" aria-hidden="true"></i> Nome e cognome sono gestiti dall'amministratore. Per una correzione, contattalo.</p>
+                <div class="lock-note wide">
+                  <span><i class="pi pi-lock" aria-hidden="true"></i> Nome e cognome sono gestiti dall'amministratore.</span>
+                  <button type="button" class="link-btn" (click)="openNameRequest()">Richiedi modifica</button>
+                </div>
               }
               <div class="field">
                 <label for="profile-side">Lato preferito</label>
@@ -114,6 +118,27 @@ import { ProfileStore } from './store/profile.store';
             <p-toggleswitch [ngModel]="profile.in_app_notifications_enabled" (ngModelChange)="store.setNotifications($event)" ariaLabel="Notifiche in-app" />
           </div>
         </section>
+
+        <section class="card" aria-labelledby="sec-title">
+          <div class="card-head"><div><p class="eyebrow">Sicurezza</p><h2 id="sec-title">Password</h2></div></div>
+          <div class="grid">
+            <div class="field"><label for="pw-new">Nuova password</label><input id="pw-new" pInputText type="password" autocomplete="new-password" [ngModel]="pwNew()" (ngModelChange)="pwNew.set($event)" /></div>
+            <div class="field"><label for="pw-conf">Conferma password</label><input id="pw-conf" pInputText type="password" autocomplete="new-password" [ngModel]="pwConfirm()" (ngModelChange)="pwConfirm.set($event)" /></div>
+          </div>
+          @if (pwError()) { <p class="form-error" role="alert">{{ pwError() }}</p> }
+          <p-button class="save" type="button" label="Aggiorna password" icon="pi pi-key" [loading]="pwSaving()" [disabled]="!pwValid()" (onClick)="changePassword()" />
+        </section>
+
+        <p-dialog [visible]="nameReqOpen()" (visibleChange)="nameReqOpen.set($event)" [modal]="true" [draggable]="false" header="Richiedi modifica nome" [style]="{ width: '420px', maxWidth: '96vw' }">
+          <div class="grid">
+            <div class="field"><label for="nr-nome">Nome desiderato</label><input id="nr-nome" pInputText [ngModel]="nameReqForm().nome" (ngModelChange)="setNameReq('nome', $event)" maxlength="80" /></div>
+            <div class="field"><label for="nr-cognome">Cognome desiderato</label><input id="nr-cognome" pInputText [ngModel]="nameReqForm().cognome" (ngModelChange)="setNameReq('cognome', $event)" maxlength="80" /></div>
+          </div>
+          <div class="dialog-actions">
+            <p-button severity="secondary" [outlined]="true" label="Annulla" (onClick)="nameReqOpen.set(false)" />
+            <p-button label="Invia richiesta" icon="pi pi-send" [loading]="nameReqSaving()" [disabled]="!nameReqValid()" (onClick)="sendNameRequest()" />
+          </div>
+        </p-dialog>
 
         <section class="history" aria-label="Storico del profilo">
           <app-profile-history-chart title="Andamento livello" eyebrow="Valutazioni" [points]="levelPoints()" />
@@ -160,8 +185,10 @@ import { ProfileStore } from './store/profile.store';
     .field input[readonly] { color: var(--color-ink-muted); background: var(--color-surface-muted); cursor: not-allowed; }
     .field small { color: var(--color-ink-muted); font-size: .68rem; line-height: 1.4; }
     .err { color: var(--color-danger); }
-    .lock-note { display: flex; align-items: center; gap: 8px; margin: 0; padding: 10px 12px; color: var(--color-ink-muted); border-radius: 12px; background: var(--color-surface-muted); font-size: .72rem; }
+    .lock-note { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 8px; margin: 0; padding: 10px 12px; color: var(--color-ink-muted); border-radius: 12px; background: var(--color-surface-muted); font-size: .72rem; }
     .lock-note i { color: var(--color-brand-strong); }
+    .link-btn { padding: 0; color: var(--color-brand-strong); border: 0; background: none; font: inherit; font-size: .72rem; font-weight: 800; cursor: pointer; text-decoration: underline; }
+    .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
     .form-error { margin: 16px 0 0; color: var(--color-danger); font-size: .78rem; }
     .save { display: inline-block; margin-top: 18px; }
     .pref-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -193,6 +220,20 @@ export class Profile implements OnInit, OnDestroy {
   protected readonly avatarPreview = signal<string | null>(null);
   protected readonly avatarBroken = signal(false);
   protected readonly isAdmin = computed(() => this.store.profile()?.ruolo === 'admin');
+  protected readonly pwNew = signal('');
+  protected readonly pwConfirm = signal('');
+  protected readonly pwSaving = signal(false);
+  protected readonly pwError = computed(() => {
+    const a = this.pwNew();
+    const b = this.pwConfirm();
+    if (!a && !b) return null;
+    if (a.length < 6) return 'La password deve avere almeno 6 caratteri.';
+    if (b && a !== b) return 'Le password non coincidono.';
+    return null;
+  });
+  protected readonly nameReqOpen = signal(false);
+  protected readonly nameReqForm = signal<{ nome: string; cognome: string }>({ nome: '', cognome: '' });
+  protected readonly nameReqSaving = signal(false);
   protected readonly sideOptions: { label: string; value: PreferredSide }[] = [
     { label: 'Indifferente', value: 'indifferente' },
     { label: 'Sinistra', value: 'sinistra' },
@@ -246,4 +287,24 @@ export class Profile implements OnInit, OnDestroy {
     return labels[value] ?? 'Non definito';
   }
   protected reliabilityLabel(value: number): string { if (value >= 6) return 'Eccellente'; if (value >= 4.5) return 'Affidabile'; if (value >= 3) return 'Da consolidare'; return 'Attenzione'; }
+
+  protected pwValid(): boolean { const a = this.pwNew(); return a.length >= 6 && a === this.pwConfirm(); }
+  protected async changePassword(): Promise<void> {
+    if (!this.pwValid() || this.pwSaving()) return;
+    this.pwSaving.set(true);
+    const ok = await this.store.changePassword(this.pwNew());
+    this.pwSaving.set(false);
+    if (ok) { this.pwNew.set(''); this.pwConfirm.set(''); }
+  }
+  protected openNameRequest(): void { const p = this.store.profile(); this.nameReqForm.set({ nome: p?.nome ?? '', cognome: p?.cognome ?? '' }); this.nameReqOpen.set(true); }
+  protected setNameReq<K extends 'nome' | 'cognome'>(key: K, value: string): void { this.nameReqForm.update((f) => ({ ...f, [key]: value })); }
+  protected nameReqValid(): boolean { const f = this.nameReqForm(); return !!f.nome.trim() && !!f.cognome.trim(); }
+  protected async sendNameRequest(): Promise<void> {
+    if (!this.nameReqValid() || this.nameReqSaving()) return;
+    this.nameReqSaving.set(true);
+    const f = this.nameReqForm();
+    const ok = await this.store.requestNameChange(f.nome.trim(), f.cognome.trim());
+    this.nameReqSaving.set(false);
+    if (ok) this.nameReqOpen.set(false);
+  }
 }
