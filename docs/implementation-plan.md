@@ -186,7 +186,7 @@ Obiettivo: trasformare le partite concluse in reputazione utile e verificabile.
 
 ## Onda 4 — Tornei
 
-Stato: `IN VERIFICA`
+Stato: `COMPLETATA`
 
 Specifica approvata: [wave-4-functional-spec.md](wave-4-functional-spec.md).
 
@@ -227,7 +227,7 @@ Deliverable previsti:
 
 ## Onda 5 — Notifiche in-app e realtime
 
-Stato: `PRONTA`
+Stato: `IN CORSO`
 
 Fonte: `MD Repository/NOTIFICHE-SPEC.md`, adattata a Supabase Realtime.
 

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '../../auth/store/auth.store';
+import { NotificationBell } from '../../notifications/components/notification-bell';
 
 @Component({
   selector: 'app-header',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, NotificationBell],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="app-header">
@@ -28,7 +29,7 @@ import { AuthStore } from '../../auth/store/auth.store';
         @if (authStore.isAdmin()) {
           <a class="icon-action" routerLink="/admin/utenti" aria-label="Gestione utenti" title="Gestione utenti"><i class="pi pi-users" aria-hidden="true"></i></a>
         }
-        <a class="icon-action notifications" routerLink="/notifiche" aria-label="Notifiche"><i class="pi pi-bell" aria-hidden="true"></i><span aria-hidden="true"></span></a>
+        <app-notification-bell />
         <button class="icon-action logout" type="button" aria-label="Esci" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i></button>
         <a class="user-avatar" routerLink="/profilo" aria-label="Apri il tuo profilo">{{ userInitials() }}</a>
       </div>

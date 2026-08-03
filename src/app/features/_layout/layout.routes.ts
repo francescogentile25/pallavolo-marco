@@ -21,7 +21,7 @@ export const layoutRoutes: Routes = [
       { path: 'tornei', loadComponent: () => import('../tournaments/pages/tournaments-list').then(c => c.TournamentsList) },
       { path: 'profilo', loadComponent: () => import('../profile/profile').then(c => c.Profile) },
       { path: 'admin/utenti', canActivate: [adminGuard], loadComponent: () => import('../admin-users/admin-users').then(c => c.AdminUsers) },
-      { path: 'notifiche', loadComponent: () => import('../coming-soon/coming-soon').then(c => c.ComingSoon), data: { title: 'Notifiche', description: 'Inviti, cambi partita e aggiornamenti torneo saranno disponibili qui.', icon: 'pi-bell' } },
+      { path: 'notifiche', loadComponent: () => import('../notifications/pages/notifications-page').then(c => c.NotificationsPage) },
     ],
   },
   { path: '**', redirectTo: '' },

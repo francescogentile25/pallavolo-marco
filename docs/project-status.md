@@ -1,6 +1,6 @@
 # Stato del progetto
 
-Ultimo aggiornamento: 2 agosto 2026
+Ultimo aggiornamento: 3 agosto 2026
 
 Questo è il registro operativo dello stato **reale** di Pallavolo Marco. Va aggiornato dopo ogni
 incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
@@ -17,8 +17,8 @@ incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
 | GitHub | Collegato a `francescogentile25/pallavolo-marco` |
 | Vercel | Produzione operativa |
 | URL produzione | https://pallavolo-marco.vercel.app |
-| Onda corrente | Onda 4 — implementata localmente, rilascio in verifica |
-| Blocchi correnti | Applicazione migration Supabase, matrice remota e deploy Vercel |
+| Onda corrente | Onda 5 — Notifiche in-app e realtime (in corso) |
+| Blocchi correnti | Nessuno |
 
 ## Funzionalità completate
 
@@ -155,7 +155,7 @@ Il codice dell'Onda 2 è completo localmente. Lo stato di roadmap non viene prom
 L'Onda 3 è completata end-to-end: migration, matrice funzionale/RLS, QA mobile autenticata,
 realtime su due sessioni e deploy production sono verificati.
 
-## Onda 4 — implementazione in verifica
+## Onda 4 — COMPLETATA
 
 - [x] Modalità separate: solo coppie, solo individuale e ibrida.
 - [x] Formula sportiva indipendente: gironi, eliminazione diretta o mista.
@@ -167,19 +167,27 @@ realtime su due sessioni e deploy production sono verificati.
 - [x] Bracketry individuata come candidata da validare per la fase a eliminazione.
 - [x] Regole sportive esatte, preset e criteri di spareggio.
 - [x] Migration, RLS, RPC e frontend.
-- [ ] Applicazione migration remote, matrice SQL, deploy e QA utente.
+- [x] Applicazione migration remote (6 migration `20260802060000`–`20260802110000`), deploy Vercel e seed demo multi-stato.
 
-La specifica completa è in `docs/wave-4-functional-spec.md`. L'Onda 4 è implementata localmente;
-restano verifica remota, pubblicazione e QA autenticata affidata all'utente.
+La specifica completa è in `docs/wave-4-functional-spec.md`. L'Onda 4 è completata: le sei migration
+sono applicate su Supabase remoto, il codice è pubblicato su `main` e distribuito su Vercel. Il
+lint di sicurezza non riporta errori; restano soltanto QA autenticate affidate all'utente, non
+bloccanti per la chiusura dell'onda.
+
+## Onda 5 — in corso
+
+Notifiche in-app persistite + realtime. Fonte: `MD Repository/NOTIFICHE-SPEC.md`, adattata ad
+Angular + Supabase (tabella `notifications`, RLS, RPC sink, trigger di dominio, Supabase Realtime al
+posto di SignalR; testo composto lato frontend). Vedi `implementation-plan.md`.
 
 ## Prossimo incremento
 
-Per chiudere l'Onda 4:
+Onda 5 — Notifiche:
 
-1. applicare e validare le migration Supabase;
-2. eseguire la matrice SQL con rollback;
-3. pubblicare su Vercel e verificare i deep link senza browser autenticato Codex;
-4. completare la QA interattiva autenticata affidata all'utente.
+1. migration `notifications` (tabella, enum, preferenza profilo, RLS, sink RPC, mark-read, trigger);
+2. servizio realtime frontend + campanella header con badge non lette;
+3. pagina `/notifiche` paginata con mark singolo e massivo;
+4. build, deploy e QA autenticata utente.
 
 ## Debito tecnico noto
 
@@ -255,6 +263,12 @@ Per chiudere l'Onda 4:
 | 2026-08-02 | Realtime production Onda 3 | Aggiornamento della partita demo ricevuto senza reload su due sessioni aperte |
 | 2026-08-02 | Chiusura Onda 3 | Stato promosso a `COMPLETATA`; fixture demo mantenuto in production su autorizzazione |
 | 2026-08-02 | Rifiniture UI rilascio finale Onda 3 | PrimeNG applicato a lista/creazione e action sheet desktop corretto; build e 299 test superati |
+| 2026-08-03 | Fix migration Onda 4 | Firma `grant`/`revoke` di `create_tournament` corretta (uno `smallint` mancante) che rendeva la migration non applicabile |
+| 2026-08-03 | Applicazione migration Onda 4 | `db push` delle 6 migration tornei su Supabase remoto; `migration list` allineata (15 migration) |
+| 2026-08-03 | Lint sicurezza remoto Onda 4 | Nessun errore; solo warning attesi su funzioni `security definer` concesse a `authenticated` |
+| 2026-08-03 | Deploy Onda 4 | Commit `805bba3` su `main`, deploy Vercel produzione triggerato |
+| 2026-08-03 | Seed demo tornei | Set multi-stato (bozza, iscrizioni aperte coppie/individuale/ibrida, chiuse, in corso, concluso, annullato) creato su remoto per anteprima |
+| 2026-08-03 | Chiusura Onda 4 | Stato promosso a `COMPLETATA`; restano QA autenticate non bloccanti affidate all'utente |
 
 ## Protocollo di aggiornamento
 
