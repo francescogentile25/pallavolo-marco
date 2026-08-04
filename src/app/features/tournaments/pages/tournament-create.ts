@@ -6,7 +6,6 @@ import { Button } from 'primeng/button';
 import { DatePicker } from 'primeng/datepicker';
 import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
-import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { PageActionsService } from '../../../core/services/page-actions.service';
@@ -31,7 +30,7 @@ interface TournamentDraft {
 
 @Component({
   selector: 'app-tournament-create',
-  imports: [Button, CurrencyPipe, DatePicker, FormsModule, InputNumber, InputText, MultiSelect, Select, Textarea],
+  imports: [Button, CurrencyPipe, DatePicker, FormsModule, InputNumber, InputText, Select, Textarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main>
@@ -68,8 +67,7 @@ interface TournamentDraft {
           <section>
             <div class="heading"><div><p>Passo 2 di 3</p><h2>Quando e dove</h2></div><i class="pi pi-map-marker"></i></div>
             <div class="grid">
-              <div class="field"><label for="venue">Struttura <b>*</b></label><p-select inputId="venue" [ngModel]="draft().venueId" (ngModelChange)="selectVenue($event)" name="venue" [options]="venueOptions()" optionLabel="label" optionValue="value" placeholder="Seleziona la struttura" fluid /></div>
-              <div class="field"><label for="courts">Campi disponibili <b>*</b></label><p-multiselect inputId="courts" [ngModel]="draft().courtIds" (ngModelChange)="update('courtIds', $event)" name="courts" [options]="courtOptions()" optionLabel="label" optionValue="value" placeholder="Seleziona i campi" display="chip" fluid /></div>
+              <div class="field wide"><label for="venue">Struttura <b>*</b></label><p-select inputId="venue" [ngModel]="draft().venueId" (ngModelChange)="selectVenue($event)" name="venue" [options]="venueOptions()" optionLabel="label" optionValue="value" placeholder="Seleziona la struttura" fluid /><small>Tutti i campi attivi della struttura saranno disponibili per il torneo.</small></div>
               <div class="field"><label for="start">Inizio torneo <b>*</b></label><p-datepicker inputId="start" [ngModel]="draft().startsAt" (ngModelChange)="update('startsAt', $event)" name="start" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
               <div class="field"><label for="end">Fine prevista <b>*</b></label><p-datepicker inputId="end" [ngModel]="draft().endsAt" (ngModelChange)="update('endsAt', $event)" name="end" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="draft().startsAt" appendTo="body" fluid /></div>
               <div class="field"><label for="deadline">Chiusura iscrizioni <b>*</b></label><p-datepicker inputId="deadline" [ngModel]="draft().registrationDeadline" (ngModelChange)="update('registrationDeadline', $event)" name="deadline" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
@@ -83,7 +81,7 @@ interface TournamentDraft {
             <div class="heading"><div><p>Passo 3 di 3</p><h2>Apri lo Studio</h2></div><i class="pi pi-sparkles"></i></div>
             <div class="review">
               <article><i class="pi pi-trophy"></i><span>Torneo</span><strong>{{ draft().title }}</strong><small>{{ categoryLabel() }}</small></article>
-              <article><i class="pi pi-map-marker"></i><span>Campo base</span><strong>{{ venueLabel() }}</strong><small>{{ draft().courtIds.length }} {{ draft().courtIds.length === 1 ? 'campo' : 'campi' }} disponibili</small></article>
+              <article><i class="pi pi-map-marker"></i><span>Campo base</span><strong>{{ venueLabel() }}</strong><small>Usa liberamente i campi della struttura</small></article>
               <article><i class="pi pi-calendar"></i><span>Inizio</span><strong>{{ draft().startsAt.toLocaleString('it-IT') }}</strong><small>Iscrizioni fino al {{ draft().registrationDeadline.toLocaleString('it-IT') }}</small></article>
               <article><i class="pi pi-wallet"></i><span>Costo indicativo</span><strong>{{ draft().costEuros | currency:'EUR':'symbol':'1.2-2':'it' }}</strong><small>Pagamento gestito fuori dall'app</small></article>
             </div>
@@ -122,7 +120,7 @@ export class TournamentCreate implements OnInit, OnDestroy {
   ngOnInit(): void { this.actions.set([{ id: 'back-tournaments', label: 'Torna ai tornei', icon: 'pi-arrow-left', routerLink: '/tornei' }]); void this.store.loadOptions(); }
   ngOnDestroy(): void { this.actions.clear(); }
   protected update<K extends keyof TournamentDraft>(key: K, value: TournamentDraft[K]): void { this.draft.update(draft => ({ ...draft, [key]: value })); this.error.set(null); }
-  protected selectVenue(id: string): void { this.draft.update(draft => ({ ...draft, venueId: id, courtIds: [] })); this.error.set(null); }
+  protected selectVenue(id: string): void { this.draft.update(draft => ({ ...draft, venueId: id, courtIds: this.store.courts().filter(court => court.venue_id === id).map(court => court.id) })); this.error.set(null); }
   protected next(): void { this.attempted.set(true); const message = this.validateStep(); if (message) { this.error.set(message); return; } this.error.set(null); this.attempted.set(false); this.step.update(value => Math.min(3, value + 1)); }
   protected back(): void { if (this.step() === 1) { void this.router.navigateByUrl('/tornei'); return; } this.error.set(null); this.step.update(value => value - 1); }
   protected async submit(event: Event): Promise<void> {
@@ -131,6 +129,6 @@ export class TournamentCreate implements OnInit, OnDestroy {
     const request: CreateTournamentRequest = { title: draft.title.trim(), description: draft.description.trim() || null, venueId: draft.venueId, courtIds: draft.courtIds, gender: draft.gender, minLevel: draft.minLevel, maxLevel: draft.maxLevel, registrationDeadline: draft.registrationDeadline.toISOString(), startsAt: draft.startsAt.toISOString(), endsAt: draft.endsAt.toISOString(), costCents: Math.round(draft.costEuros * 100), visibility: draft.visibility };
     const id = await this.store.create(request); if (id) await this.router.navigate(['/tornei', id], { queryParams: { view: 'studio' } });
   }
-  private validateStep(): string | null { const draft = this.draft(); if (this.step() === 1 && (!draft.title.trim() || draft.minLevel > draft.maxLevel)) return 'Inserisci il nome e controlla la fascia di livello.'; if (this.step() === 2 && (!draft.venueId || !draft.courtIds.length)) return 'Seleziona la struttura e almeno un campo.'; if (this.step() === 2 && (draft.registrationDeadline >= draft.startsAt || draft.startsAt >= draft.endsAt)) return 'Controlla la sequenza di iscrizioni, inizio e fine torneo.'; return null; }
+  private validateStep(): string | null { const draft = this.draft(); if (this.step() === 1 && (draft.title.trim().length < 3 || draft.minLevel > draft.maxLevel)) return 'Il nome deve contenere almeno 3 caratteri e la fascia di livello deve essere valida.'; if (this.step() === 2 && !draft.venueId) return 'Seleziona la struttura.'; if (this.step() === 2 && (draft.registrationDeadline >= draft.startsAt || draft.startsAt >= draft.endsAt)) return 'Controlla la sequenza di iscrizioni, inizio e fine torneo.'; return null; }
   private validateAll(): string | null { for (const value of [1, 2]) { this.step.set(value); const error = this.validateStep(); if (error) return error; } this.step.set(3); return null; }
 }

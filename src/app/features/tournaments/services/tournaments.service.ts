@@ -60,6 +60,7 @@ export class TournamentsService {
   async respondInvite(teamId: string, accept: boolean): Promise<void> { await this.rpc('respond_tournament_team_invite', { p_team_id: teamId, p_accept: accept }); }
   async pairFreePlayers(id: string, player1: string, player2: string): Promise<void> { await this.rpc('organizer_pair_free_players', { p_tournament_id: id, p_player1: player1, p_player2: player2 }); }
   async inviteTeam(id: string, player1: string, player2: string): Promise<void> { await this.rpc('organizer_invite_tournament_team', { p_tournament_id: id, p_player1: player1, p_player2: player2 }); }
+  async addPlayer(id: string, playerId: string, groupId: string | null): Promise<void> { await this.rpc('organizer_add_tournament_player', { p_tournament_id: id, p_profile_id: playerId, p_group_id: groupId }); }
   async withdraw(id: string): Promise<void> { await this.rpc('withdraw_from_tournament', { p_tournament_id: id }); }
   async closeRegistrations(id: string): Promise<void> { await this.rpc('close_tournament_registrations', { p_tournament_id: id }); }
   async advanceGroups(id: string): Promise<void> { await this.rpc('advance_tournament_group_stage', { p_tournament_id: id }); }

@@ -26,6 +26,7 @@ export const TournamentsStore = signalStore(
       respondInvite: (id: string, teamId: string, accept: boolean) => act(id, () => service.respondInvite(teamId, accept), accept ? 'Coppia confermata' : 'Invito rifiutato', accept ? 'La tua partecipazione è aggiornata.' : 'Non fai più parte della coppia proposta.'),
       pairFreePlayers: (id: string, first: string, second: string) => act(id, () => service.pairFreePlayers(id, first, second), 'Coppia proposta', 'Entrambi i giocatori devono accettare.'),
       inviteTeam: (id: string, first: string, second: string) => act(id, () => service.inviteTeam(id, first, second), 'Inviti inviati', 'La coppia sarà confermata dopo entrambe le accettazioni.'),
+      addPlayer: (id: string, playerId: string, groupId: string | null) => act(id, () => service.addPlayer(id, playerId, groupId), 'Giocatore aggiunto', groupId ? 'Il giocatore è stato assegnato al girone scelto.' : 'Il giocatore è pronto per il tabellone o un girone.'),
       withdraw: (id: string) => act(id, () => service.withdraw(id), 'Ritiro registrato', 'La tua iscrizione è stata rimossa.'),
       closeRegistrations: (id: string) => act(id, () => service.closeRegistrations(id), 'Iscrizioni chiuse', 'Continua a rifinire struttura e calendario nel Tournament studio.'),
       advanceGroups: (id: string) => act(id, () => service.advanceGroups(id), 'Tabellone generato', 'Le migliori coppie dei gironi sono nella fase finale.'),
