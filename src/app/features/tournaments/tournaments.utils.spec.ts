@@ -1,15 +1,9 @@
-import { Tournament } from './models/tournament.model';
-import { calculateStandings, teamLabel, TOURNAMENT_PRESETS, tournamentErrorMessage, tournamentSummary } from './tournaments.utils';
+import { Tournament, TournamentRules } from './models/tournament.model';
+import { calculateStandings, teamLabel, tournamentErrorMessage, tournamentSummary } from './tournaments.utils';
 
 describe('tournaments utilities', () => {
-  it('provides a fast preset suited to a short mobile-first tournament', () => {
-    expect(TOURNAMENT_PRESETS.quick.format).toBe('groups');
-    expect(TOURNAMENT_PRESETS.quick.maxTeams).toBe(8);
-    expect(TOURNAMENT_PRESETS.quick.groupSetPoints).toBe(15);
-  });
-
   it('keeps registration mode independent from tournament format', () => {
-    const rules = { ...TOURNAMENT_PRESETS.classic, registrationMode: 'individual' as const };
+    const rules: TournamentRules = { registrationMode: 'individual', format: 'mixed', maxTeams: 12, guaranteedMatches: 0, groupSize: 4, qualifiersPerGroup: 2, groupBestOf: 1, groupSetPoints: 21, knockoutBestOf: 3, knockoutSetPoints: 21, tiebreakPoints: 15, winByTwo: true, thirdPlace: false, standingsWinPoints: 2, standingsLossPoints: 0, minimumRestMinutes: 0, resultConfirmationRequired: false };
     expect(tournamentSummary(rules)).toContain('Solo individuale');
     expect(tournamentSummary(rules)).toContain('Gironi + eliminazione');
   });

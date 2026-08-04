@@ -1,7 +1,6 @@
 import { Court, MatchGender, Venue } from '../../matches/models/match.model';
 
 export type TournamentStatus = 'draft' | 'published' | 'registration_closed' | 'in_progress' | 'completed' | 'cancelled' | 'archived';
-export type TournamentPreset = 'quick' | 'classic' | 'knockout' | 'custom';
 export type TournamentRegistrationMode = 'pairs' | 'individual' | 'hybrid';
 export type TournamentFormat = 'groups' | 'knockout' | 'mixed';
 export type TournamentTeamStatus = 'proposed' | 'confirmed' | 'waitlisted' | 'withdrawn';
@@ -56,7 +55,6 @@ export interface Tournament {
   venue_id: string;
   status: TournamentStatus;
   visibility: 'public' | 'private';
-  preset: TournamentPreset;
   title: string;
   description: string | null;
   registration_mode: TournamentRegistrationMode;
@@ -92,8 +90,7 @@ export interface Tournament {
   games?: readonly TournamentGame[];
 }
 
-export interface TournamentPresetRules {
-  preset: TournamentPreset;
+export interface TournamentRules {
   registrationMode: TournamentRegistrationMode;
   format: TournamentFormat;
   maxTeams: number;
@@ -113,17 +110,6 @@ export interface TournamentPresetRules {
   resultConfirmationRequired: boolean;
 }
 
-export interface TournamentPersonalPreset {
-  id: string;
-  organizer_id: string;
-  name: string;
-  description: string | null;
-  rules: TournamentPresetRules;
-  is_favorite: boolean;
-  created_at: string;
-  updated_at: string;
-}
-
 export interface TournamentGameDraft {
   id?: string;
   phase: TournamentGamePhase;
@@ -134,7 +120,7 @@ export interface TournamentGameDraft {
   team2Id: string | null;
 }
 
-export interface CreateTournamentRequest extends TournamentPresetRules {
+export interface CreateTournamentRequest {
   title: string;
   description: string | null;
   venueId: string;
@@ -154,7 +140,6 @@ export interface TournamentState {
   selected: Tournament | null;
   courts: readonly Court[];
   players: readonly { id: string; nome: string; cognome: string; livello: number; lato_preferito?: string }[];
-  presets: readonly TournamentPersonalPreset[];
   loading: boolean;
   saving: boolean;
   error: string | null;

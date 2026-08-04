@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Court } from '../../matches/models/match.model';
-import { CreateTournamentRequest, Tournament, TournamentGameDraft, TournamentPersonalPreset, TournamentPresetRules } from '../models/tournament.model';
+import { CreateTournamentRequest, Tournament, TournamentGameDraft, TournamentRules } from '../models/tournament.model';
 
 const TOURNAMENT_SELECT = `
   *,
@@ -42,47 +42,13 @@ export class TournamentsService {
     return data ?? [];
   }
 
-  async getPersonalPresets(): Promise<readonly TournamentPersonalPreset[]> {
-    const { data, error } = await this.supabase.client.from('tournament_presets').select('*')
-      .order('is_favorite', { ascending: false }).order('updated_at', { ascending: false });
-    if (error) throw error;
-    return (data ?? []) as TournamentPersonalPreset[];
-  }
-
-  async createPersonalPreset(name: string, description: string | null, rules: TournamentPresetRules): Promise<void> {
-    const { data: auth, error: authError } = await this.supabase.client.auth.getUser();
-    if (authError || !auth.user) throw authError ?? new Error('Profilo non disponibile');
-    const { error } = await this.supabase.client.from('tournament_presets').insert({
-      organizer_id: auth.user.id, name: name.trim(), description, rules, is_favorite: false,
-    });
-    if (error) throw error;
-  }
-
-  async setPresetFavorite(id: string, favorite: boolean): Promise<void> {
-    const { error } = await this.supabase.client.from('tournament_presets').update({ is_favorite: favorite }).eq('id', id);
-    if (error) throw error;
-  }
-
-  async deletePersonalPreset(id: string): Promise<void> {
-    const { error } = await this.supabase.client.from('tournament_presets').delete().eq('id', id);
-    if (error) throw error;
-  }
-
   async create(request: CreateTournamentRequest): Promise<Tournament> {
     const { data, error } = await this.supabase.client.rpc('create_tournament', {
       p_title: request.title, p_description: request.description, p_venue_id: request.venueId,
-      p_court_ids: request.courtIds, p_preset: request.preset, p_registration_mode: request.registrationMode,
-      p_format: request.format, p_gender: request.gender, p_min_level: request.minLevel, p_max_level: request.maxLevel,
-      p_max_teams: request.maxTeams, p_registration_deadline: request.registrationDeadline,
-      p_starts_at: request.startsAt, p_ends_at: request.endsAt, p_cost_cents: request.costCents,
-      p_guaranteed_matches: request.guaranteedMatches, p_group_size: request.groupSize,
-      p_qualifiers_per_group: request.qualifiersPerGroup, p_group_best_of: request.groupBestOf,
-      p_group_set_points: request.groupSetPoints, p_knockout_best_of: request.knockoutBestOf,
-      p_knockout_set_points: request.knockoutSetPoints, p_tiebreak_points: request.tiebreakPoints,
-      p_win_by_two: request.winByTwo, p_third_place: request.thirdPlace,
-      p_standings_win_points: request.standingsWinPoints, p_standings_loss_points: request.standingsLossPoints,
-      p_minimum_rest_minutes: request.minimumRestMinutes,
-      p_result_confirmation_required: request.resultConfirmationRequired,
+      p_court_ids: request.courtIds, p_gender: request.gender,
+      p_min_level: request.minLevel, p_max_level: request.maxLevel,
+      p_registration_deadline: request.registrationDeadline, p_starts_at: request.startsAt,
+      p_ends_at: request.endsAt, p_cost_cents: request.costCents,
     });
     if (error) throw error;
     return this.getTournament((data as { id: string }).id);
@@ -102,7 +68,7 @@ export class TournamentsService {
   async rescheduleGame(gameId: string, scheduledAt: string, courtId: string): Promise<void> { await this.rpc('reschedule_tournament_game', { p_game_id: gameId, p_scheduled_at: scheduledAt, p_court_id: courtId }); }
   async cancel(id: string): Promise<void> { await this.rpc('cancel_tournament', { p_tournament_id: id }); }
   async archive(id: string): Promise<void> { await this.rpc('archive_tournament', { p_tournament_id: id }); }
-  async updateRules(id: string, rules: TournamentPresetRules): Promise<void> { await this.rpc('update_tournament_rules', { p_tournament_id: id, p_rules: rules }); }
+  async updateRules(id: string, rules: TournamentRules): Promise<void> { await this.rpc('update_tournament_rules', { p_tournament_id: id, p_rules: rules }); }
   async saveGroup(tournamentId: string, groupId: string | null, name: string): Promise<void> {
     await this.rpc('upsert_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId, p_name: name, p_position: null });
   }

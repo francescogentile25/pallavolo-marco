@@ -1,11 +1,4 @@
-import { GroupStanding, Tournament, TournamentGame, TournamentPreset, TournamentPresetRules, TournamentTeam } from './models/tournament.model';
-
-export const TOURNAMENT_PRESETS: Record<TournamentPreset, TournamentPresetRules> = {
-  quick: { preset: 'quick', registrationMode: 'hybrid', format: 'groups', maxTeams: 8, guaranteedMatches: 3, groupSize: 4, qualifiersPerGroup: 2, groupBestOf: 1, groupSetPoints: 15, knockoutBestOf: 1, knockoutSetPoints: 21, tiebreakPoints: 15, winByTwo: true, thirdPlace: false, standingsWinPoints: 2, standingsLossPoints: 0, minimumRestMinutes: 15, resultConfirmationRequired: false },
-  classic: { preset: 'classic', registrationMode: 'hybrid', format: 'mixed', maxTeams: 12, guaranteedMatches: 3, groupSize: 4, qualifiersPerGroup: 2, groupBestOf: 1, groupSetPoints: 21, knockoutBestOf: 3, knockoutSetPoints: 21, tiebreakPoints: 15, winByTwo: true, thirdPlace: true, standingsWinPoints: 2, standingsLossPoints: 0, minimumRestMinutes: 20, resultConfirmationRequired: false },
-  knockout: { preset: 'knockout', registrationMode: 'pairs', format: 'knockout', maxTeams: 16, guaranteedMatches: 1, groupSize: null, qualifiersPerGroup: null, groupBestOf: 1, groupSetPoints: 21, knockoutBestOf: 3, knockoutSetPoints: 21, tiebreakPoints: 15, winByTwo: true, thirdPlace: true, standingsWinPoints: 2, standingsLossPoints: 0, minimumRestMinutes: 25, resultConfirmationRequired: false },
-  custom: { preset: 'custom', registrationMode: 'hybrid', format: 'mixed', maxTeams: 12, guaranteedMatches: 3, groupSize: 4, qualifiersPerGroup: 2, groupBestOf: 1, groupSetPoints: 21, knockoutBestOf: 3, knockoutSetPoints: 21, tiebreakPoints: 15, winByTwo: true, thirdPlace: false, standingsWinPoints: 2, standingsLossPoints: 0, minimumRestMinutes: 20, resultConfirmationRequired: false },
-};
+import { GroupStanding, Tournament, TournamentGame, TournamentRules, TournamentTeam } from './models/tournament.model';
 
 export const TOURNAMENT_STATUS_LABELS = { draft: 'Bozza', published: 'Iscrizioni aperte', registration_closed: 'Iscrizioni chiuse', in_progress: 'In corso', completed: 'Concluso', cancelled: 'Annullato', archived: 'Archiviato' } as const;
 export const REGISTRATION_MODE_LABELS = { pairs: 'Solo coppie', individual: 'Solo individuale', hybrid: 'Ibrida' } as const;
@@ -17,7 +10,7 @@ export function teamLabel(team: TournamentTeam | undefined): string {
   return names.length ? names.join(' / ') : 'Coppia proposta';
 }
 
-export function tournamentSummary(rules: TournamentPresetRules): string {
+export function tournamentSummary(rules: TournamentRules): string {
   const registration = REGISTRATION_MODE_LABELS[rules.registrationMode];
   const format = FORMAT_LABELS[rules.format];
   const groups = rules.format === 'knockout' ? '' : ` · gironi da ${rules.groupSize}`;
