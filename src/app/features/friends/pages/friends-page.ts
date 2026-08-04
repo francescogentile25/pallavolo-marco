@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { MessageService } from 'primeng/api';
+import { Accordion, AccordionContent, AccordionHeader, AccordionPanel } from 'primeng/accordion';
 import { Button } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { Paginator, PaginatorState } from 'primeng/paginator';
@@ -10,7 +11,7 @@ import { FriendsService } from '../services/friends.service';
 
 @Component({
   selector: 'app-friends-page',
-  imports: [FormsModule, RouterLink, Button, InputText, Paginator],
+  imports: [FormsModule, RouterLink, Accordion, AccordionContent, AccordionHeader, AccordionPanel, Button, InputText, Paginator],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="friends-page">
@@ -20,76 +21,97 @@ import { FriendsService } from '../services/friends.service';
         <p>Aggiungi giocatori, accetta le richieste e ritrovali velocemente quando crei una partita.</p>
       </header>
 
-      @if (service.requests().length) {
-        <section class="block" aria-label="Richieste ricevute">
-          <h2>Richieste ({{ service.requests().length }})</h2>
-          @for (r of service.requests(); track r.request_id) {
-            <article class="row">
-              <span class="avatar">{{ initials(r.nome, r.cognome) }}</span>
-              <div class="row-body"><strong>{{ r.nome }} {{ r.cognome }}</strong><small>Livello {{ r.livello }}</small></div>
-              <div class="row-actions">
-                <p-button size="small" label="Accetta" icon="pi pi-check" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, true)" />
-                <p-button size="small" severity="secondary" [outlined]="true" label="Rifiuta" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, false)" />
-              </div>
-            </article>
-          }
-        </section>
-      }
-
-      <section class="block" aria-label="I tuoi amici">
-        <h2>I tuoi amici ({{ service.friends().length }})</h2>
-        @for (f of service.friends(); track f.id) {
-          <article class="row">
-            <a class="row-body link" [routerLink]="['/giocatori', f.id]">
-              <span class="avatar">{{ initials(f.nome, f.cognome) }}</span>
-              <span class="row-text"><strong>{{ f.nome }} {{ f.cognome }}</strong><small>Livello {{ f.livello }}</small></span>
-            </a>
-            <div class="row-actions">
-              <p-button size="small" severity="secondary" [text]="true" label="Rimuovi" icon="pi pi-user-minus" [loading]="busy() === f.id" (onClick)="remove(f.id)" />
-            </div>
-          </article>
-        } @empty {
-          <p class="empty">Ancora nessun amico. Aggiungine qualcuno qui sotto.</p>
-        }
-      </section>
-
-      <section class="block" aria-label="Aggiungi amici">
-        <h2>Aggiungi amici</h2>
-        <span class="search">
-          <i class="pi pi-search" aria-hidden="true"></i>
-          <input pInputText type="search" placeholder="Cerca un giocatore" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
-        </span>
-        @for (u of pagedAddable(); track u.id) {
-          <article class="row">
-            <span class="avatar">{{ initials(u.nome, u.cognome) }}</span>
-            <div class="row-body"><strong>{{ u.nome }} {{ u.cognome }}</strong><small>Livello {{ u.livello }}</small></div>
-            <div class="row-actions">
-              @switch (u.relation) {
-                @case ('friend') { <span class="badge ok"><i class="pi pi-check"></i> Amico</span> }
-                @case ('outgoing') { <span class="badge">In attesa</span> }
-                @case ('incoming') { <p-button size="small" label="Accetta" icon="pi pi-check" [loading]="busy() === u.id" (onClick)="send(u.id)" /> }
-                @default { <p-button size="small" severity="secondary" [outlined]="true" label="Aggiungi" icon="pi pi-user-plus" [loading]="busy() === u.id" (onClick)="send(u.id)" /> }
+      <p-accordion value="friends">
+        <p-accordion-panel value="friends">
+          <p-accordion-header>
+            <span class="accordion-title"><i class="pi pi-users" aria-hidden="true"></i><span>I tuoi amici</span><small>{{ service.friends().length }}</small></span>
+          </p-accordion-header>
+          <p-accordion-content>
+            @if (service.requests().length) {
+              <section class="requests" aria-label="Richieste ricevute">
+                <h2>Richieste ricevute <span>{{ service.requests().length }}</span></h2>
+                @for (r of service.requests(); track r.request_id) {
+                  <article class="row">
+                    <span class="avatar">{{ initials(r.nome, r.cognome) }}</span>
+                    <div class="row-body"><strong>{{ r.nome }} {{ r.cognome }}</strong><small>Livello {{ r.livello }}</small></div>
+                    <div class="row-actions">
+                      <p-button size="small" label="Accetta" icon="pi pi-check" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, true)" />
+                      <p-button size="small" severity="secondary" [outlined]="true" label="Rifiuta" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, false)" />
+                    </div>
+                  </article>
+                }
+              </section>
+            }
+            <section aria-label="I tuoi amici">
+              @for (f of service.friends(); track f.id) {
+                <article class="row friend-row">
+                  <a class="row-body link" [routerLink]="['/giocatori', f.id]">
+                    <span class="avatar">{{ initials(f.nome, f.cognome) }}</span>
+                    <span class="row-text"><strong>{{ f.nome }} {{ f.cognome }}</strong><small>Livello {{ f.livello }}</small></span>
+                  </a>
+                  <div class="row-actions">
+                    <p-button size="small" severity="secondary" [text]="true" label="Rimuovi" icon="pi pi-user-minus" [loading]="busy() === f.id" (onClick)="remove(f.id)" />
+                  </div>
+                </article>
+              } @empty {
+                <p class="empty">Ancora nessun amico. Apri “Aggiungi amici” per iniziare.</p>
               }
-            </div>
-          </article>
-        } @empty {
-          <p class="empty">Nessun giocatore trovato.</p>
-        }
-        @if (filteredAddable().length > rows()) {
-          <p-paginator [first]="first()" [rows]="rows()" [totalRecords]="filteredAddable().length" (onPageChange)="onPage($event)" />
-        }
-      </section>
+            </section>
+          </p-accordion-content>
+        </p-accordion-panel>
+
+        <p-accordion-panel value="add">
+          <p-accordion-header>
+            <span class="accordion-title"><i class="pi pi-user-plus" aria-hidden="true"></i><span>Aggiungi amici</span></span>
+          </p-accordion-header>
+          <p-accordion-content>
+            <section aria-label="Aggiungi amici">
+              <label class="search">
+                <span class="sr-only">Cerca un giocatore</span><i class="pi pi-search" aria-hidden="true"></i>
+                <input pInputText type="search" placeholder="Cerca un giocatore" [ngModel]="search()" (ngModelChange)="onSearch($event)" />
+              </label>
+              @for (u of pagedAddable(); track u.id) {
+                <article class="row">
+                  <span class="avatar">{{ initials(u.nome, u.cognome) }}</span>
+                  <div class="row-body"><strong>{{ u.nome }} {{ u.cognome }}</strong><small>Livello {{ u.livello }}</small></div>
+                  <div class="row-actions">
+                    @switch (u.relation) {
+                      @case ('friend') { <span class="badge ok"><i class="pi pi-check"></i> Amico</span> }
+                      @case ('outgoing') { <span class="badge">In attesa</span> }
+                      @case ('incoming') { <p-button size="small" label="Accetta" icon="pi pi-check" [loading]="busy() === u.id" (onClick)="send(u.id)" /> }
+                      @default { <p-button size="small" severity="secondary" [outlined]="true" label="Aggiungi" icon="pi pi-user-plus" [loading]="busy() === u.id" (onClick)="send(u.id)" /> }
+                    }
+                  </div>
+                </article>
+              } @empty {
+                <p class="empty">Nessun giocatore trovato.</p>
+              }
+              @if (filteredAddable().length > rows()) {
+                <p-paginator [first]="first()" [rows]="rows()" [totalRecords]="filteredAddable().length" (onPageChange)="onPage($event)" />
+              }
+            </section>
+          </p-accordion-content>
+        </p-accordion-panel>
+      </p-accordion>
     </main>
   `,
   styles: `
     :host { display: block; }
-    .friends-page { width: min(100%, 760px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
+    .friends-page { display: grid; width: min(100%, 920px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; gap: 14px; }
     .friends-hero { padding: 22px 4px 14px; }
     .eyebrow { margin: 0 0 8px; color: var(--color-brand-strong); font-size: .72rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0 0 8px; font: 900 clamp(2rem, 9vw, 3.4rem)/.95 var(--display-font); letter-spacing: -.045em; }
     .friends-hero p:last-of-type { max-width: 44rem; margin: 0; color: var(--color-ink-muted); line-height: 1.5; }
-    .block { margin-top: 18px; }
-    .block h2 { margin: 0 0 10px; font: 900 1.2rem/1 var(--display-font); }
+    .requests { padding: 0 0 14px; margin-bottom: 14px; border-bottom: 1px solid var(--color-border); }
+    .requests h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font: 900 1.05rem/1 var(--display-font); }
+    .requests h2 span, .accordion-title small { display: inline-grid; min-width: 24px; height: 24px; place-items: center; padding: 0 7px; border-radius: 99px; background: var(--color-brand-soft); color: var(--color-brand-strong); font: 800 .68rem/1 var(--base-font-family); }
+    .accordion-title { display: flex; width: 100%; align-items: center; gap: 10px; }
+    .accordion-title > i { color: var(--color-brand-strong); }
+    .accordion-title > span { font-weight: 850; }
+    .accordion-title small { margin-left: auto; margin-right: 8px; }
+    :host ::ng-deep .p-accordionpanel { overflow: hidden; margin-bottom: 10px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
+    :host ::ng-deep .p-accordionheader { min-height: 58px; padding: 0 16px; }
+    :host ::ng-deep .p-accordioncontent-content { padding: 4px 12px 14px; }
     .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); }
     .avatar { display: grid; width: 40px; height: 40px; place-items: center; color: white; border-radius: 12px; background: var(--color-brand-strong); font-size: .72rem; font-weight: 850; }
     .row-body { display: grid; gap: 2px; min-width: 0; }
@@ -108,6 +130,10 @@ import { FriendsService } from '../services/friends.service';
     .search i { position: absolute; top: 50%; left: 14px; color: var(--color-ink-muted); transform: translateY(-50%); }
     .search input { width: 100%; min-height: 46px; padding-left: 40px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
     .empty { padding: 14px; color: var(--color-ink-muted); font-size: .8rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
+    @media (min-width: 700px) {
+      .friends-page { padding: 34px 28px 120px; gap: 18px; }
+    }
   `,
 })
 export class FriendsPage implements OnInit {

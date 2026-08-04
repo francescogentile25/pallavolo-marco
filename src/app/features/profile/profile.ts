@@ -36,7 +36,12 @@ import { ProfileStore } from './store/profile.store';
           </div>
         </header>
 
-        <nav class="quick-links" aria-label="Scorciatoie">
+        <nav
+          class="quick-links"
+          [class.odd-count]="quickLinkCount(profile.ruolo) % 2 !== 0"
+          [style.--quick-link-count]="quickLinkCount(profile.ruolo)"
+          aria-label="Scorciatoie"
+        >
           <a routerLink="/partite/mie"><i class="pi pi-calendar" aria-hidden="true"></i> Le mie partite</a>
           <a routerLink="/campi"><i class="pi pi-map-marker" aria-hidden="true"></i> I miei campi</a>
           <a routerLink="/amici"><i class="pi pi-user-plus" aria-hidden="true"></i> Amici</a>
@@ -168,10 +173,12 @@ import { ProfileStore } from './store/profile.store';
     .hero h1 { margin: 0 0 6px; font: 900 clamp(1.6rem, 6vw, 2.6rem)/1.02 var(--display-font); letter-spacing: -.03em; overflow-wrap: anywhere; }
     .hero-email { margin: 0 0 10px; color: rgb(255 255 255 / .72); font-size: .82rem; overflow-wrap: anywhere; }
     .role-badge { display: inline-flex; align-items: center; gap: 6px; padding: 6px 11px; border-radius: 999px; background: rgb(255 255 255 / .14); font-size: .7rem; font-weight: 800; text-transform: capitalize; }
-    .quick-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
-    .quick-links a { display: inline-flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--color-ink); border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); font-size: .8rem; font-weight: 750; text-decoration: none; }
+    .quick-links { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; width: 100%; }
+    .quick-links a { display: inline-flex; min-height: 48px; align-items: center; gap: 8px; padding: 12px 14px; color: var(--color-ink); border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); font-size: .8rem; font-weight: 750; text-decoration: none; }
     .quick-links a:hover { border-color: var(--color-brand); color: var(--color-brand-strong); }
+    .quick-links a:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 2px; }
     .quick-links i { color: var(--color-brand-strong); }
+    .quick-links.odd-count > :last-child { grid-column: 1 / -1; justify-self: center; width: calc(50% - 4px); }
     .metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
     .metric { padding: 16px; border: 1px solid var(--color-border); border-radius: 20px; background: var(--color-surface); }
     .metric-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
@@ -218,7 +225,8 @@ import { ProfileStore } from './store/profile.store';
     @media (min-width: 768px) {
       .profile-page { padding: 34px 28px 120px; gap: 16px; }
       .hero { grid-template-columns: auto 1fr; padding: 32px; }
-      .quick-links { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+      .quick-links { grid-template-columns: repeat(var(--quick-link-count), minmax(0, 190px)); justify-content: center; }
+      .quick-links.odd-count > :last-child { grid-column: auto; justify-self: stretch; width: auto; }
       .grid { grid-template-columns: repeat(2, 1fr); }
       .history { grid-template-columns: repeat(2, minmax(0, 1fr)); }
     }
@@ -232,6 +240,7 @@ export class Profile implements OnInit, OnDestroy {
   protected readonly avatarPreview = signal<string | null>(null);
   protected readonly avatarBroken = signal(false);
   protected readonly isAdmin = computed(() => this.store.profile()?.ruolo === 'admin');
+  protected readonly quickLinkCount = (role: Parameters<typeof capabilitiesForRole>[0]): number => this.canOrganizeTournaments(role) ? 4 : 3;
   protected readonly pwNew = signal('');
   protected readonly pwConfirm = signal('');
   protected readonly pwSaving = signal(false);

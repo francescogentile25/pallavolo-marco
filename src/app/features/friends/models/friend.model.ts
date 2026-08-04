@@ -27,4 +27,10 @@ export interface FriendProfileDetails {
   affidabilita: number;
   lato_preferito: string;
   avatar_url: string | null;
+  matches_played: number;
+  tournaments_played: number;
+  tournaments_won: number;
+  tournament_games_played: number;
+  tournament_games_won: number;
+  best_set_score: number;
 }

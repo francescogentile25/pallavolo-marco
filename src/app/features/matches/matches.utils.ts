@@ -50,6 +50,7 @@ export function filterMatches(
   weekendEnd.setHours(23, 59, 59, 999);
 
   return matches.filter((match) => {
+    if (match.status === 'cancelled' || match.status === 'draft') return false;
     const startsAt = new Date(match.starts_at);
     const searchable = `${match.court.venue.name} ${match.court.name} ${match.court.venue.city}`
       .toLocaleLowerCase('it');

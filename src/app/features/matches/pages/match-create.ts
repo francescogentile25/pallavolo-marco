@@ -29,7 +29,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
         <div class="hero-copy">
           <p>{{ editing ? 'Gestisci' : 'Organizza' }}</p>
           <h1>{{ editing ? 'Modifica partita' : 'Crea una partita' }}</h1>
-          <p class="hero-intro">{{ editing ? 'Aggiorna i dettagli senza perdere le iscrizioni già confermate.' : 'Tre scelte rapide e il campo è pronto per accogliere i giocatori.' }}</p>
+          <p class="hero-intro">{{ editing ? 'Aggiorna i dettagli senza perdere le iscrizioni già confermate.' : 'Pochi passi per scendere in campo.' }}</p>
         </div>
         <ol class="progress" [attr.aria-label]="editing ? 'Avanzamento modifica' : 'Avanzamento creazione'">
           @for (item of steps; track item.number) {
@@ -126,7 +126,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
         @if (!initializing() && !loadError() && step() === 3) {
           <section class="form-card">
             <div class="heading"><div><p>Passo 3 di 3</p><h2>{{ editing ? 'Controlla e salva' : 'Controlla e pubblica' }}</h2></div><i class="pi pi-check-circle"></i></div>
-            <div class="summary"><div><span>Campo</span><strong>{{ selectedCourtLabel() }}</strong></div><div><span>Data e ora</span><strong>{{ model().date }} · {{ model().time }}</strong></div><div><span>Formula</span><strong>{{ model().capacity }} giocatori · livello {{ model().minLevel }}–{{ model().maxLevel }}</strong></div><div><span>{{ editing ? 'Partecipanti' : 'Invitati' }}</span><strong>{{ editing ? existingParticipantsSummary() : invitedPlayersSummary() }}</strong></div></div>
+            <div class="summary"><div><span>Campo</span><strong>{{ selectedCourtLabel() }}</strong></div><div><span>Data e ora</span><strong>{{ formattedMatchDate() }}</strong></div><div><span>Formula</span><strong>{{ model().capacity }} giocatori · livello {{ model().minLevel }}–{{ model().maxLevel }}</strong></div><div><span>{{ editing ? 'Partecipanti' : 'Invitati' }}</span><strong>{{ editing ? existingParticipantsSummary() : invitedPlayersSummary() }}</strong></div></div>
             <div class="field"><label for="notes">Note <small>(opzionale)</small></label><textarea id="notes" rows="5" [formField]="matchForm.notes" placeholder="Costo campo, materiale, indicazioni…"></textarea></div>
             <p class="notice"><i class="pi pi-info-circle"></i> {{ editing ? 'Gli iscritti restano partecipanti e devono rientrare nei nuovi limiti.' : 'Sarai iscritto automaticamente come organizzatore.' }}</p>
             @if (store.error()) { <p class="error" role="alert">{{ store.error() }}</p> }
@@ -242,7 +242,7 @@ export class MatchCreate implements OnInit, OnDestroy {
   ];
   protected readonly standaloneNgModel = { standalone: true };
   protected readonly durationOptions = [{ label: '60 minuti', value: '60' }, { label: '90 minuti', value: '90' }, { label: '120 minuti', value: '120' }, { label: 'Non definita', value: '0' }];
-  protected readonly capacityOptions = [2,4,6,8,10,12].map(capacity => ({ label: `${capacity} giocatori`, value: String(capacity) }));
+  protected readonly capacityOptions = [2, 4, 6, 8].map(capacity => ({ label: `${capacity} giocatori`, value: String(capacity) }));
   protected readonly genderOptions: { label: string; value: MatchGender }[] = [{ label: 'Misto', value: 'mixed' }, { label: 'Maschile', value: 'male' }, { label: 'Femminile', value: 'female' }];
   protected readonly levelOptions = this.levels.map((level) => ({ label: String(level), value: String(level) }));
   protected readonly model = signal<MatchFormModel>({ courtId:'', date:'', time:'', duration:'90', capacity:'4', gender:'mixed', minLevel:'1', maxLevel:'7', notes:'', visibility:'public', invitedPlayerIds:[] });
@@ -261,6 +261,11 @@ export class MatchCreate implements OnInit, OnDestroy {
   });
   protected readonly courtOptions = computed(() => this.store.courts().map((court) => ({ label: `${court.venue.name} · ${court.name} · ${court.venue.city}`, value: court.id })));
   protected readonly selectedCourtLabel = computed(() => { const c = this.store.courts().find(item => item.id === this.model().courtId); return c ? `${c.venue.name} · ${c.name}` : 'Campo non selezionato'; });
+  protected readonly formattedMatchDate = computed(() => {
+    const { date, time } = this.model();
+    const [year, month, day] = date.split('-');
+    return date && time && year && month && day ? `${time} · ${day}/${month}/${year}` : 'Data e ora non definite';
+  });
   protected readonly maxInvites = computed(() => Math.max(0, +this.model().capacity - 1));
   protected readonly invitablePlayerOptions = computed(() => {
     const minLevel = +this.model().minLevel;
@@ -317,6 +322,10 @@ export class MatchCreate implements OnInit, OnDestroy {
       }
       if (+value.minLevel > +value.maxLevel) {
         this.stepError.set('Il livello minimo non può superare quello massimo.');
+        return;
+      }
+      if (+value.capacity > 8) {
+        this.stepError.set('Una partita può avere al massimo 8 giocatori.');
         return;
       }
       if (value.invitedPlayerIds.length > +value.capacity - 1) {

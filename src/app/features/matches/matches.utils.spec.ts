@@ -20,6 +20,7 @@ describe('match utilities', () => {
     expect(filterMatches([match], { ...filters, gender: 'male' })).toEqual([]);
     expect(filterMatches([match], { ...filters, level: 4 })).toEqual([match]);
     expect(filterMatches([{ ...match, status: 'full' }], { ...filters, onlyAvailable: true })).toEqual([]);
+    expect(filterMatches([{ ...match, status: 'cancelled' }], filters)).toEqual([]);
   });
   it('formats ranges', () => expect(levelRangeLabel(match)).toBe('Livello 3–5'));
   it('maps invitation validation errors', () => {

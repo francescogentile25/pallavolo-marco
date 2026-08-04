@@ -32,6 +32,7 @@ export class MatchesService {
       .from('matches')
       .select(MATCH_SELECT)
       .neq('status', 'draft')
+      .neq('status', 'cancelled')
       .gte('starts_at', new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString())
       .order('starts_at', { ascending: true });
     if (error) throw error;

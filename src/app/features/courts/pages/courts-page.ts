@@ -23,7 +23,6 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
           <h1>Campi</h1>
           <p>Crea e gestisci i tuoi campi. Trovi anche quelli dove hai giocato su invito di altri.</p>
         </div>
-        <button type="button" class="new-btn" (click)="openCreate()"><i class="pi pi-plus" aria-hidden="true"></i> Nuovo campo</button>
       </header>
 
       @if (loading()) {
@@ -103,8 +102,6 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
     .eyebrow { margin: 0 0 8px; color: var(--color-brand-strong); font-size: .72rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0 0 8px; font: 900 clamp(2rem, 9vw, 3.4rem)/.95 var(--display-font); letter-spacing: -.045em; }
     .courts-hero p:last-of-type { max-width: 44rem; margin: 0; color: var(--color-ink-muted); line-height: 1.5; }
-    .new-btn { display: inline-flex; align-items: center; gap: 8px; justify-self: start; padding: 11px 18px; color: white; border: 0; border-radius: 14px; background: var(--color-brand); font: inherit; font-weight: 800; font-size: .82rem; cursor: pointer; }
-    .new-btn:hover { background: var(--color-brand-strong); }
     .court-list { display: grid; gap: 10px; }
     .court-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
     .court-card.inherited { background: var(--color-surface-muted); }
@@ -134,7 +131,6 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
     .court-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
     @keyframes spin { to { transform: rotate(360deg); } }
     @media (prefers-reduced-motion: reduce) { .spinner { animation: none; } }
-    @media (min-width: 620px) { .courts-hero { grid-template-columns: 1fr auto; align-items: end; } }
   `,
 })
 export class CourtsPage implements OnInit, OnDestroy {
