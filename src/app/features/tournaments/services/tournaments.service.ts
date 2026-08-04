@@ -85,6 +85,13 @@ export class TournamentsService {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_team_members' }, onChange)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_games', filter }, onChange).subscribe();
   }
+  async setVisibility(tournamentId: string, visibility: 'public' | 'private'): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_tournament_visibility', {
+      p_tournament_id: tournamentId, p_visibility: visibility,
+    });
+    if (error) throw error;
+  }
+
   removeChannel(channel: RealtimeChannel): void { void this.supabase.client.removeChannel(channel); }
 
   private async rpc(name: string, args: Record<string, unknown>): Promise<void> {

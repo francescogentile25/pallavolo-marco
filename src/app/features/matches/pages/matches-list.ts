@@ -11,7 +11,7 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
 import { AuthStore } from '../../auth/store/auth.store';
 import { MatchActionSheet } from '../components/match-action-sheet';
 import { MatchCard } from '../components/match-card';
-import { BeachMatch, MatchFilters, MatchGender } from '../models/match.model';
+import { BeachMatch, MatchFilters, MatchGender, MatchVisibility } from '../models/match.model';
 import { filterMatches } from '../matches.utils';
 import { MatchesService } from '../services/matches.service';
 import { MatchesStore } from '../store/matches.store';
@@ -47,6 +47,10 @@ import { MatchesStore } from '../store/matches.store';
           <div class="filter-field">
             <label for="match-date">Quando</label>
             <p-select inputId="match-date" [ngModel]="dateFilter()" (ngModelChange)="dateFilter.set($event)" [options]="dateOptions" optionLabel="label" optionValue="value" fluid />
+          </div>
+          <div class="filter-field">
+            <label for="match-visibility">Tipo</label>
+            <p-select inputId="match-visibility" [ngModel]="visibility()" (ngModelChange)="visibility.set($event)" [options]="visibilityOptions" optionLabel="label" optionValue="value" fluid />
           </div>
         </div>
         <div class="availability-toggle">
@@ -123,6 +127,12 @@ export class MatchesList implements OnInit, OnDestroy {
   protected readonly level = signal<number | null>(null);
   protected readonly onlyAvailable = signal(true);
   protected readonly dateFilter = signal<MatchFilters['date']>('all');
+  protected readonly visibility = signal<MatchVisibility | 'all'>('all');
+  protected readonly visibilityOptions: { label: string; value: MatchVisibility | 'all' }[] = [
+    { label: 'Tutte', value: 'all' },
+    { label: 'Pubbliche', value: 'public' },
+    { label: 'Private', value: 'private' },
+  ];
   protected readonly levels = [1, 2, 3, 4, 5, 6, 7];
   protected readonly genderOptions: { label: string; value: MatchGender | 'all' }[] = [
     { label: 'Tutti', value: 'all' },
@@ -142,7 +152,7 @@ export class MatchesList implements OnInit, OnDestroy {
   protected readonly selectedMatch = signal<BeachMatch | null>(null);
   protected readonly sheetOpen = signal(false);
   protected readonly filteredMatches = computed(() => filterMatches(this.store.matches(), {
-    query: this.query(), gender: this.gender(), level: this.level(), onlyAvailable: this.onlyAvailable(), date: this.dateFilter(),
+    query: this.query(), gender: this.gender(), level: this.level(), onlyAvailable: this.onlyAvailable(), date: this.dateFilter(), visibility: this.visibility(),
   }));
   private channel?: RealtimeChannel;
   private refreshTimer?: ReturnType<typeof setTimeout>;
@@ -157,7 +167,7 @@ export class MatchesList implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void { this.actions.clear(); if (this.channel) this.service.removeChannel(this.channel); if (this.refreshTimer) clearTimeout(this.refreshTimer); }
   protected openActions(match: BeachMatch): void { this.selectedMatch.set(match); this.sheetOpen.set(true); }
-  protected resetFilters(): void { this.query.set(''); this.gender.set('all'); this.level.set(null); this.onlyAvailable.set(false); this.dateFilter.set('all'); }
+  protected resetFilters(): void { this.query.set(''); this.gender.set('all'); this.level.set(null); this.onlyAvailable.set(false); this.dateFilter.set('all'); this.visibility.set('all'); }
   protected async join(id: string): Promise<void> { if (await this.store.join(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
   protected async withdraw(id: string): Promise<void> { if (await this.store.withdraw(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
   protected cancel(id: string): void { this.confirmationService.confirm({ header: 'Annulla partita?', message: 'La partita verrà annullata per tutti i partecipanti. Questa azione non può essere annullata.', icon: 'pi pi-exclamation-triangle', acceptLabel: 'Annulla partita', rejectLabel: 'Mantieni partita', acceptButtonProps: { severity: 'danger' }, rejectButtonProps: { severity: 'secondary', variant: 'text' }, accept: () => void this.cancelConfirmed(id) }); }

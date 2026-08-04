@@ -55,6 +55,7 @@ export interface Tournament {
   organizer_id: string;
   venue_id: string;
   status: TournamentStatus;
+  visibility: 'public' | 'private';
   preset: TournamentPreset;
   title: string;
   description: string | null;
@@ -124,6 +125,7 @@ export interface CreateTournamentRequest extends TournamentPresetRules {
   startsAt: string;
   endsAt: string;
   costCents: number;
+  visibility: 'public' | 'private';
 }
 
 export interface TournamentState {

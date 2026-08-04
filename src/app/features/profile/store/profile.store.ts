@@ -87,6 +87,17 @@ export const ProfileStore = signalStore(
         }
       },
 
+      async uploadAvatar(file: File): Promise<string | null> {
+        const id = store.profile()?.id;
+        if (!id) return null;
+        try {
+          return await profileService.uploadAvatar(id, file);
+        } catch {
+          messageService.add({ severity: 'error', summary: 'Upload non riuscito', detail: 'Riprova con un’immagine più piccola.' });
+          return null;
+        }
+      },
+
       async changePassword(password: string): Promise<boolean> {
         try {
           await profileService.changePassword(password);

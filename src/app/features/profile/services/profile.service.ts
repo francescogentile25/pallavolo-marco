@@ -59,6 +59,18 @@ export class ProfileService {
     if (error) throw error;
   }
 
+  async uploadAvatar(userId: string, file: File): Promise<string> {
+    const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+    const path = `${userId}/avatar-${Date.now()}.${ext}`;
+    const { error } = await this.supabase.client.storage.from('avatars').upload(path, file, {
+      upsert: true,
+      cacheControl: '3600',
+      contentType: file.type || 'image/jpeg',
+    });
+    if (error) throw error;
+    return this.supabase.client.storage.from('avatars').getPublicUrl(path).data.publicUrl;
+  }
+
   async updateMyProfile(request: UpdatePlayerProfileRequest): Promise<UserProfile> {
     const { data, error } = await this.supabase.client.rpc('update_my_profile', {
       p_nome: request.nome,

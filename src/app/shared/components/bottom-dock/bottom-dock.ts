@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { PageAction } from '../../../core/models/page-action.model';
 import { PageActionsService } from '../../../core/services/page-actions.service';
+import { AuthStore } from '../../../features/auth/store/auth.store';
 
 @Component({
   selector: 'app-bottom-dock',
@@ -75,14 +76,18 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
 
       <ul class="dock-nav-list" role="list">
         @for (item of navItems; track item.id) {
-          <li [class.is-create]="item.id === 'create'">
+          <li [class.is-create]="item.id === 'avatar'">
             <a
               [routerLink]="item.route"
               routerLinkActive="is-active"
               [routerLinkActiveOptions]="{ exact: item.route === '/' }"
             >
               <span class="nav-icon">
-                <i class="pi {{ item.icon }}" aria-hidden="true"></i>
+                @if (item.id === 'avatar') {
+                  @if (avatarUrl(); as url) { <img [src]="url" alt="" /> } @else { <span class="dock-ini">{{ initials() }}</span> }
+                } @else {
+                  <i class="pi {{ item.icon }}" aria-hidden="true"></i>
+                }
               </span>
               <span>{{ item.label }}</span>
             </a>
@@ -154,12 +159,16 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       width: 46px;
       height: 46px;
       margin-top: -27px;
+      overflow: hidden;
       color: white;
       border: 4px solid rgb(255 255 255 / 0.95);
       border-radius: 50%;
       background: var(--color-brand);
       box-shadow: 0 8px 18px rgb(212 86 42 / 0.3);
     }
+
+    .dock-nav-list .is-create .nav-icon img { width: 100%; height: 100%; object-fit: cover; }
+    .dock-ini { font-size: 0.95rem; font-weight: 900; color: white; }
 
     .dock-actions {
       display: flex;
@@ -224,10 +233,16 @@ export class BottomDock {
 
   protected readonly actions = this.pageActions.actions;
   protected readonly hasActions = computed(() => this.actions().length > 0);
+  private readonly authStore = inject(AuthStore);
+  protected readonly avatarUrl = computed(() => this.authStore.profile()?.avatar_url ?? null);
+  protected readonly initials = computed(() => {
+    const p = this.authStore.profile();
+    return p ? `${p.nome.charAt(0)}${p.cognome.charAt(0)}`.toUpperCase() : 'BV';
+  });
   protected readonly navItems = [
     { id: 'home', route: '/', icon: 'pi-home', label: 'Home' },
     { id: 'matches', route: '/partite', icon: 'pi-users', label: 'Partite' },
-    { id: 'create', route: '/partite/nuova', icon: 'pi-plus', label: 'Crea' },
+    { id: 'avatar', route: '/profilo', icon: 'pi-user', label: 'Profilo' },
     { id: 'tournaments', route: '/tornei', icon: 'pi-trophy', label: 'Tornei' },
     { id: 'courts', route: '/campi', icon: 'pi-map-marker', label: 'Campi' },
   ] as const;

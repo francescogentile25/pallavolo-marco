@@ -100,10 +100,17 @@ import { ProfileStore } from './store/profile.store';
                 <small>È distinta dal livello calcolato tramite le valutazioni.</small>
               </div>
               <div class="field wide">
-                <label for="profile-avatar">URL avatar</label>
-                <input id="profile-avatar" pInputText fluid type="url" formControlName="avatar_url" inputmode="url" placeholder="https://esempio.it/avatar.jpg" [invalid]="showError('avatar_url')" (input)="updateAvatarPreview()" />
-                <small>Opzionale. Usa un indirizzo HTTPS pubblico.</small>
-                @if (showError('avatar_url')) { <small class="err">Inserisci un URL HTTPS valido.</small> }
+                <label>Foto profilo</label>
+                <div class="avatar-upload">
+                  <span class="up-preview" aria-hidden="true">
+                    @if (avatarPreview() && !avatarBroken()) { <img [src]="avatarPreview()" alt="" (error)="avatarBroken.set(true)" /> } @else { {{ initials() }} }
+                  </span>
+                  <label class="up-btn">
+                    <input type="file" accept="image/*" (change)="onAvatarSelected($event)" hidden [disabled]="uploadingAvatar()" />
+                    <i class="pi pi-upload" aria-hidden="true"></i> {{ uploadingAvatar() ? 'Caricamento…' : 'Carica foto' }}
+                  </label>
+                </div>
+                <small>Immagine quadrata consigliata, max 5 MB. Salva per applicare.</small>
               </div>
             </div>
             @if (store.error()) { <p class="form-error" role="alert">{{ store.error() }}</p> }
@@ -189,6 +196,11 @@ import { ProfileStore } from './store/profile.store';
     .lock-note i { color: var(--color-brand-strong); }
     .link-btn { padding: 0; color: var(--color-brand-strong); border: 0; background: none; font: inherit; font-size: .72rem; font-weight: 800; cursor: pointer; text-decoration: underline; }
     .dialog-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
+    .avatar-upload { display: flex; align-items: center; gap: 14px; }
+    .up-preview { display: grid; width: 60px; height: 60px; flex: 0 0 60px; place-items: center; overflow: hidden; border-radius: 18px; color: white; background: var(--color-brand-strong); font-size: 1.1rem; font-weight: 900; }
+    .up-preview img { width: 100%; height: 100%; object-fit: cover; }
+    .up-btn { display: inline-flex; align-items: center; gap: 8px; padding: 10px 16px; color: var(--color-brand-strong); border: 1px solid var(--color-brand); border-radius: 12px; background: var(--color-surface); font-size: .8rem; font-weight: 750; cursor: pointer; }
+    .up-btn:hover { background: var(--color-brand-soft); }
     .form-error { margin: 16px 0 0; color: var(--color-danger); font-size: .78rem; }
     .save { display: inline-block; margin-top: 18px; }
     .pref-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
@@ -234,6 +246,7 @@ export class Profile implements OnInit, OnDestroy {
   protected readonly nameReqOpen = signal(false);
   protected readonly nameReqForm = signal<{ nome: string; cognome: string }>({ nome: '', cognome: '' });
   protected readonly nameReqSaving = signal(false);
+  protected readonly uploadingAvatar = signal(false);
   protected readonly sideOptions: { label: string; value: PreferredSide }[] = [
     { label: 'Indifferente', value: 'indifferente' },
     { label: 'Sinistra', value: 'sinistra' },
@@ -287,6 +300,23 @@ export class Profile implements OnInit, OnDestroy {
     return labels[value] ?? 'Non definito';
   }
   protected reliabilityLabel(value: number): string { if (value >= 6) return 'Eccellente'; if (value >= 4.5) return 'Affidabile'; if (value >= 3) return 'Da consolidare'; return 'Attenzione'; }
+
+  protected async onAvatarSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0];
+    input.value = '';
+    if (!file || !file.type.startsWith('image/') || file.size > 5 * 1024 * 1024) return;
+    this.uploadingAvatar.set(true);
+    const url = await this.store.uploadAvatar(file);
+    this.uploadingAvatar.set(false);
+    if (url) {
+      this.profileForm.controls.avatar_url.setValue(url);
+      this.profileForm.controls.avatar_url.markAsDirty();
+      this.profileForm.markAsDirty();
+      this.avatarPreview.set(url);
+      this.avatarBroken.set(false);
+    }
+  }
 
   protected pwValid(): boolean { const a = this.pwNew(); return a.length >= 6 && a === this.pwConfirm(); }
   protected async changePassword(): Promise<void> {

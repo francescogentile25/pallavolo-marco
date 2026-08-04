@@ -55,6 +55,7 @@ export function filterMatches(
       .toLocaleLowerCase('it');
     return (
       (!query || searchable.includes(query)) &&
+      (filters.visibility === 'all' || match.visibility === filters.visibility) &&
       (filters.gender === 'all' || match.gender === filters.gender) &&
       (filters.level === null ||
         (filters.level >= match.min_level && filters.level <= match.max_level)) &&

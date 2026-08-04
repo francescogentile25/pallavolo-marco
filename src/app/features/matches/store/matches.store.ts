@@ -110,6 +110,7 @@ export const MatchesStore = signalStore(
           patchState(store, { saving: true, error: null });
           try {
             const match = await service.createMatch(request);
+            if (request.visibility === 'private') await service.setMatchVisibility(match.id, 'private');
             patchState(store, { saving: false, selected: match });
             const invitedCount = request.invitedPlayerIds.length;
             messages.add({
@@ -130,6 +131,7 @@ export const MatchesStore = signalStore(
           patchState(store, { saving: true, error: null });
           try {
             const match = await service.updateMatch(request);
+            await service.setMatchVisibility(request.matchId, request.visibility);
             patchState(store, { saving: false, selected: match });
             messages.add({ severity: 'success', summary: 'Partita aggiornata', detail: 'Le modifiche sono state salvate.' });
             return match.id;

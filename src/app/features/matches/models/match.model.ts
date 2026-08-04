@@ -7,6 +7,7 @@ export type MatchStatus =
   | 'cancelled';
 
 export type MatchGender = 'male' | 'female' | 'mixed';
+export type MatchVisibility = 'public' | 'private';
 export type MatchAttendanceStatus = 'present' | 'no_show';
 
 export interface Venue {
@@ -49,6 +50,7 @@ export interface BeachMatch {
   creator_id: string;
   court_id: string;
   status: MatchStatus;
+  visibility: MatchVisibility;
   gender: MatchGender;
   min_level: number;
   max_level: number;
@@ -84,6 +86,7 @@ export interface CreateMatchRequest {
   durationMinutes: number | null;
   capacity: number;
   notes: string | null;
+  visibility: MatchVisibility;
   invitedPlayerIds: readonly string[];
 }
 
@@ -97,6 +100,7 @@ export interface UpdateMatchRequest {
   durationMinutes: number | null;
   capacity: number;
   notes: string | null;
+  visibility: MatchVisibility;
 }
 
 export interface CreateCourtRequest {
@@ -113,6 +117,7 @@ export interface MatchFilters {
   level: number | null;
   onlyAvailable: boolean;
   date: 'all' | 'today' | 'weekend';
+  visibility: MatchVisibility | 'all';
 }
 
 export interface MatchesState {

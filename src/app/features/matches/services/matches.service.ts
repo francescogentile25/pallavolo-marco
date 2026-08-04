@@ -9,6 +9,7 @@ import {
   InvitablePlayer,
   MatchDetails,
   MatchParticipant,
+  MatchVisibility,
   UpdateMatchRequest,
 } from '../models/match.model';
 
@@ -167,6 +168,14 @@ export class MatchesService {
       p_match_id: matchId,
       p_profile_id: profileId,
       p_reason: reason,
+    });
+    if (error) throw error;
+  }
+
+  async setMatchVisibility(matchId: string, visibility: MatchVisibility): Promise<void> {
+    const { error } = await this.supabase.client.rpc('set_match_visibility', {
+      p_match_id: matchId,
+      p_visibility: visibility,
     });
     if (error) throw error;
   }

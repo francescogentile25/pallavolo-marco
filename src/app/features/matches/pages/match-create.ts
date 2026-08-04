@@ -15,7 +15,7 @@ import { MatchesStore } from '../store/matches.store';
 
 interface MatchFormModel {
   courtId: string; date: string; time: string; duration: string; capacity: string;
-  gender: MatchGender; minLevel: string; maxLevel: string; notes: string; invitedPlayerIds: string[];
+  gender: MatchGender; minLevel: string; maxLevel: string; notes: string; visibility: 'public' | 'private'; invitedPlayerIds: string[];
 }
 interface CourtFormModel { venueName: string; address: string; city: string; courtName: string; indoor: boolean; }
 
@@ -82,6 +82,14 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
                 <div class="field"><label for="min-level">Livello min.</label><p-select inputId="min-level" [ngModel]="model().minLevel" (ngModelChange)="updateMatchField('minLevel', $event)" [ngModelOptions]="standaloneNgModel" [options]="levelOptions" optionLabel="label" optionValue="value" fluid /></div>
                 <span>–</span>
                 <div class="field"><label for="max-level">Livello max.</label><p-select inputId="max-level" [ngModel]="model().maxLevel" (ngModelChange)="updateMatchField('maxLevel', $event)" [ngModelOptions]="standaloneNgModel" [options]="levelOptions" optionLabel="label" optionValue="value" fluid /></div>
+              </div>
+              <div class="field wide">
+                <label>Visibilità</label>
+                <div class="pill-toggle" role="group" aria-label="Visibilità partita">
+                  <button type="button" [class.active]="model().visibility === 'public'" (click)="updateMatchField('visibility', 'public')">Pubblica</button>
+                  <button type="button" [class.active]="model().visibility === 'private'" (click)="updateMatchField('visibility', 'private')">Privata</button>
+                </div>
+                <small class="field-hint">{{ model().visibility === 'public' ? 'Visibile a tutti: chiunque può iscriversi liberamente, senza approvazione.' : 'Visibile solo a te e ai partecipanti invitati.' }}</small>
               </div>
               @if (!editing) { <div class="field wide invite-field">
                 <label for="invited-players">Invita giocatori <small>(opzionale)</small></label>
@@ -237,7 +245,7 @@ export class MatchCreate implements OnInit, OnDestroy {
   protected readonly capacityOptions = [2,4,6,8,10,12].map(capacity => ({ label: `${capacity} giocatori`, value: String(capacity) }));
   protected readonly genderOptions: { label: string; value: MatchGender }[] = [{ label: 'Misto', value: 'mixed' }, { label: 'Maschile', value: 'male' }, { label: 'Femminile', value: 'female' }];
   protected readonly levelOptions = this.levels.map((level) => ({ label: String(level), value: String(level) }));
-  protected readonly model = signal<MatchFormModel>({ courtId:'', date:'', time:'', duration:'90', capacity:'4', gender:'mixed', minLevel:'1', maxLevel:'7', notes:'', invitedPlayerIds:[] });
+  protected readonly model = signal<MatchFormModel>({ courtId:'', date:'', time:'', duration:'90', capacity:'4', gender:'mixed', minLevel:'1', maxLevel:'7', notes:'', visibility:'public', invitedPlayerIds:[] });
   protected readonly matchForm = form(this.model, p => {
     required(p.courtId, { message: 'Seleziona il campo della partita.' });
     required(p.date, { message: 'Seleziona la data.' });
@@ -336,7 +344,7 @@ export class MatchCreate implements OnInit, OnDestroy {
     this.matchForm().markAsTouched();
     if (this.matchForm().invalid() || this.store.saving()) return;
     const value = this.model();
-    const common = { courtId:value.courtId, gender:value.gender, minLevel:+value.minLevel, maxLevel:+value.maxLevel, startsAt:new Date(`${value.date}T${value.time}`).toISOString(), durationMinutes:value.duration === '0' ? null : +value.duration, capacity:+value.capacity, notes:value.notes.trim()||null };
+    const common = { courtId:value.courtId, gender:value.gender, minLevel:+value.minLevel, maxLevel:+value.maxLevel, startsAt:new Date(`${value.date}T${value.time}`).toISOString(), durationMinutes:value.duration === '0' ? null : +value.duration, capacity:+value.capacity, notes:value.notes.trim()||null, visibility:value.visibility };
     const id = this.editing && this.matchId
       ? await this.store.updateMatch({ matchId: this.matchId, ...common })
       : await this.store.createMatch({ ...common, invitedPlayerIds:value.invitedPlayerIds });
@@ -368,6 +376,7 @@ export class MatchCreate implements OnInit, OnDestroy {
       minLevel: String(match.min_level),
       maxLevel: String(match.max_level),
       notes: match.notes ?? '',
+      visibility: match.visibility,
       invitedPlayerIds: [],
     });
     this.initializing.set(false);
