@@ -83,6 +83,19 @@
   text-decoration: none;
 }
 
+.mobile-brand img {
+  height: 46px;
+  width: auto;
+  display: block;
+}
+
+.auth-logo {
+  display: none;
+  height: 60px;
+  width: auto;
+  margin: 0 0 22px;
+}
+
 .mobile-brand .brand-mark {
   width: 42px;
   height: 42px;
@@ -271,6 +284,7 @@
   .auth-brand { display: grid; }
   .auth-panel { padding: 56px clamp(48px, 8vw, 120px); }
   .mobile-brand { display: none; }
+  .auth-logo { display: block; }
 }
 
 @media (prefers-reduced-motion: reduce) {

@@ -10,8 +10,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
   template: `
     <header class="app-header">
       <a class="brand" routerLink="/" aria-label="Beach Volley Hub, home">
-        <span class="brand-mark" aria-hidden="true"><i class="pi pi-sun"></i></span>
-        <strong>Beach Volley <span>Hub</span></strong>
+        <img src="assets/img/logo.png" alt="Beach Volley Hub" />
       </a>
 
       <nav aria-label="Navigazione desktop">
@@ -40,7 +39,9 @@ import { NotificationBell } from '../../notifications/components/notification-be
   styles: `
     :host { display: block; }
     .app-header { position: sticky; z-index: var(--z-sticky); top: 0; display: flex; height: var(--header-height); align-items: center; justify-content: space-between; padding: max(8px, env(safe-area-inset-top)) 16px 8px; color: var(--color-ink); border-bottom: 1px solid var(--color-border); background: rgb(255 255 255 / .92); box-shadow: 0 5px 20px rgb(20 24 26 / .035); backdrop-filter: blur(18px); }
-    .brand { display: inline-flex; align-items: center; gap: 10px; color: var(--color-ink); text-decoration: none; }
+    .brand { display: inline-flex; align-items: center; text-decoration: none; }
+    .brand img { height: 34px; width: auto; display: block; }
+    @media (max-width: 420px) { .brand img { height: 30px; } }
     .brand strong { font: 800 .93rem/1 var(--display-font); letter-spacing: -.025em; white-space: nowrap; }
     .brand strong span { color: var(--color-brand); }
     .brand-mark { display: grid; width: 36px; height: 36px; place-items: center; color: white; border-radius: 11px; background: var(--color-ocean); box-shadow: 0 7px 16px rgb(20 24 26 / .16); }
