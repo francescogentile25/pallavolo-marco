@@ -72,9 +72,9 @@ export interface Tournament {
   guaranteed_matches: number;
   group_size: number | null;
   qualifiers_per_group: number | null;
-  group_best_of: 1 | 3;
+  group_best_of: 1 | 3 | 5;
   group_set_points: number;
-  knockout_best_of: 1 | 3;
+  knockout_best_of: 1 | 3 | 5;
   knockout_set_points: number;
   tiebreak_points: number;
   win_by_two: boolean;
@@ -100,9 +100,9 @@ export interface TournamentPresetRules {
   guaranteedMatches: number;
   groupSize: number | null;
   qualifiersPerGroup: number | null;
-  groupBestOf: 1 | 3;
+  groupBestOf: 1 | 3 | 5;
   groupSetPoints: number;
-  knockoutBestOf: 1 | 3;
+  knockoutBestOf: 1 | 3 | 5;
   knockoutSetPoints: number;
   tiebreakPoints: number;
   winByTwo: boolean;
@@ -111,6 +111,27 @@ export interface TournamentPresetRules {
   standingsLossPoints: number;
   minimumRestMinutes: number;
   resultConfirmationRequired: boolean;
+}
+
+export interface TournamentPersonalPreset {
+  id: string;
+  organizer_id: string;
+  name: string;
+  description: string | null;
+  rules: TournamentPresetRules;
+  is_favorite: boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface TournamentGameDraft {
+  id?: string;
+  phase: TournamentGamePhase;
+  groupId: string | null;
+  roundNo: number;
+  position: number;
+  team1Id: string | null;
+  team2Id: string | null;
 }
 
 export interface CreateTournamentRequest extends TournamentPresetRules {
@@ -133,6 +154,7 @@ export interface TournamentState {
   selected: Tournament | null;
   courts: readonly Court[];
   players: readonly { id: string; nome: string; cognome: string; livello: number; lato_preferito?: string }[];
+  presets: readonly TournamentPersonalPreset[];
   loading: boolean;
   saving: boolean;
   error: string | null;

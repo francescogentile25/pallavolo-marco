@@ -2,7 +2,7 @@ import { inject, Injectable } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Court } from '../../matches/models/match.model';
-import { CreateTournamentRequest, Tournament } from '../models/tournament.model';
+import { CreateTournamentRequest, Tournament, TournamentGameDraft, TournamentPersonalPreset, TournamentPresetRules } from '../models/tournament.model';
 
 const TOURNAMENT_SELECT = `
   *,
@@ -19,7 +19,7 @@ export class TournamentsService {
   private readonly supabase = inject(SupabaseService);
 
   async getTournaments(): Promise<readonly Tournament[]> {
-    const { data, error } = await this.supabase.client.from('tournaments').select(TOURNAMENT_SELECT).neq('status', 'draft').order('starts_at');
+    const { data, error } = await this.supabase.client.from('tournaments').select(TOURNAMENT_SELECT).order('starts_at');
     if (error) throw error;
     return (data ?? []).map(item => this.normalize(item));
   }
@@ -40,6 +40,32 @@ export class TournamentsService {
     const { data, error } = await this.supabase.client.rpc('list_invitable_players');
     if (error) throw error;
     return data ?? [];
+  }
+
+  async getPersonalPresets(): Promise<readonly TournamentPersonalPreset[]> {
+    const { data, error } = await this.supabase.client.from('tournament_presets').select('*')
+      .order('is_favorite', { ascending: false }).order('updated_at', { ascending: false });
+    if (error) throw error;
+    return (data ?? []) as TournamentPersonalPreset[];
+  }
+
+  async createPersonalPreset(name: string, description: string | null, rules: TournamentPresetRules): Promise<void> {
+    const { data: auth, error: authError } = await this.supabase.client.auth.getUser();
+    if (authError || !auth.user) throw authError ?? new Error('Profilo non disponibile');
+    const { error } = await this.supabase.client.from('tournament_presets').insert({
+      organizer_id: auth.user.id, name: name.trim(), description, rules, is_favorite: false,
+    });
+    if (error) throw error;
+  }
+
+  async setPresetFavorite(id: string, favorite: boolean): Promise<void> {
+    const { error } = await this.supabase.client.from('tournament_presets').update({ is_favorite: favorite }).eq('id', id);
+    if (error) throw error;
+  }
+
+  async deletePersonalPreset(id: string): Promise<void> {
+    const { error } = await this.supabase.client.from('tournament_presets').delete().eq('id', id);
+    if (error) throw error;
   }
 
   async create(request: CreateTournamentRequest): Promise<Tournament> {
@@ -76,6 +102,23 @@ export class TournamentsService {
   async rescheduleGame(gameId: string, scheduledAt: string, courtId: string): Promise<void> { await this.rpc('reschedule_tournament_game', { p_game_id: gameId, p_scheduled_at: scheduledAt, p_court_id: courtId }); }
   async cancel(id: string): Promise<void> { await this.rpc('cancel_tournament', { p_tournament_id: id }); }
   async archive(id: string): Promise<void> { await this.rpc('archive_tournament', { p_tournament_id: id }); }
+  async updateRules(id: string, rules: TournamentPresetRules): Promise<void> { await this.rpc('update_tournament_rules', { p_tournament_id: id, p_rules: rules }); }
+  async saveGroup(tournamentId: string, groupId: string | null, name: string): Promise<void> {
+    await this.rpc('upsert_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId, p_name: name, p_position: null });
+  }
+  async deleteGroup(tournamentId: string, groupId: string): Promise<void> { await this.rpc('delete_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId }); }
+  async assignTeamToGroup(tournamentId: string, teamId: string, groupId: string | null): Promise<void> {
+    await this.rpc('assign_tournament_team_to_group', { p_tournament_id: tournamentId, p_team_id: teamId, p_group_id: groupId });
+  }
+  async saveGame(tournamentId: string, game: TournamentGameDraft): Promise<void> {
+    await this.rpc('save_tournament_game', {
+      p_tournament_id: tournamentId, p_game_id: game.id ?? null, p_phase: game.phase,
+      p_group_id: game.groupId, p_round_no: game.roundNo, p_position: game.position,
+      p_team1_id: game.team1Id, p_team2_id: game.team2Id,
+    });
+  }
+  async deleteGame(tournamentId: string, gameId: string): Promise<void> { await this.rpc('delete_tournament_game', { p_tournament_id: tournamentId, p_game_id: gameId }); }
+  async generateGroupGames(tournamentId: string, groupId: string): Promise<void> { await this.rpc('generate_tournament_group_games', { p_tournament_id: tournamentId, p_group_id: groupId }); }
 
   subscribe(id: string | null, onChange: () => void): RealtimeChannel {
     const filter = id ? `tournament_id=eq.${id}` : undefined;

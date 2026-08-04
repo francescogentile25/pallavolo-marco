@@ -15,24 +15,24 @@
   --base-font-size: 16px;
   --base-font-family: 'Aptos', 'Segoe UI Variable', 'Segoe UI', system-ui, sans-serif;
   --display-font: 'Space Grotesk', 'Aptos Display', 'Segoe UI Variable Display', sans-serif;
-  --color-ocean: #14181a;
-  --color-ink: #14181a;
-  --color-ink-muted: #7a7062;
-  --color-brand: #d4562a;
-  --color-brand-strong: #b3402a;
-  --color-brand-soft: #fbeae5;
-  --color-tournament: #d4562a;
-  --color-tournament-soft: #fbeae5;
-  --color-sand: #ead9b8;
+  --color-ocean: #062f49;
+  --color-ink: #0b2740;
+  --color-ink-muted: #627d8d;
+  --color-brand: #0284c7;
+  --color-brand-strong: #0369a1;
+  --color-brand-soft: #e0f2fe;
+  --color-tournament: #0ea5e9;
+  --color-tournament-soft: #e0f2fe;
+  --color-sand: #d8eff6;
   --color-surface: #ffffff;
-  --color-surface-muted: #f4f0e6;
-  --color-canvas: #f7f3ea;
-  --color-border: #e4ddcd;
-  --color-danger: #b3402a;
-  --color-danger-soft: #fbeae5;
-  --color-success: #1f6f54;
-  --color-success-soft: #e6f3ec;
-  --color-focus: #d4562a;
+  --color-surface-muted: #eff7fb;
+  --color-canvas: #f5fafd;
+  --color-border: #d9e7ef;
+  --color-danger: #c2414b;
+  --color-danger-soft: #fff0f1;
+  --color-success: #0f766e;
+  --color-success-soft: #e5f7f4;
+  --color-focus: #38bdf8;
   --header-height: 68px;
   --bottom-nav-height: 72px;
   --bottom-actions-height: 0px;
@@ -59,6 +59,28 @@ body {
   min-height: 100%;
 }
 
+app-tournaments-list main > header,
+app-tournament-create main > header,
+app-tournament-detail main > header {
+  background-image:
+    linear-gradient(90deg, rgb(4 34 56 / 0.94) 0%, rgb(4 48 76 / 0.78) 48%, rgb(2 53 82 / 0.3) 100%),
+    url('/assets/images/tournaments-hero.webp') !important;
+  background-position: center;
+  background-size: cover !important;
+}
+
+app-tournaments-list main > header { min-height: 220px; align-content: end; }
+app-tournament-create main > header { min-height: 250px; align-content: end; }
+app-tournament-detail main > header { min-height: 280px; }
+
+@media (max-width: 699px) {
+  app-tournaments-list main > header,
+  app-tournament-create main > header,
+  app-tournament-detail main > header {
+    background-position: 58% center;
+  }
+}
+
 html {
   color: var(--color-ink);
   background: var(--color-canvas);
@@ -71,7 +93,8 @@ body {
   min-width: 320px;
   margin: 0;
   background:
-    radial-gradient(circle at 8% 0%, rgb(212 86 42 / 0.055), transparent 280px),
+    radial-gradient(circle at 8% 0%, rgb(14 165 233 / 0.09), transparent 360px),
+    radial-gradient(circle at 92% 18%, rgb(45 212 191 / 0.055), transparent 320px),
     var(--color-canvas);
   font-family: var(--base-font-family);
   text-rendering: optimizeLegibility;
@@ -114,14 +137,14 @@ select {
 }
 
 .p-button {
-  border-radius: 12px;
+  border-radius: 999px;
   font-weight: 800;
 }
 
 .p-inputtext,
 .p-select,
 .p-multiselect {
-  border-radius: 12px;
+  border-radius: 14px;
 }
 
 ::-webkit-scrollbar {

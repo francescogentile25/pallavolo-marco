@@ -7,7 +7,7 @@ const match = {
   participants: [{ profile_id: 'u1' }, { profile_id: 'u2' }],
   court: { name: 'Campo 1', venue: { name: 'Beach Arena', city: 'Roma' } },
 } as unknown as BeachMatch;
-const filters: MatchFilters = { query: '', gender: 'all', level: null, onlyAvailable: false, date: 'all' };
+const filters: MatchFilters = { query: '', gender: 'all', level: null, onlyAvailable: false, date: 'all', visibility: 'all' };
 
 describe('match utilities', () => {
   it('calculates availability and membership', () => {
