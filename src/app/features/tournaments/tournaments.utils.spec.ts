@@ -28,7 +28,7 @@ describe('tournaments utilities', () => {
   });
 
   it('turns database invariants into actionable messages', () => {
-    expect(tournamentErrorMessage(new Error('Servono almeno quattro coppie confermate'))).toContain('quattro coppie');
+    expect(tournamentErrorMessage(new Error('Servono almeno due coppie confermate'))).toContain('due coppie');
     expect(tournamentErrorMessage(new Error('Permesso organizzatore richiesto'))).toContain('organizzatori');
   });
 });

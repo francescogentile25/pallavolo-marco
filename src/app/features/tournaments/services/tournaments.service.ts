@@ -9,7 +9,6 @@ const TOURNAMENT_SELECT = `
   venue:venues!tournaments_venue_id_fkey(id,name,address,city,latitude,longitude),
   courts:tournament_courts(court_id,court:courts!tournament_courts_court_id_fkey(id,venue_id,name,surface,indoor,venue:venues!courts_venue_id_fkey(id,name,address,city,latitude,longitude))),
   teams:tournament_teams(id,tournament_id,status,seed,waitlist_position,members:tournament_team_members(profile_id,status,profile:profiles!tournament_team_members_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url))),
-  free_players:tournament_free_players(tournament_id,profile_id,status,profile:profiles!tournament_free_players_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url)),
   groups:tournament_groups(id,tournament_id,name,position,capacity,planned_matches,links:tournament_group_teams(group_id,team_id,position)),
   games:tournament_games(*,confirmations:tournament_result_confirmations(team_id,profile_id,confirmed_at))
 `;
@@ -55,10 +54,9 @@ export class TournamentsService {
   }
 
   async publish(id: string): Promise<void> { await this.rpc('publish_tournament', { p_tournament_id: id }); }
-  async joinFree(id: string): Promise<void> { await this.rpc('join_tournament_as_free_player', { p_tournament_id: id }); }
+  async joinSingle(id: string): Promise<void> { await this.rpc('join_tournament_as_single_player', { p_tournament_id: id }); }
   async proposeTeam(id: string, partnerId: string): Promise<void> { await this.rpc('propose_tournament_team', { p_tournament_id: id, p_partner_id: partnerId }); }
   async respondInvite(teamId: string, accept: boolean): Promise<void> { await this.rpc('respond_tournament_team_invite', { p_team_id: teamId, p_accept: accept }); }
-  async pairFreePlayers(id: string, player1: string, player2: string): Promise<void> { await this.rpc('organizer_pair_free_players', { p_tournament_id: id, p_player1: player1, p_player2: player2 }); }
   async inviteTeam(id: string, player1: string, player2: string): Promise<void> { await this.rpc('organizer_invite_tournament_team', { p_tournament_id: id, p_player1: player1, p_player2: player2 }); }
   async addPlayer(id: string, playerId: string, groupId: string | null): Promise<void> { await this.rpc('organizer_add_tournament_player', { p_tournament_id: id, p_profile_id: playerId, p_group_id: groupId }); }
   async withdraw(id: string): Promise<void> { await this.rpc('withdraw_from_tournament', { p_tournament_id: id }); }

@@ -22,12 +22,6 @@ export interface TournamentTeam {
   waitlist_position: number | null;
   members: readonly TournamentMember[];
 }
-export interface TournamentFreePlayer {
-  tournament_id: string;
-  profile_id: string;
-  status: 'active' | 'waitlisted' | 'withdrawn';
-  profile?: { id: string; nome: string; cognome: string; livello: number; lato_preferito: string; avatar_url: string | null };
-}
 export interface TournamentGroup {
   id: string;
   tournament_id: string;
@@ -95,7 +89,6 @@ export interface Tournament {
   venue: Venue;
   courts: readonly TournamentCourtLink[];
   teams: readonly TournamentTeam[];
-  free_players?: readonly TournamentFreePlayer[];
   groups?: readonly TournamentGroup[];
   group_teams?: readonly TournamentGroupTeam[];
   games?: readonly TournamentGame[];

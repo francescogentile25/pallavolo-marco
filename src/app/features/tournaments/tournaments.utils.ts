@@ -45,8 +45,7 @@ export function tournamentErrorMessage(error: unknown): string {
   if (value.includes('permesso organizzatore')) return 'Questa azione è riservata a organizzatori e amministratori.';
   if (value.includes('già iscritto') || value.includes('già coinvolto')) return 'Uno dei giocatori è già coinvolto nel torneo.';
   if (value.includes('livello')) return 'Il livello del giocatore non rientra nella fascia ammessa.';
-  if (value.includes('giocatori liberi')) return 'Abbina o rimuovi tutti i giocatori liberi prima di chiudere le iscrizioni.';
-  if (value.includes('quattro coppie')) return 'Servono almeno quattro coppie confermate.';
+  if (value.includes('due coppie')) return 'Servono almeno due coppie confermate.';
   if (value.includes('risultato') || value.includes('punteggio')) return 'Controlla i punteggi inseriti.';
   if (value.includes('iscrizioni')) return 'Le iscrizioni non sono disponibili in questo momento.';
   return 'Operazione non riuscita. Controlla i dati e riprova.';
