@@ -36,7 +36,26 @@ export const TournamentsStore = signalStore(
       cancel: (id: string) => act(id, () => service.cancel(id), 'Torneo annullato', 'Lo stato è visibile a tutti gli iscritti.'),
       archive: (id: string) => act(id, () => service.archive(id), 'Torneo archiviato', 'Resta consultabile tramite il suo collegamento diretto.'),
       updateRules: (id: string, rules: TournamentRules) => act(id, () => service.updateRules(id, rules), 'Regole aggiornate', 'Le nuove regole valgono per le prossime partite.'),
-      saveGroup: (id: string, groupId: string | null, name: string) => act(id, () => service.saveGroup(id, groupId, name), groupId ? 'Girone rinominato' : 'Girone creato', 'La struttura del torneo è aggiornata.'),
+      saveGroup: (id: string, groupId: string | null, name: string, capacity: number | null = null, plannedMatches: number | null = null) => act(id, () => service.saveGroup(id, groupId, name, capacity, plannedMatches), groupId ? 'Girone aggiornato' : 'Girone creato', 'La struttura del torneo è aggiornata.'),
+      pairSingleTeams: (id: string, first: string, second: string) => act(id, () => service.pairSingleTeams(id, first, second), 'Coppia formata', 'I due iscritti singoli ora giocano insieme.'),
+      closeGroups: (id: string) => act(id, () => service.closeGroups(id), 'Gironi chiusi', 'Ora puoi registrare i risultati del tabellone.'),
+      reopenGroups: (id: string) => act(id, () => service.reopenGroups(id), 'Gironi riaperti', 'I risultati del tabellone restano bloccati.'),
+      addBracketRound: (id: string, roundNo: number, slots: number) => act(id, () => service.addBracketRound(id, roundNo, slots), 'Turno aggiunto', 'Trascina i giocatori negli slot liberi.'),
+      /** Crea il primo turno e vi distribuisce le teste di serie già ordinate. */
+      generateBracket: (id: string, slots: number, seeds: readonly string[]) => act(id, async () => {
+        await service.addBracketRound(id, 1, slots);
+        if (!seeds.length) return;
+        const refreshed = await service.getTournament(id);
+        const openGames = (refreshed.games ?? [])
+          .filter(game => game.phase !== 'group' && game.round_no === 1 && game.status === 'scheduled' && !game.team1_id && !game.team2_id)
+          .sort((a, b) => a.position - b.position);
+        for (const [index, game] of openGames.entries()) {
+          const team1Id = seeds[index * 2] ?? null;
+          const team2Id = seeds[index * 2 + 1] ?? null;
+          if (!team1Id && !team2Id) break;
+          await service.saveGame(id, { id: game.id, phase: game.phase, groupId: null, roundNo: game.round_no, position: game.position, team1Id, team2Id });
+        }
+      }, 'Tabellone generato', 'Puoi ancora spostare i giocatori negli slot.'),
       deleteGroup: (id: string, groupId: string) => act(id, () => service.deleteGroup(id, groupId), 'Girone eliminato', 'Le partite non disputate collegate sono state rimosse.'),
       assignTeamToGroup: (id: string, teamId: string, groupId: string | null) => act(id, () => service.assignTeamToGroup(id, teamId, groupId), 'Assegnazione aggiornata', 'La coppia è stata spostata.'),
       saveGame: (id: string, game: TournamentGameDraft) => act(id, () => service.saveGame(id, game), game.id ? 'Partita aggiornata' : 'Partita aggiunta', 'Il calendario è aggiornato.'),

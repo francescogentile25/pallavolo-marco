@@ -30,6 +30,7 @@ const META: Record<AppNotificationType, TypeMeta> = {
   friend_request_received: { icon: 'pi-user-plus', title: 'Richiesta di amicizia', text: (a) => `${a} ti ha inviato una richiesta di amicizia.` },
   friend_request_accepted: { icon: 'pi-users', title: 'Amicizia accettata', text: (a) => `${a} ha accettato la tua richiesta di amicizia.` },
   chat_message: { icon: 'pi-comments', title: 'Nuovo messaggio', text: (a) => `${a} ha scritto nella chat.` },
+  chat_mention: { icon: 'pi-at', title: 'Sei stato menzionato', text: (a) => `${a} ti ha menzionato in chat.` },
   name_change_request: { icon: 'pi-user-edit', title: 'Richiesta cambio nome', text: (a) => `${a} ha richiesto la modifica del proprio nome.` },
 };
 

@@ -10,7 +10,7 @@ const TOURNAMENT_SELECT = `
   courts:tournament_courts(court_id,court:courts!tournament_courts_court_id_fkey(id,venue_id,name,surface,indoor,venue:venues!courts_venue_id_fkey(id,name,address,city,latitude,longitude))),
   teams:tournament_teams(id,tournament_id,status,seed,waitlist_position,members:tournament_team_members(profile_id,status,profile:profiles!tournament_team_members_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url))),
   free_players:tournament_free_players(tournament_id,profile_id,status,profile:profiles!tournament_free_players_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url)),
-  groups:tournament_groups(id,tournament_id,name,position,links:tournament_group_teams(group_id,team_id,position)),
+  groups:tournament_groups(id,tournament_id,name,position,capacity,planned_matches,links:tournament_group_teams(group_id,team_id,position)),
   games:tournament_games(*,confirmations:tournament_result_confirmations(team_id,profile_id,confirmed_at))
 `;
 
@@ -70,8 +70,22 @@ export class TournamentsService {
   async cancel(id: string): Promise<void> { await this.rpc('cancel_tournament', { p_tournament_id: id }); }
   async archive(id: string): Promise<void> { await this.rpc('archive_tournament', { p_tournament_id: id }); }
   async updateRules(id: string, rules: TournamentRules): Promise<void> { await this.rpc('update_tournament_rules', { p_tournament_id: id, p_rules: rules }); }
-  async saveGroup(tournamentId: string, groupId: string | null, name: string): Promise<void> {
-    await this.rpc('upsert_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId, p_name: name, p_position: null });
+  async saveGroup(
+    tournamentId: string, groupId: string | null, name: string,
+    capacity: number | null = null, plannedMatches: number | null = null,
+  ): Promise<void> {
+    await this.rpc('upsert_tournament_group', {
+      p_tournament_id: tournamentId, p_group_id: groupId, p_name: name, p_position: null,
+      p_capacity: capacity, p_planned_matches: plannedMatches,
+    });
+  }
+  async pairSingleTeams(tournamentId: string, first: string, second: string): Promise<void> {
+    await this.rpc('organizer_pair_single_teams', { p_tournament_id: tournamentId, p_team1_id: first, p_team2_id: second });
+  }
+  async closeGroups(tournamentId: string): Promise<void> { await this.rpc('close_tournament_groups', { p_tournament_id: tournamentId }); }
+  async reopenGroups(tournamentId: string): Promise<void> { await this.rpc('reopen_tournament_groups', { p_tournament_id: tournamentId }); }
+  async addBracketRound(tournamentId: string, roundNo: number, slots: number): Promise<void> {
+    await this.rpc('generate_tournament_bracket_round', { p_tournament_id: tournamentId, p_round_no: roundNo, p_slots: slots });
   }
   async deleteGroup(tournamentId: string, groupId: string): Promise<void> { await this.rpc('delete_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId }); }
   async assignTeamToGroup(tournamentId: string, teamId: string, groupId: string | null): Promise<void> {

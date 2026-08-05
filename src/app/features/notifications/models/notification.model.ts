@@ -17,6 +17,7 @@ export type AppNotificationType =
   | 'friend_request_received'
   | 'friend_request_accepted'
   | 'chat_message'
+  | 'chat_mention'
   | 'name_change_request';
 
 export interface AppNotification {

@@ -71,7 +71,7 @@ interface TournamentDraft {
               <div class="field"><label for="start">Inizio torneo <b>*</b></label><p-datepicker inputId="start" [ngModel]="draft().startsAt" (ngModelChange)="update('startsAt', $event)" name="start" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
               <div class="field"><label for="end">Fine prevista <b>*</b></label><p-datepicker inputId="end" [ngModel]="draft().endsAt" (ngModelChange)="update('endsAt', $event)" name="end" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="draft().startsAt" appendTo="body" fluid /></div>
               <div class="field"><label for="deadline">Chiusura iscrizioni <b>*</b></label><p-datepicker inputId="deadline" [ngModel]="draft().registrationDeadline" (ngModelChange)="update('registrationDeadline', $event)" name="deadline" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
-              <div class="field"><label for="cost">Costo informativo per coppia</label><p-inputnumber inputId="cost" [ngModel]="draft().costEuros" (ngModelChange)="update('costEuros', $event ?? 0)" name="cost" mode="currency" currency="EUR" locale="it-IT" [min]="0" [max]="1000" fluid /></div>
+              <div class="field"><label for="cost">Costo iscrizione individuale</label><p-inputnumber inputId="cost" [ngModel]="draft().costEuros" (ngModelChange)="update('costEuros', $event ?? 0)" name="cost" mode="currency" currency="EUR" locale="it-IT" [min]="0" [max]="1000" fluid /></div>
             </div>
           </section>
         }
@@ -83,7 +83,7 @@ interface TournamentDraft {
               <article><i class="pi pi-trophy"></i><span>Torneo</span><strong>{{ draft().title }}</strong><small>{{ categoryLabel() }}</small></article>
               <article><i class="pi pi-map-marker"></i><span>Campo base</span><strong>{{ venueLabel() }}</strong><small>Usa liberamente i campi della struttura</small></article>
               <article><i class="pi pi-calendar"></i><span>Inizio</span><strong>{{ draft().startsAt.toLocaleString('it-IT') }}</strong><small>Iscrizioni fino al {{ draft().registrationDeadline.toLocaleString('it-IT') }}</small></article>
-              <article><i class="pi pi-wallet"></i><span>Costo indicativo</span><strong>{{ draft().costEuros | currency:'EUR':'symbol':'1.2-2':'it' }}</strong><small>Pagamento gestito fuori dall'app</small></article>
+              <article><i class="pi pi-wallet"></i><span>Costo iscrizione individuale</span><strong>{{ draft().costEuros | currency:'EUR':'symbol':'1.2-2':'it' }}</strong><small>Pagamento gestito fuori dall'app</small></article>
             </div>
             <div class="blank-message"><i class="pi pi-wave-pulse"></i><div><strong>Nessuna struttura predefinita</strong><span>La bozza nasce senza gironi e senza partite. Nello Studio aggiungerai coppie, gironi e sfide nell'ordine che preferisci.</span></div></div>
           </section>

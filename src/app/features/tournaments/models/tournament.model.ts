@@ -28,7 +28,16 @@ export interface TournamentFreePlayer {
   status: 'active' | 'waitlisted' | 'withdrawn';
   profile?: { id: string; nome: string; cognome: string; livello: number; lato_preferito: string; avatar_url: string | null };
 }
-export interface TournamentGroup { id: string; tournament_id: string; name: string; position: number; }
+export interface TournamentGroup {
+  id: string;
+  tournament_id: string;
+  name: string;
+  position: number;
+  /** Numero di giocatori previsti nel girone. */
+  capacity: number | null;
+  /** Numero di slot partita pianificati per il girone. */
+  planned_matches: number | null;
+}
 export interface TournamentGroupTeam { group_id: string; team_id: string; position: number; }
 export interface TournamentGame {
   id: string;
@@ -81,6 +90,8 @@ export interface Tournament {
   standings_loss_points: number;
   minimum_rest_minutes: number;
   result_confirmation_required: boolean;
+  /** Valorizzato quando l'organizzatore chiude i gironi: sblocca i risultati del tabellone. */
+  groups_closed_at: string | null;
   venue: Venue;
   courts: readonly TournamentCourtLink[];
   teams: readonly TournamentTeam[];
