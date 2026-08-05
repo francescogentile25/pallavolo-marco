@@ -22,8 +22,6 @@ import { TournamentsStore } from '../store/tournaments.store';
         <label>Set nella fase finale<p-select [ngModel]="rules().knockoutBestOf" (ngModelChange)="updateRule('knockoutBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
         <label>Punti set gironi<p-inputnumber [ngModel]="rules().groupSetPoints" (ngModelChange)="updateRule('groupSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
         <label>Punti set finali<p-inputnumber [ngModel]="rules().knockoutSetPoints" (ngModelChange)="updateRule('knockoutSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
-        <label>Riposo minimo<p-inputnumber [ngModel]="rules().minimumRestMinutes" (ngModelChange)="updateRule('minimumRestMinutes', $event ?? 0)" suffix=" min" [min]="0" [max]="240" fluid /></label>
-        <label>Punti vittoria<p-inputnumber [ngModel]="rules().standingsWinPoints" (ngModelChange)="updateRule('standingsWinPoints', $event ?? 1)" [min]="1" [max]="10" fluid /></label>
       </div>
       <div class="no-draw"><i class="pi pi-shield" aria-hidden="true"></i><div><strong>Nessun pareggio</strong><span>Ogni set e ogni partita devono avere un vincitore.</span></div></div>
       <div class="checks">

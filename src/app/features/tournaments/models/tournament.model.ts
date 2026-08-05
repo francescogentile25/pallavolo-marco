@@ -38,6 +38,8 @@ export interface TournamentGame {
   tournament_id: string;
   phase: TournamentGamePhase;
   group_id: string | null;
+  /** Tabellone di appartenenza nella fase finale. */
+  bracket_no: number;
   round_no: number;
   position: number;
   team1_id: string | null;
@@ -118,6 +120,7 @@ export interface TournamentGameDraft {
   id?: string;
   phase: TournamentGamePhase;
   groupId: string | null;
+  bracketNo?: number | null;
   roundNo: number;
   position: number;
   team1Id: string | null;

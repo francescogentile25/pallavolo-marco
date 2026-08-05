@@ -91,8 +91,11 @@ export class TournamentsService {
   }
   async closeGroups(tournamentId: string): Promise<void> { await this.rpc('close_tournament_groups', { p_tournament_id: tournamentId }); }
   async reopenGroups(tournamentId: string): Promise<void> { await this.rpc('reopen_tournament_groups', { p_tournament_id: tournamentId }); }
-  async addBracketRound(tournamentId: string, roundNo: number, slots: number): Promise<void> {
-    await this.rpc('generate_tournament_bracket_round', { p_tournament_id: tournamentId, p_round_no: roundNo, p_slots: slots });
+  async addBracketRound(tournamentId: string, roundNo: number, slots: number, bracketNo = 1): Promise<void> {
+    await this.rpc('generate_tournament_bracket_round', { p_tournament_id: tournamentId, p_round_no: roundNo, p_slots: slots, p_bracket_no: bracketNo });
+  }
+  async deleteBracket(tournamentId: string, bracketNo: number): Promise<void> {
+    await this.rpc('delete_tournament_bracket', { p_tournament_id: tournamentId, p_bracket_no: bracketNo });
   }
   async deleteGroup(tournamentId: string, groupId: string): Promise<void> { await this.rpc('delete_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId }); }
   async assignTeamToGroup(tournamentId: string, teamId: string, groupId: string | null): Promise<void> {
@@ -102,7 +105,7 @@ export class TournamentsService {
     await this.rpc('save_tournament_game', {
       p_tournament_id: tournamentId, p_game_id: game.id ?? null, p_phase: game.phase,
       p_group_id: game.groupId, p_round_no: game.roundNo, p_position: game.position,
-      p_team1_id: game.team1Id, p_team2_id: game.team2Id,
+      p_team1_id: game.team1Id, p_team2_id: game.team2Id, p_bracket_no: game.bracketNo ?? null,
     });
   }
   async deleteGame(tournamentId: string, gameId: string): Promise<void> { await this.rpc('delete_tournament_game', { p_tournament_id: tournamentId, p_game_id: gameId }); }

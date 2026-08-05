@@ -42,20 +42,21 @@ export const TournamentsStore = signalStore(
       setGameCourt: (id: string, gameId: string, courtId: string | null) => act(id, () => service.setGameCourt(gameId, courtId), 'Campo aggiornato', courtId ? 'Il campo dell’incontro è stato assegnato.' : 'Il campo dell’incontro è stato rimosso.'),
       closeGroups: (id: string) => act(id, () => service.closeGroups(id), 'Gironi chiusi', 'Ora puoi registrare i risultati del tabellone.'),
       reopenGroups: (id: string) => act(id, () => service.reopenGroups(id), 'Gironi riaperti', 'I risultati del tabellone restano bloccati.'),
-      addBracketRound: (id: string, roundNo: number, slots: number) => act(id, () => service.addBracketRound(id, roundNo, slots), 'Turno aggiunto', 'Trascina i giocatori negli slot liberi.'),
+      addBracketRound: (id: string, roundNo: number, slots: number, bracketNo = 1) => act(id, () => service.addBracketRound(id, roundNo, slots, bracketNo), 'Turno aggiunto', 'Trascina i giocatori negli slot liberi.'),
+      deleteBracket: (id: string, bracketNo: number) => act(id, () => service.deleteBracket(id, bracketNo), 'Tabellone eliminato', 'Le partite di quel tabellone sono state rimosse.'),
       /** Crea il primo turno e vi distribuisce le teste di serie già ordinate. */
-      generateBracket: (id: string, slots: number, seeds: readonly string[]) => act(id, async () => {
-        await service.addBracketRound(id, 1, slots);
+      generateBracket: (id: string, slots: number, seeds: readonly string[], bracketNo = 1) => act(id, async () => {
+        await service.addBracketRound(id, 1, slots, bracketNo);
         if (!seeds.length) return;
         const refreshed = await service.getTournament(id);
         const openGames = (refreshed.games ?? [])
-          .filter(game => game.phase !== 'group' && game.round_no === 1 && game.status === 'scheduled' && !game.team1_id && !game.team2_id)
+          .filter(game => game.phase !== 'group' && game.bracket_no === bracketNo && game.round_no === 1 && game.status === 'scheduled' && !game.team1_id && !game.team2_id)
           .sort((a, b) => a.position - b.position);
         for (const [index, game] of openGames.entries()) {
           const team1Id = seeds[index * 2] ?? null;
           const team2Id = seeds[index * 2 + 1] ?? null;
           if (!team1Id && !team2Id) break;
-          await service.saveGame(id, { id: game.id, phase: game.phase, groupId: null, roundNo: game.round_no, position: game.position, team1Id, team2Id });
+          await service.saveGame(id, { id: game.id, phase: game.phase, groupId: null, bracketNo, roundNo: game.round_no, position: game.position, team1Id, team2Id });
         }
       }, 'Tabellone generato', 'Puoi ancora spostare i giocatori negli slot.'),
       deleteGroup: (id: string, groupId: string) => act(id, () => service.deleteGroup(id, groupId), 'Girone eliminato', 'Le partite non disputate collegate sono state rimosse.'),

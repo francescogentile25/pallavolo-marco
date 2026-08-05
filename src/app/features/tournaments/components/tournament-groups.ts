@@ -27,7 +27,7 @@ interface SlotTarget { gameId: string; slot: number; }
       <aside class="player-panel">
         <header><i class="pi pi-users" aria-hidden="true"></i><div><h3>Partecipanti</h3><small>{{ participants().length }} iscritti</small></div></header>
 
-        <div class="player-list" cdkDropList id="players-pool" [cdkDropListConnectedTo]="groupListIds()" [cdkDropListSortingDisabled]="true">
+        <div class="player-list" cdkDropList id="players-pool" [cdkDropListData]="poolTarget" [cdkDropListConnectedTo]="groupListIds()" [cdkDropListSortingDisabled]="true" (cdkDropListDropped)="dropOnGroup($event)">
           @for (entry of participants(); track entry.team.id) {
             <div
               class="player-row"
@@ -43,10 +43,9 @@ interface SlotTarget { gameId: string; slot: number; }
                 <small>{{ entry.groupName ?? 'Da assegnare' }}</small>
               </div>
               @if (canManage()) {
+                <p-button [icon]="heldTeamId() === entry.team.id ? 'pi pi-check' : 'pi pi-arrows-alt'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.team.id ? 'Annulla selezione' : 'Seleziona per spostare'" (onClick)="hold(entry.team.id)" />
                 @if (entry.groupName) {
-                  <p-button icon="pi pi-times" [text]="true" severity="secondary" size="small" ariaLabel="Rimuovi dal girone" (onClick)="assign(entry.team.id, null)" />
-                } @else {
-                  <p-button [icon]="heldTeamId() === entry.team.id ? 'pi pi-check' : 'pi pi-arrows-alt'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.team.id ? 'Annulla selezione' : 'Seleziona per assegnare'" (onClick)="hold(entry.team.id)" />
+                  <p-button icon="pi pi-times" [text]="true" severity="secondary" size="small" ariaLabel="Togli dal girone" (onClick)="assign(entry.team.id, null)" />
                 }
               }
               <div class="drag-preview" *cdkDragPreview>{{ entry.label }}</div>
@@ -57,7 +56,7 @@ interface SlotTarget { gameId: string; slot: number; }
         </div>
 
         @if (canManage()) {
-          <p class="panel-hint">Trascina un partecipante dentro un girone, poi dal girone dentro una partita. In alternativa selezionalo e tocca la destinazione.</p>
+          <p class="panel-hint">Trascina un partecipante dentro un girone, poi dal girone dentro una partita. Puoi anche spostarlo in un altro girone o riportarlo qui. In alternativa selezionalo e tocca la destinazione.</p>
         }
       </aside>
 
@@ -90,8 +89,8 @@ interface SlotTarget { gameId: string; slot: number; }
                 [class.is-target]="canManage() && !!heldTeamId()"
                 cdkDropList
                 [id]="'group-' + group.id"
-                [cdkDropListData]="group.id"
-                [cdkDropListConnectedTo]="slotListIds(group.id)"
+                [cdkDropListData]="groupTarget(group.id)"
+                [cdkDropListConnectedTo]="groupTargets(group.id)"
                 [cdkDropListSortingDisabled]="true"
                 (cdkDropListDropped)="dropOnGroup($event)"
                 (click)="placeHeldInGroup(group.id)"
@@ -189,7 +188,7 @@ interface SlotTarget { gameId: string; slot: number; }
     .player-panel h3,.create-title h3,.group-card h3{margin:0;font:900 1.2rem/1 var(--display-font);letter-spacing:-.035em}
     .player-panel small,.cap{color:#72869b;font-size:.68rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
     .player-list{display:grid;gap:7px;max-height:460px;overflow:auto}
-    .player-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:9px;min-height:52px;padding:8px 9px;border-radius:12px;background:#f8fafc;cursor:grab}
+    .player-row{display:grid;grid-template-columns:34px minmax(0,1fr) auto;align-items:center;gap:4px;min-height:52px;padding:8px 9px;border-radius:12px;background:#f8fafc;cursor:grab}
     .player-row.is-assigned{opacity:.55}
     .player-row.is-held{outline:2px solid var(--color-brand);background:#e0f2fe}
     .player-row>div{display:grid;min-width:0}
@@ -276,8 +275,20 @@ export class TournamentGroups {
 
   /** La colonna dei partecipanti alimenta i gironi; ogni girone alimenta i propri slot partita. */
   protected readonly groupListIds = computed(() => this.groups().map((group) => `group-${group.id}`));
+  /** Destinazione della colonna partecipanti: nessun girone. */
+  protected readonly poolTarget: string | null = null;
+  protected groupTarget(groupId: string): string | null { return groupId; }
   protected slotListIds(groupId: string): string[] {
     return this.groupGames(groupId).flatMap((game) => [`gslot-${game.id}-1`, `gslot-${game.id}-2`]);
+  }
+
+  /** Da un girone si puo spostare negli altri gironi, nelle sue partite o di nuovo fuori. */
+  protected groupTargets(groupId: string): string[] {
+    return [
+      'players-pool',
+      ...this.groupListIds().filter((id) => id !== `group-${groupId}`),
+      ...this.slotListIds(groupId),
+    ];
   }
 
   protected teamName(team: TournamentTeam): string { return teamLabel(team); }
@@ -297,10 +308,11 @@ export class TournamentGroups {
     this.heldTeamId.update((current) => (current === teamId ? null : teamId));
   }
 
-  protected dropOnGroup(event: CdkDragDrop<string>): void {
+  /** Vale sia per i gironi sia per la colonna dei partecipanti, che ha data null. */
+  protected dropOnGroup(event: CdkDragDrop<string | null>): void {
     if (!this.canManage()) return;
     this.heldTeamId.set(null);
-    this.assign(event.item.data as string, event.container.data);
+    this.assign(event.item.data as string, event.container.data ?? null);
   }
 
   protected placeHeldInGroup(groupId: string): void {
@@ -362,6 +374,7 @@ export class TournamentGroups {
   }
 
   protected assign(teamId: string, groupId: string | null): void {
+    if ((this.groupIdByTeam().get(teamId) ?? null) === groupId) return;
     void this.store.assignTeamToGroup(this.tournament().id, teamId, groupId);
   }
 

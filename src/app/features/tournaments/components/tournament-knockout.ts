@@ -1,5 +1,5 @@
 import { CdkDragDrop, DragDropModule } from '@angular/cdk/drag-drop';
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, linkedSignal, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -9,28 +9,13 @@ import { Tournament, TournamentGame } from '../models/tournament.model';
 import { TournamentsStore } from '../store/tournaments.store';
 import { calculateStandings, teamLabel } from '../tournaments.utils';
 
-interface QualifiedEntry {
-  teamId: string;
-  label: string;
-  groupName: string;
-  position: number;
-}
-
-interface WinnerEntry {
-  gameId: string;
-  teamId: string;
-  label: string;
-  source: string;
-}
-
+interface QualifiedEntry { teamId: string; label: string; groupName: string; position: number; }
+interface WinnerEntry { gameId: string; teamId: string; label: string; source: string; }
 interface SlotTarget { gameId: string; slot: number; }
 interface ScoreDraft { first: number; second: number; }
+/** Le partite di un turno sono raggruppate a due a due: ogni coppia confluisce nel turno successivo. */
+interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]; }
 
-/**
- * Sezione "Tabellone": il tabellone si costruisce liberamente anche mentre si giocano i
- * gironi, ma i risultati si registrano solo dopo la chiusura dei gironi. A gironi chiusi
- * la barra laterale elenca i qualificati con girone e posizione, trascinabili negli slot.
- */
 @Component({
   selector: 'app-tournament-knockout',
   imports: [Button, DragDropModule, FormsModule, InputNumber, Select],
@@ -56,129 +41,140 @@ interface ScoreDraft { first: number; second: number; }
         }
       </header>
 
+      @if (brackets().length > 1 || canManage()) {
+        <nav class="bracket-tabs" aria-label="Tabelloni">
+          @for (b of brackets(); track b) {
+            <button type="button" [class.active]="b === activeBracket()" (click)="activeBracket.set(b)">
+              <i class="pi pi-sitemap" aria-hidden="true"></i>{{ bracketLabel(b) }}
+            </button>
+          }
+          @if (canManage()) {
+            <p-button label="Aggiungi tabellone" icon="pi pi-plus" [text]="true" size="small" [loading]="store.saving()" (onClick)="addBracket()" />
+          }
+        </nav>
+      }
+
       @if (canManage()) {
         <div class="bracket-setup">
-          <div><span>Partecipanti</span><p-inputnumber [ngModel]="participants()" (ngModelChange)="participants.set($event ?? 2)" [min]="2" [max]="64" [showButtons]="true" /></div>
+          <div><span>Partecipanti</span><p-inputnumber [ngModel]="participants()" (ngModelChange)="participants.set($event ?? 2)" [min]="2" [max]="64" [showButtons]="true" [inputStyle]="{ width: '4rem', textAlign: 'center' }" /></div>
           <p-button label="Genera tabellone" icon="pi pi-sparkles" [loading]="store.saving()" (onClick)="generateBracket()" />
           <p-button label="Aggiungi turno" icon="pi pi-plus" [outlined]="true" severity="secondary" [loading]="store.saving()" (onClick)="addRound()" />
+          @if (brackets().length > 1) {
+            <p-button label="Elimina tabellone" icon="pi pi-trash" [text]="true" severity="danger" [loading]="store.saving()" (onClick)="confirmDeleteBracket()" />
+          }
           <p>Usa i <strong>BYE</strong> o aggiungi partite/turni extra per far giocare di più.</p>
         </div>
       }
     </section>
 
     <div class="bracket-layout">
-      @if (qualified().length) {
-        <aside class="qualified-panel" cdkDropList id="bracket-pool" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
-          <header><i class="pi pi-list-check" aria-hidden="true"></i><div><h4>Qualificati</h4><small>{{ qualified().length }} giocatori</small></div></header>
-          @for (entry of qualified(); track entry.teamId) {
-            <div
-              class="qualified-row"
-              [class.is-placed]="placedTeamIds().has(entry.teamId)"
-              [class.is-held]="heldTeamId() === entry.teamId"
-              cdkDrag
-              [cdkDragData]="entry.teamId"
-              [cdkDragDisabled]="!canManage()"
-            >
-              <b>{{ entry.position }}</b>
-              <div><strong>{{ entry.label }}</strong><small>{{ entry.groupName }} · {{ entry.position }}ª posizione</small></div>
-              @if (canManage()) {
-                <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
-              }
-              <div class="drag-preview" *cdkDragPreview>{{ entry.label }}</div>
-            </div>
-          }
-          @if (canManage()) { <p class="panel-hint">Trascina un giocatore in uno slot, oppure selezionalo e tocca lo slot.</p> }
-        </aside>
-      }
-
-      @if (winners().length) {
-        <aside class="qualified-panel winners-panel" cdkDropList id="bracket-winners" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
-          <header><i class="pi pi-trophy" aria-hidden="true"></i><div><h4>Vincitori</h4><small>Trascinali nel turno successivo</small></div></header>
-          @for (entry of winners(); track entry.gameId) {
-            <div
-              class="qualified-row"
-              [class.is-placed]="placedTeamIds().has(entry.teamId)"
-              [class.is-held]="heldTeamId() === entry.teamId"
-              cdkDrag
-              [cdkDragData]="entry.teamId"
-              [cdkDragDisabled]="!canManage()"
-            >
-              <b><i class="pi pi-check" aria-hidden="true"></i></b>
-              <div><strong>{{ entry.label }}</strong><small>{{ entry.source }}</small></div>
-              @if (canManage()) {
-                <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
-              }
-              <div class="drag-preview" *cdkDragPreview>{{ entry.label }}</div>
-            </div>
-          }
-        </aside>
-      }
-
-      <div class="round-board">
-        @for (round of rounds(); track round.number) {
-          <section class="round-lane">
-            <header><span>Turno {{ round.number }}</span><strong>{{ roundTitle(round.number) }}</strong></header>
-            @for (game of round.games; track game.id) {
-              <article class="bracket-game">
-                <div
-                  class="bracket-slot"
-                  cdkDropList
-                  [id]="'slot-' + game.id + '-1'"
-                  [cdkDropListData]="{ gameId: game.id, slot: 1 }"
-                  (cdkDropListDropped)="dropTeam($event)"
-                  [class.is-open]="canManage() && !game.team1_id"
-                  (click)="placeHeld(game, 1)"
-                >
-                  <span>{{ teamNameById(game.team1_id) }}</span>
-                  @if (canManage() && game.team1_id && game.status === 'scheduled') {
-                    <p-button icon="pi pi-times" [text]="true" size="small" ariaLabel="Svuota slot" (onClick)="clearSlot(game, 1)" />
-                  }
-                </div>
-                <div class="bracket-score">
-                  <p-inputnumber [ngModel]="scoreOf(game).first" (ngModelChange)="setScore(game, 'first', $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '2.6rem' }" />
-                  <em>VS</em>
-                  <p-inputnumber [ngModel]="scoreOf(game).second" (ngModelChange)="setScore(game, 'second', $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '2.6rem' }" />
-                </div>
-                <div
-                  class="bracket-slot"
-                  cdkDropList
-                  [id]="'slot-' + game.id + '-2'"
-                  [cdkDropListData]="{ gameId: game.id, slot: 2 }"
-                  (cdkDropListDropped)="dropTeam($event)"
-                  [class.is-open]="canManage() && !game.team2_id"
-                  (click)="placeHeld(game, 2)"
-                >
-                  <span>{{ teamNameById(game.team2_id) }}</span>
-                  @if (canManage() && game.team2_id && game.status === 'scheduled') {
-                    <p-button icon="pi pi-times" [text]="true" size="small" ariaLabel="Svuota slot" (onClick)="clearSlot(game, 2)" />
-                  }
-                </div>
-                <label class="bracket-court">
-                  <span>Campo</span>
-                  @if (canManage()) {
-                    <p-select [ngModel]="game.court_id" (ngModelChange)="setCourt(game, $event)" [options]="courtOptions()" optionLabel="label" optionValue="value" placeholder="Campo da assegnare" [showClear]="true" appendTo="body" fluid />
-                  } @else {
-                    <strong>{{ courtName(game.court_id) }}</strong>
-                  }
-                </label>
-                @if (canManage()) {
-                  <footer>
-                    @if (!groupsClosed() && hasGroups()) { <small class="locked"><i class="pi pi-lock" aria-hidden="true"></i> Risultati bloccati</small> }
-                    <p-button icon="pi pi-check" [text]="true" size="small" ariaLabel="Salva risultato" [disabled]="!canScore(game) || !validScore(game)" [loading]="store.saving()" (onClick)="saveScore(game)" />
-                    @if (game.status === 'scheduled') {
-                      <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" ariaLabel="Elimina partita" (onClick)="confirmDeleteGame(game)" />
+      @if (qualified().length || winners().length) {
+        <div class="bracket-side">
+          @if (qualified().length) {
+            <aside class="side-panel" cdkDropList id="bracket-pool" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
+              <header><i class="pi pi-list-check" aria-hidden="true"></i><div><h4>Qualificati</h4><small>{{ qualified().length }} giocatori</small></div></header>
+              <div class="side-scroll">
+                @for (entry of qualified(); track entry.teamId) {
+                  <div class="side-row" [class.is-placed]="placedTeamIds().has(entry.teamId)" [class.is-held]="heldTeamId() === entry.teamId"
+                    cdkDrag [cdkDragData]="entry.teamId" [cdkDragDisabled]="!canManage()">
+                    <b>{{ entry.position }}</b>
+                    <div><strong>{{ entry.label }}</strong><small>{{ entry.groupName }} · {{ entry.position }}ª posizione</small></div>
+                    @if (canManage()) {
+                      <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
                     }
-                  </footer>
+                    <div class="drag-preview" *cdkDragPreview>{{ entry.label }}</div>
+                  </div>
                 }
-              </article>
-            }
+              </div>
+            </aside>
+          }
+
+          @if (winners().length) {
+            <aside class="side-panel winners-panel" cdkDropList id="bracket-winners" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
+              <header><i class="pi pi-trophy" aria-hidden="true"></i><div><h4>Vincitori</h4><small>Trascinali nel turno successivo</small></div></header>
+              <div class="side-scroll">
+                @for (entry of winners(); track entry.gameId) {
+                  <div class="side-row" [class.is-placed]="placedTeamIds().has(entry.teamId)" [class.is-held]="heldTeamId() === entry.teamId"
+                    cdkDrag [cdkDragData]="entry.teamId" [cdkDragDisabled]="!canManage()">
+                    <b><i class="pi pi-check" aria-hidden="true"></i></b>
+                    <div><strong>{{ entry.label }}</strong><small>{{ entry.source }}</small></div>
+                    @if (canManage()) {
+                      <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
+                    }
+                    <div class="drag-preview" *cdkDragPreview>{{ entry.label }}</div>
+                  </div>
+                }
+              </div>
+            </aside>
+          }
+        </div>
+      }
+
+      <div class="bracket-tree">
+        @for (round of rounds(); track round.number) {
+          <section class="round-col" [class.is-last]="round.number === rounds().length">
+            <header><span>Turno {{ round.number }}</span><strong>{{ round.title }}</strong></header>
+            <div class="ties">
+              @for (pair of round.pairs; track $index) {
+                <div class="pair" [class.is-single]="pair.length === 1">
+                  @for (game of pair; track game.id) {
+                    <article class="tie">
+                      <div class="tie-slot" cdkDropList [id]="'slot-' + game.id + '-1'" [cdkDropListData]="{ gameId: game.id, slot: 1 }"
+                        (cdkDropListDropped)="dropTeam($event)" [class.is-open]="canManage() && !game.team1_id"
+                        [class.is-winner]="game.winner_team_id && game.winner_team_id === game.team1_id" (click)="placeHeld(game, 1)">
+                        <span>{{ teamNameById(game.team1_id) }}</span>
+                        <b>{{ game.team1_scores?.[0] ?? '–' }}</b>
+                        @if (canManage() && game.team1_id && game.status === 'scheduled') {
+                          <button type="button" class="tie-clear" aria-label="Svuota slot" (click)="clearSlot(game, 1); $event.stopPropagation()"><i class="pi pi-times" aria-hidden="true"></i></button>
+                        }
+                      </div>
+                      <div class="tie-slot" cdkDropList [id]="'slot-' + game.id + '-2'" [cdkDropListData]="{ gameId: game.id, slot: 2 }"
+                        (cdkDropListDropped)="dropTeam($event)" [class.is-open]="canManage() && !game.team2_id"
+                        [class.is-winner]="game.winner_team_id && game.winner_team_id === game.team2_id" (click)="placeHeld(game, 2)">
+                        <span>{{ teamNameById(game.team2_id) }}</span>
+                        <b>{{ game.team2_scores?.[0] ?? '–' }}</b>
+                        @if (canManage() && game.team2_id && game.status === 'scheduled') {
+                          <button type="button" class="tie-clear" aria-label="Svuota slot" (click)="clearSlot(game, 2); $event.stopPropagation()"><i class="pi pi-times" aria-hidden="true"></i></button>
+                        }
+                      </div>
+
+                      @if (canManage()) {
+                        <div class="tie-edit">
+                          <label>
+                            <span>Punteggio</span>
+                            <div class="tie-scores">
+                              <p-inputnumber [ngModel]="scoreOf(game).first" (ngModelChange)="setScore(game, 'first', $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '3.4rem', textAlign: 'center' }" />
+                              <em>vs</em>
+                              <p-inputnumber [ngModel]="scoreOf(game).second" (ngModelChange)="setScore(game, 'second', $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '3.4rem', textAlign: 'center' }" />
+                            </div>
+                          </label>
+                          <label>
+                            <span>Campo</span>
+                            <p-select [ngModel]="game.court_id" (ngModelChange)="setCourt(game, $event)" [options]="courtOptions()" optionLabel="label" optionValue="value" placeholder="Campo da assegnare" [showClear]="true" appendTo="body" fluid />
+                          </label>
+                          <footer>
+                            @if (!groupsClosed() && hasGroups()) { <small class="locked"><i class="pi pi-lock" aria-hidden="true"></i> Risultati bloccati</small> }
+                            <p-button icon="pi pi-check" [text]="true" size="small" ariaLabel="Salva risultato" [disabled]="!canScore(game) || !validScore(game)" [loading]="store.saving()" (onClick)="saveScore(game)" />
+                            @if (game.status === 'scheduled') {
+                              <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" ariaLabel="Elimina partita" (onClick)="confirmDeleteGame(game)" />
+                            }
+                          </footer>
+                        </div>
+                      } @else if (game.court_id) {
+                        <p class="tie-court"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ courtName(game.court_id) }}</p>
+                      }
+                    </article>
+                  }
+                </div>
+              }
+            </div>
             @if (canManage()) {
               <p-button label="Aggiungi partita" icon="pi pi-plus" [outlined]="true" severity="secondary" [loading]="store.saving()" (onClick)="addMatch(round.number)" />
             }
           </section>
         } @empty {
           <div class="bracket-empty">
-            <i class="pi pi-trophy" aria-hidden="true"></i>
+            <i class="pi pi-sitemap" aria-hidden="true"></i>
             <h3>Nessun tabellone</h3>
             <p>{{ canManage() ? 'Genera un tabellone dai partecipanti oppure aggiungi i turni manualmente.' : 'L’organizzatore non ha ancora costruito il tabellone.' }}</p>
           </div>
@@ -187,64 +183,80 @@ interface ScoreDraft { first: number; second: number; }
     </div>
   `,
   styles: `
-    :host{display:block}
-    .bracket-console{display:grid;gap:22px;padding:22px;margin-bottom:20px;border:1px solid #e2e8f0;border-radius:20px;background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.025)}
-    .bracket-heading{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:20px;border-bottom:1px solid #e2e8f0}
+    :host{display:block;--bracket-line:#cbd5e1;--bracket-stub:18px}
+    .bracket-console{display:grid;gap:20px;padding:22px;margin-bottom:20px;border:1px solid #e2e8f0;border-radius:20px;background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.025)}
+    .bracket-heading{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid #e2e8f0}
     .bracket-title{display:flex;align-items:flex-start;gap:14px}
     .bracket-title>i{display:grid;width:52px;height:52px;flex:0 0 52px;place-items:center;color:#64748b;border-radius:16px;background:#f1f5f9;font-size:1.3rem}
     .bracket-title h3{margin:2px 0 6px;font:900 1.4rem/1 var(--display-font);letter-spacing:-.04em}
     .bracket-title p{max-width:560px;margin:0;color:#64748b;font-size:.78rem;line-height:1.5}
     .bracket-status{display:inline-flex;min-height:44px;align-items:center;gap:9px;padding:0 16px;color:#64748b;border-radius:999px;background:#f1f5f9;font-size:.75rem;font-weight:850;white-space:nowrap}
     .bracket-status.ready{color:#fff;background:#10b981}
+    .bracket-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+    .bracket-tabs button{display:inline-flex;min-height:44px;align-items:center;gap:8px;padding:0 15px;color:#64748b;border:1px solid #e2e8f0;border-radius:999px;background:#fff;font:inherit;font-size:.74rem;font-weight:850;cursor:pointer}
+    .bracket-tabs button.active{color:#fff;border-color:#0284c7;background:#0284c7}
     .bracket-setup{display:grid;align-items:center;gap:12px}
     .bracket-setup>div{display:grid;gap:7px}
     .bracket-setup>div span{color:#64748b;font-size:.66rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
     .bracket-setup>p{margin:0;color:#64748b;font-size:.72rem;line-height:1.45}
     .bracket-layout{display:grid;gap:18px}
-    .qualified-panel{display:grid;align-content:start;gap:8px;padding:16px;border:1px solid #e2e8f0;border-radius:18px;background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.03)}
-    .qualified-panel header{display:flex;align-items:center;gap:10px;margin-bottom:6px}
-    .qualified-panel header i{display:grid;width:40px;height:40px;place-items:center;color:#0284c7;border-radius:12px;background:#e0f2fe}
-    .qualified-panel h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
-    .qualified-panel small{color:#72869b;font-size:.64rem}
-    .qualified-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:9px;min-height:52px;padding:8px 9px;border-radius:12px;background:#f8fafc;cursor:grab}
-    .qualified-row.is-placed{opacity:.55}
-    .qualified-row.is-held{outline:2px solid var(--color-brand);background:#e0f2fe}
-    .qualified-row>b{display:grid;width:28px;height:28px;place-items:center;color:#f97316;border-radius:9px;background:#fff0e6;font-size:.68rem}
-    .qualified-row>div{display:grid;min-width:0}
-    .qualified-row strong{overflow:hidden;font-size:.75rem;text-overflow:ellipsis;white-space:nowrap}
-    .panel-hint{margin:4px 0 0;color:#94a3b8;font-size:.66rem;line-height:1.4}
-    .drag-preview{padding:10px 14px;color:#fff;border-radius:12px;background:#0369a1;box-shadow:0 14px 30px rgb(3 105 161/.24);font-size:.72rem;font-weight:850}
-    .round-board{display:flex;align-items:flex-start;gap:14px;overflow-x:auto;padding-bottom:8px;scroll-snap-type:x proximity}
-    .round-lane{display:grid;gap:10px;min-width:min(84vw,320px);scroll-snap-align:start}
-    .round-lane>header{display:grid;gap:2px;padding:0 4px}
-    .round-lane>header span{color:#0284c7;font-size:.58rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
-    .round-lane>header strong{font:900 1.1rem/1 var(--display-font);letter-spacing:-.035em}
-    .bracket-game{display:grid;gap:8px;padding:12px;border:1px solid #e2e8f0;border-radius:16px;background:#fff;box-shadow:0 3px 10px rgb(15 23 42/.025)}
-    .bracket-slot{display:flex;align-items:center;justify-content:space-between;gap:8px;min-height:44px;padding:8px 11px;border:1px solid #e2e8f0;border-radius:12px;font-size:.72rem;font-weight:700}
-    .bracket-slot>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .bracket-slot.is-open{border-style:dashed;border-color:#94a3b8;color:#94a3b8;cursor:pointer}
-    .bracket-slot.cdk-drop-list-dragging,.bracket-slot.cdk-drop-list-receiving{border-color:var(--color-brand);background:#e0f2fe}
-    .bracket-score{display:flex;align-items:center;justify-content:center;gap:10px}
-    .bracket-score em{color:#8ba6b5;font-size:.6rem;font-style:normal;font-weight:900}
-    .bracket-court{display:grid;gap:5px;padding-top:8px;border-top:1px solid #eef2f6}
-    .bracket-court>span{color:#64748b;font-size:.6rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
-    .bracket-court>strong{font-size:.72rem}
+    .bracket-side{display:grid;gap:14px;align-content:start}
+    .side-panel{display:grid;align-content:start;gap:8px;padding:16px;border:1px solid #e2e8f0;border-radius:18px;background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.03)}
+    .side-panel header{display:flex;align-items:center;gap:10px}
+    .side-panel header i{display:grid;width:40px;height:40px;place-items:center;color:#0284c7;border-radius:12px;background:#e0f2fe}
+    .side-panel h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
+    .side-panel small{color:#72869b;font-size:.64rem}
+    .side-scroll{display:grid;gap:7px;max-height:min(42vh,320px);overflow-y:auto}
+    .side-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:9px;min-height:52px;padding:8px 9px;border-radius:12px;background:#f8fafc;cursor:grab}
+    .side-row.is-placed{opacity:.55}
+    .side-row.is-held{outline:2px solid var(--color-brand);background:#e0f2fe}
+    .side-row>b{display:grid;width:28px;height:28px;place-items:center;color:#f97316;border-radius:9px;background:#fff0e6;font-size:.68rem}
+    .side-row>div{display:grid;min-width:0}
+    .side-row strong{overflow:hidden;font-size:.75rem;text-overflow:ellipsis;white-space:nowrap}
     .winners-panel header i{color:#f97316;background:#fff1e8}
-    .winners-panel .qualified-row>b{color:#10b981;background:#d1fae5}
-    .bracket-game footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:6px;border-top:1px solid #eef2f6}
-    .locked{margin-right:auto;color:#94a3b8;font-size:.64rem;font-weight:750}
+    .winners-panel .side-row>b{color:#10b981;background:#d1fae5}
+    .drag-preview{padding:10px 14px;color:#fff;border-radius:12px;background:#0369a1;box-shadow:0 14px 30px rgb(3 105 161/.24);font-size:.72rem;font-weight:850}
+
+    /* ---- albero del tabellone ---- */
+    .bracket-tree{display:flex;align-items:stretch;gap:calc(var(--bracket-stub) * 2);overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+    .round-col{display:flex;min-width:min(86vw,290px);flex-direction:column;gap:14px;scroll-snap-align:start}
+    .round-col>header{display:grid;gap:2px;padding:0 4px}
+    .round-col>header span{color:#0284c7;font-size:.58rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
+    .round-col>header strong{font:900 1.1rem/1 var(--display-font);letter-spacing:-.035em}
+    .ties{display:flex;flex:1;flex-direction:column;justify-content:space-around;gap:16px}
+    .pair{position:relative;display:flex;flex-direction:column;justify-content:center;gap:16px}
+    .tie{position:relative;display:grid;gap:6px;padding:10px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;box-shadow:0 3px 10px rgb(15 23 42/.03)}
+    /* linee: stub in uscita da ogni incontro, verticale che unisce la coppia, stub verso il turno dopo */
+    .round-col:not(.is-last) .tie::after{position:absolute;top:50%;left:100%;width:var(--bracket-stub);border-top:2px solid var(--bracket-line);content:''}
+    .round-col:not(.is-last) .pair:not(.is-single)::before{position:absolute;top:25%;bottom:25%;left:calc(100% + var(--bracket-stub));border-left:2px solid var(--bracket-line);content:''}
+    .round-col:not(.is-last) .pair::after{position:absolute;top:50%;left:calc(100% + var(--bracket-stub));width:var(--bracket-stub);border-top:2px solid var(--bracket-line);content:''}
+    .round-col:not(:first-child) .tie::before{position:absolute;top:50%;right:100%;width:var(--bracket-stub);border-top:2px solid var(--bracket-line);content:''}
+    .tie-slot{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;min-height:44px;padding:8px 11px;border:1px solid #e2e8f0;border-radius:11px;font-size:.73rem;font-weight:750}
+    .tie-slot>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .tie-slot>b{display:grid;min-width:30px;height:28px;place-items:center;border-radius:8px;background:#f1f5f9;font-size:.75rem;font-weight:900}
+    .tie-slot.is-winner{border-color:#10b981;background:#ecfdf5}
+    .tie-slot.is-winner>b{color:#fff;background:#10b981}
+    .tie-slot.is-open{border-style:dashed;border-color:#94a3b8;color:#94a3b8;cursor:pointer}
+    .tie-slot.cdk-drop-list-receiving{border-color:#0284c7;background:#e0f2fe}
+    .tie-clear{display:grid;place-items:center;width:26px;height:26px;color:#94a3b8;border:0;border-radius:8px;background:none;cursor:pointer}
+    .tie-edit{display:grid;gap:8px;padding-top:8px;border-top:1px solid #eef2f6}
+    .tie-edit label{display:grid;gap:4px}
+    .tie-edit label>span{color:#64748b;font-size:.58rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+    .tie-scores{display:flex;align-items:center;justify-content:center;gap:10px}
+    .tie-scores em{color:#8ba6b5;font-size:.6rem;font-style:normal;font-weight:900}
+    .tie-edit footer{display:flex;align-items:center;justify-content:flex-end;gap:6px}
+    .locked{margin-right:auto;color:#94a3b8;font-size:.62rem;font-weight:750}
+    .tie-court{display:flex;align-items:center;gap:6px;margin:0;color:#64748b;font-size:.66rem}
     .bracket-empty{display:grid;min-width:min(88vw,560px);min-height:230px;place-content:center;justify-items:center;gap:6px;padding:26px;color:#94a3b8;text-align:center;border:1px dashed #cbd5e1;border-radius:18px}
     .bracket-empty i{color:#94a3b8;font-size:2rem}
     .bracket-empty h3{margin:4px;color:var(--color-ink)}
     @media(min-width:760px){
       .bracket-console{padding:30px}
-      .bracket-setup{grid-template-columns:auto auto auto 1fr}
-      .bracket-setup>p{justify-self:end;text-align:right}
-      /* colonna sinistra: pannelli impilati; a destra il tabellone occupa tutte le righe */
+      .bracket-setup{grid-template-columns:auto auto auto auto 1fr}
       .bracket-layout{grid-template-columns:300px minmax(0,1fr);gap:22px;align-items:start}
-      .qualified-panel{grid-column:1}
-      .round-board{grid-column:2;grid-row:1/-1}
-      .round-lane{min-width:330px}
+      /* i pannelli restano ancorati anche con molte card nei turni */
+      .bracket-side{position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow-y:auto}
+      .round-col{min-width:300px}
     }
     @media(prefers-reduced-motion:reduce){.cdk-drag-animating{transition:none!important}}
   `,
@@ -263,30 +275,48 @@ export class TournamentKnockout {
   protected readonly groupsClosed = computed(() => !!this.tournament().groups_closed_at);
   protected readonly hasGroups = computed(() => (this.tournament().groups ?? []).length > 0);
 
-  protected readonly rounds = computed(() => {
-    const games = (this.tournament().games ?? []).filter((game) => game.phase !== 'group');
-    const max = Math.max(0, ...games.map((game) => game.round_no));
-    return Array.from({ length: max }, (_, index) => ({
-      number: index + 1,
-      games: games.filter((game) => game.round_no === index + 1).sort((a, b) => a.position - b.position),
-    }));
+  private readonly knockoutGames = computed(() => (this.tournament().games ?? []).filter((game) => game.phase !== 'group'));
+
+  protected readonly brackets = computed(() => {
+    const numbers = [...new Set(this.knockoutGames().map((game) => game.bracket_no ?? 1))].sort((a, b) => a - b);
+    return numbers.length ? numbers : [1];
   });
 
-  protected readonly slotIds = computed(() => this.rounds().flatMap((round) => round.games.flatMap((game) => [`slot-${game.id}-1`, `slot-${game.id}-2`])));
+  /** Il tabellone scelto resta valido solo finché esiste; altrimenti torna al primo. */
+  protected readonly activeBracket = linkedSignal<number[], number>({
+    source: () => this.brackets(),
+    computation: (brackets, previous) =>
+      previous && brackets.includes(previous.value) ? previous.value : brackets[0],
+  });
+
+  protected bracketLabel(bracket: number): string {
+    return bracket === 1 ? 'Tabellone principale' : `Tabellone ${bracket}`;
+  }
+
+  protected readonly rounds = computed<RoundColumn[]>(() => {
+    const games = this.knockoutGames().filter((game) => (game.bracket_no ?? 1) === this.activeBracket());
+    const total = Math.max(0, ...games.map((game) => game.round_no));
+    return Array.from({ length: total }, (_, index) => {
+      const number = index + 1;
+      const ordered = games.filter((game) => game.round_no === number).sort((a, b) => a.position - b.position);
+      const pairs: TournamentGame[][] = [];
+      for (let i = 0; i < ordered.length; i += 2) pairs.push(ordered.slice(i, i + 2));
+      return { number, title: this.roundTitleFor(number, total), pairs };
+    });
+  });
+
+  protected readonly slotIds = computed(() =>
+    this.rounds().flatMap((round) => round.pairs.flat().flatMap((game) => [`slot-${game.id}-1`, `slot-${game.id}-2`])));
 
   protected readonly placedTeamIds = computed(() => {
     const ids = new Set<string>();
-    for (const game of (this.tournament().games ?? []).filter((item) => item.phase !== 'group')) {
+    for (const game of this.knockoutGames()) {
       if (game.team1_id) ids.add(game.team1_id);
       if (game.team2_id) ids.add(game.team2_id);
     }
     return ids;
   });
 
-  /**
-   * Qualificati: a gironi chiusi ogni giocatore compare col girone e la posizione
-   * ottenuta in base ai risultati; senza gironi si usano tutti gli iscritti attivi.
-   */
   protected readonly qualified = computed<QualifiedEntry[]>(() => {
     const tournament = this.tournament();
     const groups = [...(tournament.groups ?? [])].sort((a, b) => a.position - b.position);
@@ -311,9 +341,10 @@ export class TournamentKnockout {
 
   /** Vincitori già decisi: si trascinano nel turno successivo (es. la semifinale nella finale). */
   protected readonly winners = computed<WinnerEntry[]>(() => {
-    const total = this.rounds().length;
-    return (this.tournament().games ?? [])
-      .filter((game) => game.phase !== 'group' && game.status === 'completed' && !!game.winner_team_id)
+    const games = this.knockoutGames().filter((game) => (game.bracket_no ?? 1) === this.activeBracket());
+    const total = Math.max(0, ...games.map((game) => game.round_no));
+    return games
+      .filter((game) => game.status === 'completed' && !!game.winner_team_id)
       .sort((a, b) => a.round_no - b.round_no || a.position - b.position)
       .map((game) => ({
         gameId: game.id,
@@ -339,11 +370,10 @@ export class TournamentKnockout {
     return id ? teamLabel(this.tournament().teams.find((team) => team.id === id)) : 'Slot libero / BYE';
   }
 
-  protected roundTitle(round: number): string { return this.roundTitleFor(round, this.rounds().length); }
-
   private roundTitleFor(round: number, total: number): string {
     if (round === total) return 'Finale';
     if (round === total - 1) return 'Semifinali';
+    if (round === total - 2) return 'Quarti';
     return `Turno ${round}`;
   }
 
@@ -386,7 +416,7 @@ export class TournamentKnockout {
   protected dropTeam(event: CdkDragDrop<SlotTarget>): void {
     const target = event.container.data;
     if (!this.canManage() || !target?.gameId) return;
-    const game = (this.tournament().games ?? []).find((item) => item.id === target.gameId);
+    const game = this.knockoutGames().find((item) => item.id === target.gameId);
     if (!game || game.status !== 'scheduled') return;
     this.assignSlot(game, target.slot, event.item.data as string);
   }
@@ -398,23 +428,29 @@ export class TournamentKnockout {
     const team2Id = slot === 2 ? teamId : game.team2_id;
     if (teamId && (slot === 1 ? game.team2_id : game.team1_id) === teamId) return;
     void this.store.saveGame(this.tournament().id, {
-      id: game.id, phase: game.phase, groupId: null,
+      id: game.id, phase: game.phase, groupId: null, bracketNo: game.bracket_no ?? 1,
       roundNo: game.round_no, position: game.position, team1Id, team2Id,
     });
   }
 
   protected addRound(): void {
     const next = this.rounds().length + 1;
-    void this.store.addBracketRound(this.tournament().id, next, Math.max(1, Math.ceil(this.participants() / 2)));
+    void this.store.addBracketRound(this.tournament().id, next, Math.max(1, Math.ceil(this.participants() / 2)), this.activeBracket());
   }
 
   protected addMatch(roundNo: number): void {
-    void this.store.addBracketRound(this.tournament().id, roundNo, 1);
+    void this.store.addBracketRound(this.tournament().id, roundNo, 1, this.activeBracket());
+  }
+
+  protected async addBracket(): Promise<void> {
+    const next = Math.max(...this.brackets()) + 1;
+    if (await this.store.addBracketRound(this.tournament().id, 1, Math.max(1, Math.ceil(this.participants() / 2)), next)) {
+      this.activeBracket.set(next);
+    }
   }
 
   protected generateBracket(): void {
-    const seeds = this.seedOrder();
-    void this.store.generateBracket(this.tournament().id, Math.max(1, Math.ceil(this.participants() / 2)), seeds);
+    void this.store.generateBracket(this.tournament().id, Math.max(1, Math.ceil(this.participants() / 2)), this.seedOrder(), this.activeBracket());
   }
 
   /** Ordine di semina: 1ª testa contro l'ultima, 2ª contro la penultima e così via. */
@@ -430,6 +466,17 @@ export class TournamentKnockout {
       tail -= 1;
     }
     return ordered;
+  }
+
+  protected confirmDeleteBracket(): void {
+    const bracket = this.activeBracket();
+    this.confirmation.confirm({
+      header: `Elimina ${this.bracketLabel(bracket).toLowerCase()}`,
+      message: 'Tutte le partite di questo tabellone verranno rimosse. I tabelloni con risultati non possono essere eliminati.',
+      icon: 'pi pi-trash', acceptLabel: 'Elimina', rejectLabel: 'Annulla',
+      acceptButtonProps: { severity: 'danger' }, rejectButtonProps: { severity: 'secondary', variant: 'text' },
+      accept: () => void this.store.deleteBracket(this.tournament().id, bracket),
+    });
   }
 
   protected confirmClose(): void {
