@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
+import { Select } from 'primeng/select';
 import { Tournament, TournamentGame } from '../models/tournament.model';
 import { TournamentsStore } from '../store/tournaments.store';
 import { calculateStandings, teamLabel } from '../tournaments.utils';
@@ -13,6 +14,13 @@ interface QualifiedEntry {
   label: string;
   groupName: string;
   position: number;
+}
+
+interface WinnerEntry {
+  gameId: string;
+  teamId: string;
+  label: string;
+  source: string;
 }
 
 interface SlotTarget { gameId: string; slot: number; }
@@ -25,7 +33,7 @@ interface ScoreDraft { first: number; second: number; }
  */
 @Component({
   selector: 'app-tournament-knockout',
-  imports: [Button, DragDropModule, FormsModule, InputNumber],
+  imports: [Button, DragDropModule, FormsModule, InputNumber, Select],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="bracket-console">
@@ -83,6 +91,29 @@ interface ScoreDraft { first: number; second: number; }
         </aside>
       }
 
+      @if (winners().length) {
+        <aside class="qualified-panel winners-panel" cdkDropList id="bracket-winners" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
+          <header><i class="pi pi-trophy" aria-hidden="true"></i><div><h4>Vincitori</h4><small>Trascinali nel turno successivo</small></div></header>
+          @for (entry of winners(); track entry.gameId) {
+            <div
+              class="qualified-row"
+              [class.is-placed]="placedTeamIds().has(entry.teamId)"
+              [class.is-held]="heldTeamId() === entry.teamId"
+              cdkDrag
+              [cdkDragData]="entry.teamId"
+              [cdkDragDisabled]="!canManage()"
+            >
+              <b><i class="pi pi-check" aria-hidden="true"></i></b>
+              <div><strong>{{ entry.label }}</strong><small>{{ entry.source }}</small></div>
+              @if (canManage()) {
+                <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
+              }
+              <div class="drag-preview" *cdkDragPreview>{{ entry.label }}</div>
+            </div>
+          }
+        </aside>
+      }
+
       <div class="round-board">
         @for (round of rounds(); track round.number) {
           <section class="round-lane">
@@ -122,6 +153,14 @@ interface ScoreDraft { first: number; second: number; }
                     <p-button icon="pi pi-times" [text]="true" size="small" ariaLabel="Svuota slot" (onClick)="clearSlot(game, 2)" />
                   }
                 </div>
+                <label class="bracket-court">
+                  <span>Campo</span>
+                  @if (canManage()) {
+                    <p-select [ngModel]="game.court_id" (ngModelChange)="setCourt(game, $event)" [options]="courtOptions()" optionLabel="label" optionValue="value" placeholder="Campo da assegnare" [showClear]="true" appendTo="body" fluid />
+                  } @else {
+                    <strong>{{ courtName(game.court_id) }}</strong>
+                  }
+                </label>
                 @if (canManage()) {
                   <footer>
                     @if (!groupsClosed() && hasGroups()) { <small class="locked"><i class="pi pi-lock" aria-hidden="true"></i> Risultati bloccati</small> }
@@ -187,6 +226,11 @@ interface ScoreDraft { first: number; second: number; }
     .bracket-slot.cdk-drop-list-dragging,.bracket-slot.cdk-drop-list-receiving{border-color:var(--color-brand);background:#e0f2fe}
     .bracket-score{display:flex;align-items:center;justify-content:center;gap:10px}
     .bracket-score em{color:#8ba6b5;font-size:.6rem;font-style:normal;font-weight:900}
+    .bracket-court{display:grid;gap:5px;padding-top:8px;border-top:1px solid #eef2f6}
+    .bracket-court>span{color:#64748b;font-size:.6rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+    .bracket-court>strong{font-size:.72rem}
+    .winners-panel header i{color:#f97316;background:#fff1e8}
+    .winners-panel .qualified-row>b{color:#10b981;background:#d1fae5}
     .bracket-game footer{display:flex;align-items:center;justify-content:flex-end;gap:8px;padding-top:6px;border-top:1px solid #eef2f6}
     .locked{margin-right:auto;color:#94a3b8;font-size:.64rem;font-weight:750}
     .bracket-empty{display:grid;min-width:min(88vw,560px);min-height:230px;place-content:center;justify-items:center;gap:6px;padding:26px;color:#94a3b8;text-align:center;border:1px dashed #cbd5e1;border-radius:18px}
@@ -196,8 +240,10 @@ interface ScoreDraft { first: number; second: number; }
       .bracket-console{padding:30px}
       .bracket-setup{grid-template-columns:auto auto auto 1fr}
       .bracket-setup>p{justify-self:end;text-align:right}
+      /* colonna sinistra: pannelli impilati; a destra il tabellone occupa tutte le righe */
       .bracket-layout{grid-template-columns:300px minmax(0,1fr);gap:22px;align-items:start}
-      .qualified-panel{position:sticky;top:16px}
+      .qualified-panel{grid-column:1}
+      .round-board{grid-column:2;grid-row:1/-1}
       .round-lane{min-width:330px}
     }
     @media(prefers-reduced-motion:reduce){.cdk-drag-animating{transition:none!important}}
@@ -263,12 +309,39 @@ export class TournamentKnockout {
     return entries.sort((a, b) => a.position - b.position || a.groupName.localeCompare(b.groupName));
   });
 
+  /** Vincitori già decisi: si trascinano nel turno successivo (es. la semifinale nella finale). */
+  protected readonly winners = computed<WinnerEntry[]>(() => {
+    const total = this.rounds().length;
+    return (this.tournament().games ?? [])
+      .filter((game) => game.phase !== 'group' && game.status === 'completed' && !!game.winner_team_id)
+      .sort((a, b) => a.round_no - b.round_no || a.position - b.position)
+      .map((game) => ({
+        gameId: game.id,
+        teamId: game.winner_team_id!,
+        label: this.teamNameById(game.winner_team_id),
+        source: `${this.roundTitleFor(game.round_no, total)} · partita #${game.position}`,
+      }));
+  });
+
+  protected readonly courtOptions = computed(() =>
+    this.tournament().courts.map((link) => ({ value: link.court_id, label: link.court?.name ?? 'Campo' })));
+
+  protected courtName(id: string | null): string {
+    return this.tournament().courts.find((link) => link.court_id === id)?.court?.name ?? 'Campo da assegnare';
+  }
+
+  protected setCourt(game: TournamentGame, courtId: string | null): void {
+    if (!this.canManage() || courtId === game.court_id) return;
+    void this.store.setGameCourt(this.tournament().id, game.id, courtId);
+  }
+
   protected teamNameById(id: string | null): string {
     return id ? teamLabel(this.tournament().teams.find((team) => team.id === id)) : 'Slot libero / BYE';
   }
 
-  protected roundTitle(round: number): string {
-    const total = this.rounds().length;
+  protected roundTitle(round: number): string { return this.roundTitleFor(round, this.rounds().length); }
+
+  private roundTitleFor(round: number, total: number): string {
     if (round === total) return 'Finale';
     if (round === total - 1) return 'Semifinali';
     return `Turno ${round}`;
