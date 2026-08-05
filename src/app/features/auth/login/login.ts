@@ -22,11 +22,11 @@ import { AuthStore } from '../store/auth.store';
 
       <main class="auth-panel">
         <a class="mobile-brand" routerLink="/" aria-label="Beach Volley Hub">
-          <img src="assets/img/logo.png" alt="Beach Volley Hub" />
+          <img src="assets/img/logo.svg" alt="Beach Volley Hub" />
         </a>
 
         <section class="auth-card" aria-labelledby="login-title">
-          <img class="auth-logo" src="assets/img/logo.png" alt="Beach Volley Hub" />
+          <img class="auth-logo" src="assets/img/logo.svg" alt="Beach Volley Hub" />
           <p class="eyebrow">Bentornato in campo</p>
           <h2 id="login-title">Accedi</h2>
           <p class="auth-intro">Usa email e password per continuare.</p>
