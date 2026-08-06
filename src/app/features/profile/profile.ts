@@ -75,6 +75,28 @@ import { ProfileStore } from './store/profile.store';
           </article>
         </section>
 
+        <section class="card podium-card" aria-labelledby="podium-title">
+          <div class="card-head">
+            <div><p class="eyebrow">Tornei</p><h2 id="podium-title">Albo d'oro</h2></div>
+            <i class="pi pi-info-circle info" tabindex="0"
+               pTooltip="Conta i podi nei tornei conclusi in cui hai fatto parte della coppia premiata."
+               tooltipPosition="top" aria-label="Come si contano i podi"></i>
+          </div>
+          @if (totalPodiums() > 0) {
+            <div class="podiums">
+              @for (place of podiumPlaces(); track place.label) {
+                <article [class]="'podium place-' + place.position">
+                  <span class="podium-icon"><i class="pi pi-trophy" aria-hidden="true"></i></span>
+                  <strong>{{ place.count }}</strong>
+                  <p>{{ place.label }}</p>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="podium-empty">Nessun podio per ora. I piazzamenti compaiono qui quando l'organizzatore chiude un torneo che hai vinto o in cui sei arrivato secondo o terzo.</p>
+          }
+        </section>
+
         <section class="card" aria-labelledby="edit-title">
           <div class="card-head"><div><p class="eyebrow">Dati pubblici</p><h2 id="edit-title">Modifica profilo</h2></div></div>
           <form [formGroup]="profileForm" (ngSubmit)="save()" novalidate>
@@ -189,6 +211,17 @@ import { ProfileStore } from './store/profile.store';
     .metric p { margin: 0; color: var(--color-ink-muted); font-size: .68rem; font-weight: 700; }
     .metric strong { display: block; margin: 3px 0; font-size: 1.9rem; line-height: 1; }
     .metric small { color: var(--color-ink-muted); font-size: .68rem; }
+    .podiums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .podium { display: grid; justify-items: center; gap: 4px; padding: 14px 8px; border: 1px solid var(--color-border); border-radius: 16px; text-align: center; }
+    .podium-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; }
+    .podium strong { font-size: 1.6rem; line-height: 1; }
+    .podium p { margin: 0; color: var(--color-ink-muted); font-size: .64rem; font-weight: 700; }
+    .podium.place-1 { border-color: #fcd34d; background: #fffbeb; }
+    .podium.place-1 .podium-icon { color: #b45309; background: #fef3c7; }
+    .podium.place-2 .podium-icon { color: #64748b; background: #f1f5f9; }
+    .podium.place-3 { border-color: #fdba74; background: #fff7ed; }
+    .podium.place-3 .podium-icon { color: #c2410c; background: #ffedd5; }
+    .podium-empty { margin: 0; color: var(--color-ink-muted); font-size: .74rem; line-height: 1.5; }
     .card { padding: 20px; border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); }
     .card-head { margin-bottom: 18px; }
     .card-head h2 { margin: 0; font: 900 1.4rem/1 var(--display-font); letter-spacing: -.03em; }
@@ -274,6 +307,15 @@ export class Profile implements OnInit, OnDestroy {
   });
   protected readonly initials = computed(() => { const p = this.store.profile(); return p ? `${p.nome.charAt(0)}${p.cognome.charAt(0)}`.toUpperCase() : 'BV'; });
   protected readonly levelPoints = computed(() => this.store.levelHistory().map((item) => ({ id: item.id, value: Number(item.livello_calcolato), createdAt: item.created_at })));
+  protected readonly podiumPlaces = computed(() => {
+    const podiums = this.store.podiums();
+    return [
+      { position: 1, label: 'Primi posti', count: podiums.first_places },
+      { position: 2, label: 'Secondi posti', count: podiums.second_places },
+      { position: 3, label: 'Terzi posti', count: podiums.third_places },
+    ];
+  });
+  protected readonly totalPodiums = computed(() => this.podiumPlaces().reduce((sum, place) => sum + place.count, 0));
   protected readonly reliabilityPoints = computed(() => this.store.reliabilityHistory().map((item) => ({ id: item.id, value: Number(item.affidabilita), createdAt: item.created_at })));
 
   constructor() {

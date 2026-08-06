@@ -4,8 +4,11 @@ import { UserProfile } from '../../auth/models/auth.model';
 import {
   LevelHistoryEntry,
   ReliabilityHistoryEntry,
+  TournamentPodiums,
   UpdatePlayerProfileRequest,
 } from '../models/profile.model';
+
+const NO_PODIUMS: TournamentPodiums = { first_places: 0, second_places: 0, third_places: 0 };
 
 @Injectable({ providedIn: 'root' })
 export class ProfileService {
@@ -42,6 +45,14 @@ export class ProfileService {
 
     if (error) throw error;
     return (data ?? []) as ReliabilityHistoryEntry[];
+  }
+
+  /** L'albo d'oro e ricavato dai tornei conclusi, non da contatori memorizzati. */
+  async getTournamentPodiums(userId: string): Promise<TournamentPodiums> {
+    const { data, error } = await this.supabase.client.rpc('get_profile_tournament_podiums', { p_profile_id: userId });
+    if (error) throw error;
+    const row = (data as TournamentPodiums[] | null)?.[0];
+    return row ?? NO_PODIUMS;
   }
 
   async setNotifications(enabled: boolean): Promise<void> {

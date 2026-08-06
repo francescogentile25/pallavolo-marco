@@ -9,6 +9,7 @@ const initialState: ProfileState = {
   profile: null,
   levelHistory: [],
   reliabilityHistory: [],
+  podiums: { first_places: 0, second_places: 0, third_places: 0 },
   loading: false,
   saving: false,
   error: null,
@@ -47,15 +48,17 @@ export const ProfileStore = signalStore(
 
         patchState(store, { loading: true, error: null });
         try {
-          const [profile, levelHistory, reliabilityHistory] = await Promise.all([
+          const [profile, levelHistory, reliabilityHistory, podiums] = await Promise.all([
             profileService.getProfile(userId),
             profileService.getLevelHistory(userId),
             profileService.getReliabilityHistory(userId),
+            profileService.getTournamentPodiums(userId),
           ]);
           patchState(store, {
             profile,
             levelHistory,
             reliabilityHistory,
+            podiums,
             loading: false,
           });
         } catch (error) {

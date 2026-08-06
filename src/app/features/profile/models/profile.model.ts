@@ -26,10 +26,18 @@ export interface ReliabilityHistoryEntry {
   created_at: string;
 }
 
+/** Albo d'oro: primi, secondi e terzi posti nei tornei conclusi. */
+export interface TournamentPodiums {
+  first_places: number;
+  second_places: number;
+  third_places: number;
+}
+
 export interface ProfileState {
   profile: UserProfile | null;
   levelHistory: readonly LevelHistoryEntry[];
   reliabilityHistory: readonly ReliabilityHistoryEntry[];
+  podiums: TournamentPodiums;
   loading: boolean;
   saving: boolean;
   error: string | null;
