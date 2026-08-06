@@ -8,260 +8,338 @@ import {
 } from '@angular/core';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { ButtonModule } from 'primeng/button';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { AuthStore } from '../auth/store/auth.store';
 import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { Tournament } from '../tournaments/models/tournament.model';
 
+/** Segnaposto: queste partite sono ancora dati finti, non arrivano dal database. */
+interface OpenMatchPreview {
+  id: number;
+  level: string;
+  spots: number;
+  place: string;
+  when: string;
+  players: number;
+}
+
+/**
+ * Home costruita sulla geometria del campo: 16x8 metri, cioe 2:1. Il blocco di
+ * apertura e un campo vero, con le fettucce che lo delimitano e la banda della rete
+ * al centro. Sulla rete sta il numero che decide se scendi in spiaggia adesso: i
+ * posti liberi nella prima partita utile.
+ */
 @Component({
   selector: 'app-home',
-  imports: [ButtonModule, DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="home-page">
-      <div class="home-feature-grid">
-      <section class="hero" aria-labelledby="home-title">
-        <div>
-          <p class="eyebrow">La tua prossima partita</p>
-          <h1 id="home-title">Entra in campo.</h1>
-          <p class="hero-copy">
-            Trova giocatori al tuo livello, crea una partita o iscriviti al prossimo torneo.
-          </p>
+    <main class="home">
+      <section class="court" aria-labelledby="home-title">
+        <span class="stake stake-tl" aria-hidden="true"></span>
+        <span class="stake stake-tr" aria-hidden="true"></span>
+        <span class="stake stake-bl" aria-hidden="true"></span>
+        <span class="stake stake-br" aria-hidden="true"></span>
+
+        <div class="court-half court-half-near">
+          <p class="tag">Oggi in campo</p>
+          @if (nextMatch(); as match) {
+            <h1 id="home-title">{{ match.place }}</h1>
+            <p class="court-meta">
+              <span class="num">{{ match.when }}</span>
+              <span class="sep" aria-hidden="true">/</span>
+              {{ match.level }}
+            </p>
+          } @else {
+            <h1 id="home-title">Campo libero</h1>
+            <p class="court-meta">Nessuna partita aperta. Aprila tu.</p>
+          }
         </div>
-        <div class="hero-actions">
-          <a class="hero-cta" routerLink="/partite/nuova">
-            <span class="ball-mark" aria-hidden="true"><i class="pi pi-plus"></i></span>
-            <span><small>Organizza</small>Crea una partita</span>
+
+        <div class="net" role="presentation">
+          <span class="net-band">
+            @if (nextMatch(); as match) {
+              <b>{{ match.spots }}</b> {{ match.spots === 1 ? 'posto libero' : 'posti liberi' }}
+            } @else {
+              <b>0</b> partite aperte
+            }
+          </span>
+        </div>
+
+        <div class="court-half court-half-far">
+          <a class="serve" routerLink="/partite/nuova">
+            Crea una partita
             <i class="pi pi-arrow-right" aria-hidden="true"></i>
           </a>
-          <a pButton class="my-matches-button" routerLink="/partite/mie">
-            <i class="pi pi-calendar" pButtonIcon aria-hidden="true"></i>
-            <span pButtonLabel>Le mie partite</span>
-          </a>
+          <a class="receive" routerLink="/partite">Guarda tutte le partite</a>
         </div>
-        <div class="hero-stamp" aria-hidden="true"><i class="pi pi-sun"></i><span>Beach<br />Volley</span></div>
       </section>
 
-      <section class="section-block" aria-labelledby="matches-title">
-        <div class="section-heading">
-          <div>
-            <p class="eyebrow">Vicino a te</p>
-            <h2 id="matches-title">Partite aperte</h2>
-          </div>
-          <a routerLink="/partite">Vedi tutte <i class="pi pi-arrow-right"></i></a>
-        </div>
+      <section class="block" aria-labelledby="open-title">
+        <header class="block-head">
+          <h2 id="open-title">Partite aperte</h2>
+          <a routerLink="/partite">Tutte <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+        </header>
 
-        <div class="match-scroller">
+        <ul class="rally">
           @for (match of matches; track match.id) {
-            <article class="match-card">
-              <div class="match-topline">
-                <span class="level">{{ match.level }}</span>
-                <span class="spots">{{ match.spots }} posti</span>
-              </div>
+            <li class="side">
+              <p class="side-when num">{{ match.when }}</p>
               <h3>{{ match.place }}</h3>
-              <p><i class="pi pi-calendar" aria-hidden="true"></i> {{ match.when }}</p>
-              <div class="players" aria-label="Giocatori iscritti">
-                <span aria-hidden="true">FG</span>
-                <span aria-hidden="true">MR</span>
-                <strong>+{{ match.players }}</strong>
-              </div>
-            </article>
+              <p class="side-level">{{ match.level }}</p>
+              <p class="side-spots num"><b>{{ match.spots }}</b> <span>liberi</span></p>
+            </li>
+          } @empty {
+            <li class="side side-empty">Nessuna partita aperta in questo momento.</li>
           }
-        </div>
+        </ul>
       </section>
-      </div>
 
-      <section class="tournament-card" aria-labelledby="tournament-title">
-        <div class="tournament-number" aria-hidden="true">{{ nextTournament()?.starts_at | date:'dd' }}</div>
-        <div>
-          <p class="eyebrow">{{ nextTournament() ? 'Prossimo torneo' : 'Tornei' }}</p>
-          <h2 id="tournament-title">{{ nextTournament()?.title ?? 'La prossima sfida' }}</h2>
-          @if (nextTournament(); as tournament) {
-            <p>{{ tournament.starts_at | date:'EEE d MMM, HH:mm':'':'it' }} · {{ tournament.venue.city }}</p>
-          } @else {
-            <p>Scopri i tornei e scegli come partecipare.</p>
-          }
-        </div>
-        <a [routerLink]="nextTournament() ? ['/tornei', nextTournament()!.id] : '/tornei'">Scopri <i class="pi pi-arrow-up-right"></i></a>
+      <section class="block" aria-labelledby="tournament-title">
+        <header class="block-head">
+          <h2 id="tournament-title">Prossimo torneo</h2>
+          <a routerLink="/tornei">Tutti <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+        </header>
+
+        @if (nextTournament(); as tournament) {
+          <a class="tournament" [routerLink]="['/tornei', tournament.id]">
+            <span class="tournament-date num" aria-hidden="true">
+              {{ tournament.starts_at | date: 'dd' }}<em>{{ tournament.starts_at | date: 'MMM':'':'it' }}</em>
+            </span>
+            <span class="tournament-body">
+              <strong>{{ tournament.title }}</strong>
+              <small>{{ tournament.starts_at | date: 'EEEE, HH:mm':'':'it' }} · {{ tournament.city || tournament.venue.city }}</small>
+            </span>
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+        } @else {
+          <a class="tournament tournament-empty" routerLink="/tornei">
+            <span class="tournament-body">
+              <strong>Nessun torneo in programma</strong>
+              <small>Guarda l'archivio o organizzane uno.</small>
+            </span>
+            <i class="pi pi-arrow-right" aria-hidden="true"></i>
+          </a>
+        }
       </section>
     </main>
   `,
   styles: `
-    :host { display: block; }
+    :host { display: block; background: var(--court-sand); }
 
-    .home-page {
-      width: min(100%, 1120px);
-      padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 50px);
+    .home {
+      width: min(100%, 1080px);
+      padding: 16px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px);
       margin: 0 auto;
+      font-family: var(--font-body);
+      color: var(--court-ink);
     }
 
-    .hero {
+    .num { font-family: var(--font-numeric); font-variant-numeric: tabular-nums; }
+
+    /* ---- il campo ---- */
+    .court {
       position: relative;
-      overflow: hidden;
-      padding: 28px 22px 22px;
-      color: white;
-      border-radius: 28px;
-      background: var(--color-ocean);
-      box-shadow: 0 18px 38px rgb(20 24 26 / 0.18);
+      display: grid;
+      grid-template-rows: 1fr auto 1fr;
+      padding: clamp(20px, 5vw, 34px);
+      border: var(--court-line) solid var(--court-tape);
+      border-radius: 4px;
+      background: var(--court-blue);
+      box-shadow: 0 22px 44px rgb(15 27 35 / .22);
+      color: var(--court-tape);
     }
 
-    .hero::after {
+    /* i picchetti che tengono la fettuccia agli angoli */
+    .stake {
       position: absolute;
-      width: 150px;
-      height: 150px;
-      right: -55px;
-      bottom: -76px;
-      content: '';
-      border: 18px solid rgb(255 255 255 / 0.065);
-      border-radius: 50%;
+      width: 10px;
+      height: 10px;
+      background: var(--court-yellow);
+      border-radius: 2px;
     }
+    .stake-tl { top: -6px; left: -6px; }
+    .stake-tr { top: -6px; right: -6px; }
+    .stake-bl { bottom: -6px; left: -6px; }
+    .stake-br { bottom: -6px; right: -6px; }
 
-    .eyebrow {
-      margin: 0 0 6px;
-      color: var(--color-brand);
-      font-size: 0.72rem;
-      font-weight: 850;
-      letter-spacing: 0.11em;
+    .court-half { display: grid; align-content: center; gap: 8px; padding: clamp(10px, 4vw, 26px) 0; }
+    .court-half-far { justify-items: start; gap: 14px; }
+
+    .tag {
+      margin: 0;
+      font-family: var(--font-numeric);
+      font-size: .66rem;
+      font-weight: 700;
+      letter-spacing: .18em;
       text-transform: uppercase;
+      color: var(--court-yellow);
     }
 
-    .hero .eyebrow { color: #f2b08e; }
-    h1, h2, h3, p { margin-top: 0; }
-
-    h1 {
-      max-width: 10ch;
-      margin-bottom: 10px;
-      font-family: var(--display-font);
-      font-size: clamp(2.35rem, 11vw, 4.8rem);
-      line-height: 0.93;
-      letter-spacing: -0.055em;
+    .court h1 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(2.1rem, 8.5vw, 3.6rem);
+      font-weight: 800;
+      font-stretch: 125%;
+      line-height: .98;
+      letter-spacing: -.02em;
+      text-wrap: balance;
     }
 
-    .hero-copy {
-      max-width: 33rem;
-      margin-bottom: 24px;
-      color: rgb(255 255 255 / 0.76);
-      line-height: 1.5;
-    }
+    .court-meta { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin: 0; font-size: .92rem; color: rgb(255 255 255 / .86); }
+    .court-meta .sep { color: var(--court-yellow); }
 
-    .hero-cta {
+    /* la rete: porta il numero che conta */
+    .net {
       position: relative;
-      z-index: 1;
       display: flex;
-      min-height: 62px;
+      justify-content: center;
+      margin: 0 calc(clamp(20px, 5vw, 34px) * -1);
+      border-top: var(--court-line) solid var(--court-tape);
+      border-bottom: var(--court-line) solid var(--court-tape);
+      background: rgb(15 27 35 / .28);
+    }
+
+    .net-band {
+      padding: 9px 18px;
+      font-family: var(--font-numeric);
+      font-size: .74rem;
+      font-weight: 500;
+      letter-spacing: .12em;
+      text-transform: uppercase;
+      color: var(--court-tape);
+    }
+    .net-band b { font-size: 1.4rem; font-weight: 700; color: var(--court-yellow); }
+
+    .serve {
+      display: inline-flex;
+      min-height: 52px;
       align-items: center;
       gap: 12px;
-      padding: 8px 14px 8px 9px;
-      color: white;
-      border-radius: 16px;
-      background: var(--color-brand);
-      font-weight: 850;
+      padding: 0 22px;
+      color: var(--court-ink);
+      border-radius: 2px;
+      background: var(--court-yellow);
+      font-family: var(--font-display);
+      font-size: 1rem;
+      font-weight: 700;
+      font-stretch: 112%;
+      text-decoration: none;
+      transition: transform var(--duration-fast) var(--ease-out);
+    }
+    .serve:hover { transform: translateX(4px); }
+
+    .receive { color: rgb(255 255 255 / .82); font-size: .9rem; text-decoration: underline; text-underline-offset: 4px; }
+
+    /* ---- blocchi ---- */
+    .block { margin-top: 38px; }
+
+    .block-head {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 14px;
+      padding-bottom: 10px;
+      margin-bottom: 16px;
+      border-bottom: var(--court-line) solid var(--court-tape);
+    }
+
+    .block-head h2 {
+      margin: 0;
+      font-family: var(--font-display);
+      font-size: clamp(1.25rem, 4.4vw, 1.7rem);
+      font-weight: 800;
+      font-stretch: 125%;
+      letter-spacing: -.01em;
+    }
+
+    .block-head a { display: inline-flex; align-items: center; gap: 6px; color: var(--court-blue); font-size: .82rem; font-weight: 700; text-decoration: none; }
+    .block-head a:hover { text-decoration: underline; text-underline-offset: 3px; }
+
+    .rally { display: grid; gap: 10px; padding: 0; margin: 0; list-style: none; }
+
+    .side {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 2px 16px;
+      padding: 16px;
+      border-left: var(--court-line) solid var(--court-blue);
+      background: var(--court-tape);
+    }
+
+    .side-when { grid-column: 1; margin: 0; font-size: .72rem; letter-spacing: .04em; color: var(--court-ink-soft); }
+    .side h3 { grid-column: 1; margin: 0; font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; font-stretch: 112%; }
+    .side-level { grid-column: 1; margin: 0; font-size: .8rem; color: var(--court-ink-soft); }
+
+    .side-spots { grid-column: 2; grid-row: 1 / 4; display: grid; justify-items: center; margin: 0; }
+    .side-spots b { font-size: 1.9rem; font-weight: 700; line-height: 1; color: var(--court-blue); }
+    .side-spots span { font-size: .6rem; letter-spacing: .1em; text-transform: uppercase; color: var(--court-ink-soft); }
+
+    .side-empty { display: block; padding: 20px 16px; color: var(--court-ink-soft); }
+
+    .tournament {
+      display: grid;
+      grid-template-columns: auto minmax(0, 1fr) auto;
+      align-items: center;
+      gap: 18px;
+      padding: 16px;
+      color: inherit;
+      background: var(--court-tape);
+      border-left: var(--court-line) solid var(--court-yellow);
       text-decoration: none;
     }
 
-    .hero-actions { position: relative; z-index: 1; display: grid; gap: 10px; }
-
-    .hero-cta > i { margin-left: auto; }
-    .hero-cta small { display: block; color: rgb(255 255 255 / .68); font-size: 0.68rem; }
-
-    .ball-mark {
+    .tournament-date {
       display: grid;
-      width: 46px;
-      height: 46px;
-      flex: 0 0 46px;
-      place-items: center;
-      color: white;
-      border-radius: 50%;
-      background: rgb(255 255 255 / .16);
+      justify-items: center;
+      padding: 8px 12px;
+      background: var(--court-ink);
+      color: var(--court-tape);
+      font-size: 1.7rem;
+      font-weight: 700;
+      line-height: 1;
+    }
+    .tournament-date em { font-size: .58rem; font-style: normal; letter-spacing: .12em; text-transform: uppercase; color: var(--court-yellow); }
+
+    .tournament-body { display: grid; gap: 3px; min-width: 0; }
+    .tournament-body strong { font-family: var(--font-display); font-size: 1.05rem; font-weight: 700; font-stretch: 112%; }
+    .tournament-body small { font-size: .8rem; color: var(--court-ink-soft); }
+    .tournament > i { color: var(--court-blue); }
+    .tournament-empty { border-left-color: var(--court-sand-deep); }
+
+    a:focus-visible { outline: 3px solid var(--court-ink); outline-offset: 3px; }
+    .court a:focus-visible { outline-color: var(--court-yellow); }
+
+    @media (min-width: 760px) {
+      .home { padding: 30px 24px 120px; }
+
+      /* il campo visto dall'alto: rete verticale, due meta affiancate */
+      .court { grid-template-rows: none; grid-template-columns: 1.15fr auto 1fr; align-items: stretch; }
+      .court h1 { font-size: clamp(2.4rem, 4.4vw, 3.6rem); }
+      .court-half-far { align-content: center; padding-left: clamp(20px, 3vw, 34px); }
+
+      .net {
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin: calc(clamp(20px, 5vw, 34px) * -1) 0;
+        border-top: 0;
+        border-bottom: 0;
+        border-left: var(--court-line) solid var(--court-tape);
+        border-right: var(--court-line) solid var(--court-tape);
+      }
+      .net-band { writing-mode: vertical-rl; padding: 18px 9px; }
+      .net-band b { font-size: 1.5rem; }
+
+      .rally { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      .side { grid-template-columns: minmax(0, 1fr) auto; }
     }
 
-    .hero-stamp { position: absolute; right: 24px; bottom: 22px; display: none; align-items: center; gap: 8px; color: rgb(255 255 255 / .32); font: 800 .63rem/.95 var(--display-font); letter-spacing: .08em; text-transform: uppercase; }
-    .hero-stamp i { font-size: 1.65rem; }
-
-    .section-block { padding: 28px 0 8px; }
-    .section-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 14px; }
-    .section-heading h2, .tournament-card h2 { margin-bottom: 0; font-family: var(--display-font); font-size: 1.7rem; letter-spacing: -0.035em; }
-    .section-heading > a { color: var(--color-brand-strong); font-size: 0.82rem; font-weight: 800; text-decoration: none; }
-
-    .match-scroller {
-      display: grid;
-      grid-auto-columns: minmax(245px, 82%);
-      grid-auto-flow: column;
-      gap: 12px;
-      overflow-x: auto;
-      padding: 2px 2px 12px;
-      scroll-snap-type: x mandatory;
-      scrollbar-width: none;
-    }
-
-    .match-card {
-      min-height: 180px;
-      padding: 18px;
-      border: 1px solid var(--color-border);
-      border-radius: 18px;
-      background: var(--color-surface);
-      box-shadow: 0 8px 24px rgb(20 24 26 / 0.045);
-      scroll-snap-align: start;
-    }
-
-    .match-topline { display: flex; justify-content: space-between; margin-bottom: 22px; }
-    .level, .spots { padding: 5px 8px; border-radius: 9px; font-size: 0.68rem; font-weight: 850; }
-    .level { color: var(--color-ink); background: var(--color-surface-muted); }
-    .spots { color: var(--color-tournament); background: var(--color-tournament-soft); }
-    .match-card h3 { margin-bottom: 8px; font-size: 1.08rem; }
-    .match-card p { color: var(--color-ink-muted); font-size: 0.82rem; }
-    .match-card p i { margin-right: 5px; color: var(--color-brand); }
-
-    .players { display: flex; align-items: center; margin-top: 20px; }
-    .players span, .players strong {
-      display: grid;
-      width: 32px;
-      height: 32px;
-      place-items: center;
-      margin-right: -7px;
-      border: 2px solid white;
-      border-radius: 50%;
-      background: var(--color-sand);
-      font-size: 0.62rem;
-    }
-    .players strong { color: white; background: var(--color-brand-strong); }
-
-    .tournament-card {
-      position: relative;
-      display: grid;
-      min-height: 160px;
-      align-items: end;
-      grid-template-columns: 1fr auto;
-      overflow: hidden;
-      padding: 22px;
-      color: white;
-      border-radius: 22px;
-      background: var(--color-brand);
-    }
-
-    .tournament-card .eyebrow { color: rgb(255 255 255 / 0.7); }
-    .tournament-card p { margin-bottom: 0; color: rgb(255 255 255 / 0.8); }
-    .tournament-card a { color: white; font-weight: 850; text-decoration: none; }
-    .tournament-number { position: absolute; top: -32px; right: 10px; color: rgb(255 255 255 / 0.11); font: 900 9rem/1 var(--display-font); }
-
-    a:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
-
-    @media (min-width: 768px) {
-      .home-page { padding: 36px 28px 120px; }
-      .home-feature-grid { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(310px, .85fr); gap: 20px; align-items: stretch; }
-      .hero { min-height: 430px; display: grid; align-content: center; padding: 48px; }
-      .hero-actions { grid-template-columns: minmax(260px, 350px); align-items: stretch; justify-content: start; }
-      .hero-stamp { display: flex; }
-      .section-block { display: grid; grid-template-rows: auto 1fr; padding: 4px 0; }
-      .match-scroller { grid-auto-flow: row; grid-template-columns: 1fr; overflow: visible; }
-      .match-card { min-height: 0; padding: 16px; }
-      .match-topline { margin-bottom: 12px; }
-      .players { margin-top: 12px; }
-      .tournament-card { margin-top: 20px; }
-    }
-    @media (min-width: 1040px) {
-      .home-feature-grid { grid-template-columns: minmax(0, 1.3fr) minmax(340px, .7fr); }
+    @media (prefers-reduced-motion: reduce) {
+      .serve { transition: none; }
+      .serve:hover { transform: none; }
     }
   `,
 })
@@ -276,11 +354,14 @@ export class Home implements OnInit, OnDestroy {
       .sort((first, second) => new Date(first.starts_at).getTime() - new Date(second.starts_at).getTime())[0] ?? null,
   );
 
-  protected readonly matches = [
+  protected readonly matches: readonly OpenMatchPreview[] = [
     { id: 1, level: 'Intermedio', spots: 2, place: 'Pala Beach Tiburtina', when: 'Oggi, 19:30', players: 2 },
     { id: 2, level: 'Base', spots: 1, place: 'Beach Town Ostia', when: 'Domani, 18:00', players: 3 },
     { id: 3, level: 'Avanzato', spots: 2, place: 'Empire Sport', when: 'Sabato, 10:00', players: 2 },
-  ] as const;
+  ];
+
+  /** La prima partita utile: e quella che finisce sulla rete, in cima alla pagina. */
+  protected readonly nextMatch = computed(() => this.matches[0] ?? null);
 
   ngOnInit(): void {
     void this.tournamentsStore.loadList(true);

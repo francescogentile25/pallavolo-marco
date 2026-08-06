@@ -44,6 +44,23 @@
   --z-modal: 100;
   --duration-fast: 180ms;
   --ease-out: cubic-bezier(0.22, 1, 0.36, 1);
+
+  /* ---- sistema "campo": ricavato dagli oggetti del beach volley ----
+     I colori vengono dal pallone da gara (giallo, blu, bianco) e dalla sabbia;
+     la geometria dal campo, che e 16x8 metri, cioe esattamente 2:1.
+     Vive accanto ai token esistenti: le pagine ancora da rifare non cambiano. */
+  --court-sand: #e7decb;
+  --court-sand-deep: #d9cdb4;
+  --court-ink: #0f1b23;
+  --court-ink-soft: #4a5a63;
+  --court-blue: #1b4fd8;
+  --court-yellow: #ffc72c;
+  --court-tape: #ffffff;
+  --court-ratio: 2 / 1;
+  --court-line: 3px;
+  --font-display: 'Archivo', 'Aptos Display', system-ui, sans-serif;
+  --font-body: 'Instrument Sans', 'Aptos', system-ui, sans-serif;
+  --font-numeric: 'JetBrains Mono', ui-monospace, monospace;
 }
 
 :root:has(.app-bottom-dock.has-actions) {
