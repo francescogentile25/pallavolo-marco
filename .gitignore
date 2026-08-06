@@ -44,3 +44,6 @@ __screenshots__/
 Thumbs.db
 .vercel
 .env*
+
+# sorgenti multimediali non compresse, fuori dalla build e dal repo
+/media-source

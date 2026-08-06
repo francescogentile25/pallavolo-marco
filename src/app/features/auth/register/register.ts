@@ -4,29 +4,30 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { RegisterRequest } from '../models/auth.model';
+import { AuthBackdrop } from '../components/auth-backdrop';
 import { AuthStore } from '../store/auth.store';
 
 @Component({
   selector: 'app-register',
-  imports: [FormField, RouterLink, ButtonModule, InputText],
+  imports: [AuthBackdrop, FormField, RouterLink, ButtonModule, InputText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <app-auth-backdrop />
     <div class="auth-page">
       <aside class="auth-brand" aria-hidden="true">
         <div class="brand-lockup">
-          <span class="brand-mark"><i class="pi pi-users"></i></span>
-          <h1>Entra nella community</h1>
+          <img src="assets/img/logo-banner.svg" alt="" />
           <p>Crea il profilo che userai per partite, tornei e valutazioni.</p>
         </div>
       </aside>
 
       <main class="auth-panel">
         <a class="mobile-brand" routerLink="/" aria-label="Beach Volley Hub">
-          <img src="assets/img/logo.svg" alt="Beach Volley Hub" />
+          <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
         </a>
 
         <section class="auth-card" aria-labelledby="register-title">
-          <img class="auth-logo" src="assets/img/logo.svg" alt="Beach Volley Hub" />
+          <img class="auth-logo" src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
           <p class="eyebrow">Primo accesso</p>
           <h2 id="register-title">Registrati</h2>
           <p class="auth-intro">Bastano pochi dati per creare il tuo account.</p>

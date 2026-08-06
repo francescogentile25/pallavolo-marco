@@ -4,29 +4,30 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { InputText } from 'primeng/inputtext';
 import { LoginRequest } from '../models/auth.model';
+import { AuthBackdrop } from '../components/auth-backdrop';
 import { AuthStore } from '../store/auth.store';
 
 @Component({
   selector: 'app-login',
-  imports: [FormField, RouterLink, ButtonModule, InputText],
+  imports: [AuthBackdrop, FormField, RouterLink, ButtonModule, InputText],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
+    <app-auth-backdrop />
     <div class="auth-page">
       <aside class="auth-brand" aria-hidden="true">
         <div class="brand-lockup">
-          <span class="brand-mark"><i class="pi pi-sun"></i></span>
-          <h1>Beach Volley Hub</h1>
+          <img src="assets/img/logo-banner.svg" alt="" />
           <p>Trova la partita giusta, entra in campo e costruisci la tua community.</p>
         </div>
       </aside>
 
       <main class="auth-panel">
         <a class="mobile-brand" routerLink="/" aria-label="Beach Volley Hub">
-          <img src="assets/img/logo.svg" alt="Beach Volley Hub" />
+          <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
         </a>
 
         <section class="auth-card" aria-labelledby="login-title">
-          <img class="auth-logo" src="assets/img/logo.svg" alt="Beach Volley Hub" />
+          <img class="auth-logo" src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
           <p class="eyebrow">Bentornato in campo</p>
           <h2 id="login-title">Accedi</h2>
           <p class="auth-intro">Usa email e password per continuare.</p>
