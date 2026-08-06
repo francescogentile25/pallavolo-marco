@@ -8,7 +8,7 @@ const TOURNAMENT_SELECT = `
   *,
   venue:venues!tournaments_venue_id_fkey(id,name,address,city,latitude,longitude),
   courts:tournament_courts(court_id,court:courts!tournament_courts_court_id_fkey(id,venue_id,name,surface,indoor,venue:venues!courts_venue_id_fkey(id,name,address,city,latitude,longitude))),
-  teams:tournament_teams(id,tournament_id,status,seed,waitlist_position,members:tournament_team_members(profile_id,status,profile:profiles!tournament_team_members_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url))),
+  teams:tournament_teams!tournament_teams_tournament_id_fkey(id,tournament_id,status,seed,waitlist_position,members:tournament_team_members(profile_id,status,profile:profiles!tournament_team_members_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url))),
   brackets:tournament_brackets(bracket_no,name),
   groups:tournament_groups(id,tournament_id,name,position,capacity,planned_matches,links:tournament_group_teams(group_id,team_id,position)),
   games:tournament_games(*,confirmations:tournament_result_confirmations(team_id,profile_id,confirmed_at))

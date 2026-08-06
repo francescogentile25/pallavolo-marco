@@ -16,7 +16,6 @@ import { AuthStore } from '../store/auth.store';
     <div class="auth-page">
       <aside class="auth-brand" aria-hidden="true">
         <div class="brand-lockup">
-          <img src="assets/img/logo-banner.svg" alt="" />
           <p>Trova la partita giusta, entra in campo e costruisci la tua community.</p>
         </div>
       </aside>

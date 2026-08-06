@@ -46,9 +46,9 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
       width: 100%;
       height: 100%;
       object-fit: cover;
-      /* la scala compensa i bordi che la sfocatura schiarisce */
-      transform: scale(1.12);
-      filter: blur(9px) saturate(1.08);
+      /* la scala nasconde i bordi ammorbiditi dalla sfocatura */
+      transform: scale(1.06);
+      filter: blur(4px) saturate(1.06);
     }
 
     .backdrop-veil {
@@ -56,7 +56,7 @@ import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
       inset: 0;
       background:
         linear-gradient(180deg, rgb(4 22 29 / .55), rgb(4 22 29 / .78)),
-        radial-gradient(circle at 22% 32%, rgb(212 86 42 / .28), transparent 55%);
+        radial-gradient(circle at 22% 32%, rgb(2 132 199 / .26), transparent 55%);
     }
 
     @media (max-width: 899px) {
