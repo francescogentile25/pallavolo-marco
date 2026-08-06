@@ -89,6 +89,11 @@ export interface Tournament {
   result_confirmation_required: boolean;
   /** Valorizzato quando l'organizzatore chiude i gironi: sblocca i risultati del tabellone. */
   groups_closed_at: string | null;
+  /** Citta in cui si svolge il torneo, se diversa da quella della struttura. */
+  city: string | null;
+  champion_team_id: string | null;
+  runner_up_team_id: string | null;
+  third_place_team_id: string | null;
   venue: Venue;
   courts: readonly TournamentCourtLink[];
   teams: readonly TournamentTeam[];
@@ -141,6 +146,7 @@ export interface CreateTournamentRequest {
   startsAt: string;
   endsAt: string;
   costCents: number;
+  city: string | null;
   visibility: 'public' | 'private';
 }
 

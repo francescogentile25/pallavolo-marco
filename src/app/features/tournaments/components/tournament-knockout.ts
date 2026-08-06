@@ -11,7 +11,6 @@ import { TournamentsStore } from '../store/tournaments.store';
 import { calculateStandings, teamLabel } from '../tournaments.utils';
 
 interface QualifiedEntry { teamId: string; label: string; groupName: string; position: number; }
-interface WinnerEntry { gameId: string; teamId: string; label: string; source: string; }
 interface SlotTarget { gameId: string; slot: number; }
 interface ScoreDraft { first: number; second: number; }
 /** Le partite di un turno sono raggruppate a due a due: ogni coppia confluisce nel turno successivo. */
@@ -62,7 +61,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
         <div class="bracket-setup">
           <label class="bracket-rename">
             <span>Nome tabellone</span>
-            <input pInputText [ngModel]="bracketNameDraft()" (ngModelChange)="bracketNameDraft.set($event)" (blur)="saveBracketName()" placeholder="Es. Tabellone consolazione" />
+            <input pInputText [ngModel]="bracketNameDraft()" (ngModelChange)="bracketNameDraft.set($event)" (blur)="saveBracketName()" placeholder="Es. Tabellone Silver" />
           </label>
           <p-button label="Genera tabellone" icon="pi pi-sparkles" [loading]="store.saving()" (onClick)="generateBracket()" />
           <p-button label="Aggiungi turno" icon="pi pi-plus" [outlined]="true" severity="secondary" [loading]="store.saving()" (onClick)="addRound()" />
@@ -75,7 +74,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     </section>
 
     <div class="bracket-layout">
-      @if (qualified().length || winners().length) {
+      @if (qualified().length) {
         <div class="bracket-side">
           @if (qualified().length) {
             <aside class="side-panel" cdkDropList id="bracket-pool" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
@@ -84,8 +83,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                 @for (entry of qualified(); track entry.teamId) {
                   <div class="side-row" [class.is-placed]="placedTeamIds().has(entry.teamId)" [class.is-held]="heldTeamId() === entry.teamId"
                     cdkDrag [cdkDragData]="entry.teamId" [cdkDragDisabled]="!canManage()">
-                    <b>{{ entry.position }}</b>
-                    <div><strong>{{ entry.label }}</strong><small>{{ entry.groupName }} · {{ entry.position }}ª posizione</small></div>
+                    <div><strong>{{ entry.label }}</strong><small>{{ entry.groupName }}-{{ entry.position }} posizione</small></div>
                     @if (canManage()) {
                       <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
                     }
@@ -96,25 +94,30 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
             </aside>
           }
 
-          @if (winners().length) {
-            <aside class="side-panel winners-panel" cdkDropList id="bracket-winners" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
-              <header><i class="pi pi-trophy" aria-hidden="true"></i><div><h4>Vincitori</h4><small>Trascinali nel turno successivo</small></div></header>
-              <div class="side-scroll">
-                @for (entry of winners(); track entry.gameId) {
-                  <div class="side-row" [class.is-placed]="placedTeamIds().has(entry.teamId)" [class.is-held]="heldTeamId() === entry.teamId"
-                    cdkDrag [cdkDragData]="entry.teamId" [cdkDragDisabled]="!canManage()">
-                    <b><i class="pi pi-check" aria-hidden="true"></i></b>
-                    <div><strong>{{ entry.label }}</strong><small>{{ entry.source }}</small></div>
-                    @if (canManage()) {
-                      <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
-                    }
-                    <div class="drag-preview" *cdkDragPreview>{{ entry.label }}</div>
-                  </div>
-                }
-              </div>
-            </aside>
-          }
         </div>
+      }
+
+      @if (canManage() || podiumFilled()) {
+        <section class="podium-card">
+          <header><i class="pi pi-trophy" aria-hidden="true"></i><div><h4>Podio del torneo</h4><small>Serve a registrare chi ha vinto nelle statistiche dei giocatori.</small></div></header>
+          <div class="podium-slots">
+            @for (place of podiumPlaces; track place.position) {
+              <label class="podium-slot" [class]="'place-' + place.position">
+                <span><i class="pi pi-trophy" aria-hidden="true"></i>{{ place.label }}</span>
+                @if (canManage()) {
+                  <p-select [ngModel]="podiumDraft()[place.position - 1]" (ngModelChange)="setPodiumPlace(place.position, $event)" [options]="teamOptions()" optionLabel="label" optionValue="value" placeholder="Scegli la coppia" [showClear]="true" appendTo="body" fluid />
+                } @else {
+                  <strong>{{ teamNameById(podiumDraft()[place.position - 1]) }}</strong>
+                }
+              </label>
+            }
+          </div>
+          @if (canManage()) {
+            <footer>
+              <p-button label="Termina torneo" icon="pi pi-flag-fill" [disabled]="!podiumDraft()[0]" [loading]="store.saving()" (onClick)="confirmFinish()" />
+            </footer>
+          }
+        </section>
       }
 
       <div class="bracket-tree">
@@ -127,18 +130,28 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                   @for (game of pair; track game.id) {
                     <article class="tie">
                       <div class="tie-slot" cdkDropList [id]="'slot-' + game.id + '-1'" [cdkDropListData]="{ gameId: game.id, slot: 1 }"
+                        [cdkDropListConnectedTo]="slotIds()"
                         (cdkDropListDropped)="dropTeam($event)" [class.is-open]="canManage() && !game.team1_id"
                         [class.is-winner]="game.winner_team_id && game.winner_team_id === game.team1_id" (click)="placeHeld(game, 1)">
-                        <span>{{ teamNameById(game.team1_id) }}</span>
+                        @if (canManage() && game.winner_team_id === game.team1_id) {
+                          <span cdkDrag [cdkDragData]="game.team1_id" class="tie-winner" title="Trascina nel turno successivo">{{ teamNameById(game.team1_id) }}<div class="drag-preview" *cdkDragPreview>{{ teamNameById(game.team1_id) }}</div></span>
+                        } @else {
+                          <span>{{ teamNameById(game.team1_id) }}</span>
+                        }
                         <b>{{ game.team1_scores?.[0] ?? '–' }}</b>
                         @if (canManage() && game.team1_id && game.status === 'scheduled') {
                           <button type="button" class="tie-clear" aria-label="Svuota slot" (click)="clearSlot(game, 1); $event.stopPropagation()"><i class="pi pi-times" aria-hidden="true"></i></button>
                         }
                       </div>
                       <div class="tie-slot" cdkDropList [id]="'slot-' + game.id + '-2'" [cdkDropListData]="{ gameId: game.id, slot: 2 }"
+                        [cdkDropListConnectedTo]="slotIds()"
                         (cdkDropListDropped)="dropTeam($event)" [class.is-open]="canManage() && !game.team2_id"
                         [class.is-winner]="game.winner_team_id && game.winner_team_id === game.team2_id" (click)="placeHeld(game, 2)">
-                        <span>{{ teamNameById(game.team2_id) }}</span>
+                        @if (canManage() && game.winner_team_id === game.team2_id) {
+                          <span cdkDrag [cdkDragData]="game.team2_id" class="tie-winner" title="Trascina nel turno successivo">{{ teamNameById(game.team2_id) }}<div class="drag-preview" *cdkDragPreview>{{ teamNameById(game.team2_id) }}</div></span>
+                        } @else {
+                          <span>{{ teamNameById(game.team2_id) }}</span>
+                        }
                         <b>{{ game.team2_scores?.[0] ?? '–' }}</b>
                         @if (canManage() && game.team2_id && game.status === 'scheduled') {
                           <button type="button" class="tie-clear" aria-label="Svuota slot" (click)="clearSlot(game, 2); $event.stopPropagation()"><i class="pi pi-times" aria-hidden="true"></i></button>
@@ -162,9 +175,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                           <footer>
                             @if (!groupsClosed() && hasGroups()) { <small class="locked"><i class="pi pi-lock" aria-hidden="true"></i> Risultati bloccati</small> }
                             <p-button icon="pi pi-check" [text]="true" size="small" ariaLabel="Salva risultato" [disabled]="!canScore(game) || !validScore(game)" [loading]="store.saving()" (onClick)="saveScore(game)" />
-                            @if (game.status === 'scheduled') {
-                              <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" ariaLabel="Elimina partita" (onClick)="confirmDeleteGame(game)" />
-                            }
+                            <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" ariaLabel="Elimina partita" (onClick)="confirmDeleteGame(game)" />
                           </footer>
                         </div>
                       } @else if (game.court_id) {
@@ -218,17 +229,31 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .side-panel h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
     .side-panel small{color:#72869b;font-size:.64rem}
     .side-scroll{display:grid;gap:7px;max-height:min(42vh,320px);overflow-y:auto}
-    .side-row{display:grid;grid-template-columns:28px minmax(0,1fr) auto;align-items:center;gap:9px;min-height:52px;padding:8px 9px;border-radius:12px;background:#f8fafc;cursor:grab}
+    .side-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:9px;min-height:52px;padding:8px 9px;border-radius:12px;background:#f8fafc;cursor:grab}
     .side-row.is-placed{opacity:.55}
     .side-row.is-held{outline:2px solid var(--color-brand);background:#e0f2fe}
     .side-row>b{display:grid;width:28px;height:28px;place-items:center;color:#f97316;border-radius:9px;background:#fff0e6;font-size:.68rem}
     .side-row>div{display:grid;min-width:0}
     .side-row strong{overflow:hidden;font-size:.75rem;text-overflow:ellipsis;white-space:nowrap}
-    .winners-panel header i{color:#f97316;background:#fff1e8}
-    .winners-panel .side-row>b{color:#10b981;background:#d1fae5}
     .drag-preview{padding:10px 14px;color:#fff;border-radius:12px;background:#0369a1;box-shadow:0 14px 30px rgb(3 105 161/.24);font-size:.72rem;font-weight:850}
 
     /* ---- albero del tabellone ---- */
+    .podium-card{display:grid;gap:14px;padding:16px;border:1px solid #e2e8f0;border-radius:18px;background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.03)}
+    .podium-card header{display:flex;align-items:center;gap:10px}
+    .podium-card header>i{display:grid;width:40px;height:40px;place-items:center;color:#f59e0b;border-radius:12px;background:#fef3c7;font-size:1.05rem}
+    .podium-card h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
+    .podium-card small{color:#72869b;font-size:.62rem;line-height:1.35}
+    .podium-slots{display:grid;gap:10px}
+    .podium-slot{display:grid;gap:6px;padding:11px;border:1px solid #e2e8f0;border-radius:14px;background:#f8fafc}
+    .podium-slot>span{display:inline-flex;align-items:center;gap:7px;font-size:.68rem;font-weight:850}
+    .podium-slot>strong{font-size:.75rem}
+    .podium-slot.place-1{border-color:#fcd34d;background:#fffbeb}
+    .podium-slot.place-1>span{color:#b45309}
+    .podium-slot.place-2{border-color:#cbd5e1;background:#f8fafc}
+    .podium-slot.place-2>span{color:#64748b}
+    .podium-slot.place-3{border-color:#fdba74;background:#fff7ed}
+    .podium-slot.place-3>span{color:#c2410c}
+    .podium-card footer{display:flex;justify-content:flex-end}
     .bracket-tree{display:flex;align-items:stretch;gap:18px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
     .round-col{display:flex;min-width:min(86vw,290px);flex-direction:column;gap:14px;scroll-snap-align:start}
     .round-col>header{display:grid;gap:2px;padding:0 4px}
@@ -242,6 +267,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .tie-slot>b{display:grid;min-width:30px;height:28px;place-items:center;border-radius:8px;background:#f1f5f9;font-size:.75rem;font-weight:900}
     .tie-slot.is-winner{border-color:#10b981;background:#ecfdf5}
     .tie-slot.is-winner>b{color:#fff;background:#10b981}
+    .tie-winner{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:grab}
     .tie-slot.is-open{border-style:dashed;border-color:#94a3b8;color:#94a3b8;cursor:pointer}
     .tie-slot.cdk-drop-list-receiving{border-color:#0284c7;background:#e0f2fe}
     .tie-clear{display:grid;place-items:center;width:26px;height:26px;color:#94a3b8;border:0;border-radius:8px;background:none;cursor:pointer}
@@ -260,8 +286,11 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
       .bracket-console{padding:30px}
       .bracket-setup{grid-template-columns:auto auto auto 1fr}
       .bracket-layout{grid-template-columns:300px minmax(0,1fr);gap:22px;align-items:start}
-      /* i pannelli restano ancorati anche con molte card nei turni */
-      .bracket-side{position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow-y:auto}
+      /* colonna sinistra: pannelli e podio; a destra il tabellone su tutte le righe */
+      .bracket-side{grid-column:1;position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow-y:auto}
+      .podium-card{grid-column:1}
+      .bracket-tree{grid-column:2;grid-row:1/-1}
+      .podium-slots{grid-template-columns:1fr}
       .round-col{min-width:300px}
     }
     @media(prefers-reduced-motion:reduce){.cdk-drag-animating{transition:none!important}}
@@ -276,6 +305,11 @@ export class TournamentKnockout {
 
   protected readonly heldTeamId = signal<string | null>(null);
   protected readonly newBracketName = signal('');
+  protected readonly podiumPlaces = [
+    { position: 1, label: '1° posto' },
+    { position: 2, label: '2° posto' },
+    { position: 3, label: '3° posto' },
+  ];
   private readonly scoreDrafts = signal<Record<string, ScoreDraft>>({});
 
   protected readonly groupsClosed = computed(() => !!this.tournament().groups_closed_at);
@@ -358,40 +392,41 @@ export class TournamentKnockout {
         });
       });
     }
-    return entries.sort((a, b) => a.position - b.position || a.groupName.localeCompare(b.groupName));
+    return entries.sort((a, b) => a.groupName.localeCompare(b.groupName, 'it') || a.position - b.position);
   });
 
-  /**
-   * Vincitori già decisi, sia dei gironi sia del tabellone: si trascinano nel turno
-   * successivo (la semifinale nella finale, il vincitore di un girone nel tabellone).
-   */
-  protected readonly winners = computed<WinnerEntry[]>(() => {
-    const bracketGames = this.knockoutGames().filter((game) => (game.bracket_no ?? 1) === this.activeBracket());
-    const total = Math.max(0, ...bracketGames.map((game) => game.round_no));
-    const groupNames = new Map((this.tournament().groups ?? []).map((group) => [group.id, group.name]));
-
-    const fromGroups = (this.tournament().games ?? [])
-      .filter((game) => game.phase === 'group' && game.status === 'completed' && !!game.winner_team_id)
-      .sort((a, b) => a.position - b.position)
-      .map((game) => ({
-        gameId: game.id,
-        teamId: game.winner_team_id!,
-        label: this.teamNameById(game.winner_team_id),
-        source: `${groupNames.get(game.group_id ?? '') ?? 'Girone'} · partita #${game.position}`,
-      }));
-
-    const fromBracket = bracketGames
-      .filter((game) => game.status === 'completed' && !!game.winner_team_id)
-      .sort((a, b) => a.round_no - b.round_no || a.position - b.position)
-      .map((game) => ({
-        gameId: game.id,
-        teamId: game.winner_team_id!,
-        label: this.teamNameById(game.winner_team_id),
-        source: `${this.roundTitleFor(game.round_no, total)} · partita #${game.position}`,
-      }));
-
-    return [...fromBracket, ...fromGroups];
+  /** Podio: allineato al torneo, ma modificabile prima di salvare. */
+  protected readonly podiumDraft = linkedSignal<Tournament, (string | null)[]>({
+    source: () => this.tournament(),
+    computation: (tournament) => [
+      tournament.champion_team_id, tournament.runner_up_team_id, tournament.third_place_team_id,
+    ],
   });
+
+  protected readonly podiumFilled = computed(() => this.podiumDraft().some((team) => !!team));
+
+  protected readonly teamOptions = computed(() => this.tournament().teams
+    .filter((team) => team.status !== 'withdrawn')
+    .map((team) => ({ value: team.id, label: teamLabel(team) })));
+
+  protected setPodiumPlace(position: number, teamId: string | null): void {
+    const next = [...this.podiumDraft()];
+    next[position - 1] = teamId;
+    // la stessa coppia non puo occupare due posizioni
+    for (let i = 0; i < next.length; i += 1) if (i !== position - 1 && next[i] === teamId && teamId) next[i] = null;
+    this.podiumDraft.set(next);
+    void this.store.setPodium(this.tournament().id, next[0], next[1], next[2]);
+  }
+
+  protected confirmFinish(): void {
+    this.confirmation.confirm({
+      header: 'Termina torneo',
+      message: 'Il torneo verrà chiuso e il podio registrato nelle statistiche dei giocatori.',
+      icon: 'pi pi-flag-fill', acceptLabel: 'Termina', rejectLabel: 'Annulla',
+      rejectButtonProps: { severity: 'secondary', variant: 'text' },
+      accept: () => void this.store.finishTournament(this.tournament().id),
+    });
+  }
 
   protected readonly courtOptions = computed(() =>
     this.tournament().courts.map((link) => ({ value: link.court_id, label: link.court?.name ?? 'Campo' })));
@@ -549,11 +584,15 @@ export class TournamentKnockout {
   }
 
   protected confirmDeleteGame(game: TournamentGame): void {
+    const played = game.status !== 'scheduled';
     this.confirmation.confirm({
-      header: 'Elimina partita', message: 'La partita verrà rimossa dal tabellone.',
+      header: 'Elimina partita',
+      message: played
+        ? 'La partita ha già un risultato registrato: verrà eliminato insieme alla partita. L’operazione non è reversibile.'
+        : 'La partita verrà rimossa dal tabellone.',
       icon: 'pi pi-trash', acceptLabel: 'Elimina', rejectLabel: 'Annulla',
       acceptButtonProps: { severity: 'danger' }, rejectButtonProps: { severity: 'secondary', variant: 'text' },
-      accept: () => void this.store.deleteGame(this.tournament().id, game.id),
+      accept: () => void this.store.deleteGame(this.tournament().id, game.id, played),
     });
   }
 }

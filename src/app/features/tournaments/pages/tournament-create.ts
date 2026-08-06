@@ -25,6 +25,7 @@ interface TournamentDraft {
   startsAt: Date;
   endsAt: Date;
   costEuros: number;
+  city: string;
   visibility: 'public' | 'private';
 }
 
@@ -71,6 +72,7 @@ interface TournamentDraft {
               <div class="field"><label for="start">Inizio torneo <b>*</b></label><p-datepicker inputId="start" [ngModel]="draft().startsAt" (ngModelChange)="update('startsAt', $event)" name="start" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
               <div class="field"><label for="end">Fine prevista <b>*</b></label><p-datepicker inputId="end" [ngModel]="draft().endsAt" (ngModelChange)="update('endsAt', $event)" name="end" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="draft().startsAt" appendTo="body" fluid /></div>
               <div class="field"><label for="deadline">Chiusura iscrizioni <b>*</b></label><p-datepicker inputId="deadline" [ngModel]="draft().registrationDeadline" (ngModelChange)="update('registrationDeadline', $event)" name="deadline" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
+              <div class="field"><label for="city">Città dell'evento</label><input id="city" pInputText [ngModel]="draft().city" (ngModelChange)="update('city', $event)" name="city" placeholder="Es. Rimini" /><small>Lasciala vuota per usare quella della struttura.</small></div>
               <div class="field"><label for="cost">Costo iscrizione individuale</label><p-inputnumber inputId="cost" [ngModel]="draft().costEuros" (ngModelChange)="update('costEuros', $event ?? 0)" name="cost" mode="currency" currency="EUR" locale="it-IT" [min]="0" [max]="1000" fluid /></div>
             </div>
           </section>
@@ -81,7 +83,7 @@ interface TournamentDraft {
             <div class="heading"><div><p>Passo 3 di 3</p><h2>Apri lo Studio</h2></div><i class="pi pi-sparkles"></i></div>
             <div class="review">
               <article><i class="pi pi-trophy"></i><span>Torneo</span><strong>{{ draft().title }}</strong><small>{{ categoryLabel() }}</small></article>
-              <article><i class="pi pi-map-marker"></i><span>Campo base</span><strong>{{ venueLabel() }}</strong><small>Usa liberamente i campi della struttura</small></article>
+              <article><i class="pi pi-map-marker"></i><span>Luogo dell'evento</span><strong>{{ venueLabel() }}</strong><small>{{ draft().city || '—' }}</small></article>
               <article><i class="pi pi-calendar"></i><span>Inizio</span><strong>{{ draft().startsAt.toLocaleString('it-IT') }}</strong><small>Iscrizioni fino al {{ draft().registrationDeadline.toLocaleString('it-IT') }}</small></article>
               <article><i class="pi pi-wallet"></i><span>Costo iscrizione individuale</span><strong>{{ draft().costEuros | currency:'EUR':'symbol':'1.2-2':'it' }}</strong><small>Pagamento gestito fuori dall'app</small></article>
             </div>
@@ -111,7 +113,7 @@ export class TournamentCreate implements OnInit, OnDestroy {
   protected readonly levels = [1, 2, 3, 4, 5, 6, 7];
   protected readonly genderOptions = [{ label: 'Misto', value: 'mixed' }, { label: 'Maschile', value: 'male' }, { label: 'Femminile', value: 'female' }];
   private readonly start = (() => { const value = new Date(); value.setDate(value.getDate() + 14); value.setHours(9, 0, 0, 0); return value; })();
-  protected readonly draft = signal<TournamentDraft>({ title: '', description: '', venueId: '', courtIds: [], gender: 'mixed', minLevel: 1, maxLevel: 7, registrationDeadline: new Date(this.start.getTime() - 24 * 60 * 60 * 1000), startsAt: this.start, endsAt: new Date(this.start.getTime() + 8 * 60 * 60 * 1000), costEuros: 0, visibility: 'public' });
+  protected readonly draft = signal<TournamentDraft>({ title: '', description: '', venueId: '', courtIds: [], gender: 'mixed', minLevel: 1, maxLevel: 7, registrationDeadline: new Date(this.start.getTime() - 24 * 60 * 60 * 1000), startsAt: this.start, endsAt: new Date(this.start.getTime() + 8 * 60 * 60 * 1000), costEuros: 0, city: '', visibility: 'public' });
   protected readonly venueOptions = computed(() => { const seen = new Map<string, string>(); for (const court of this.store.courts()) seen.set(court.venue.id, `${court.venue.name} · ${court.venue.city}`); return [...seen].map(([value, label]) => ({ value, label })); });
   protected readonly courtOptions = computed(() => this.store.courts().filter(court => court.venue_id === this.draft().venueId).map(court => ({ value: court.id, label: court.name })));
   protected readonly venueLabel = computed(() => this.venueOptions().find(option => option.value === this.draft().venueId)?.label ?? 'Struttura da selezionare');
@@ -126,7 +128,7 @@ export class TournamentCreate implements OnInit, OnDestroy {
   protected async submit(event: Event): Promise<void> {
     event.preventDefault(); const message = this.validateAll(); if (message) { this.error.set(message); return; }
     const draft = this.draft();
-    const request: CreateTournamentRequest = { title: draft.title.trim(), description: draft.description.trim() || null, venueId: draft.venueId, courtIds: draft.courtIds, gender: draft.gender, minLevel: draft.minLevel, maxLevel: draft.maxLevel, registrationDeadline: draft.registrationDeadline.toISOString(), startsAt: draft.startsAt.toISOString(), endsAt: draft.endsAt.toISOString(), costCents: Math.round(draft.costEuros * 100), visibility: draft.visibility };
+    const request: CreateTournamentRequest = { title: draft.title.trim(), description: draft.description.trim() || null, venueId: draft.venueId, courtIds: draft.courtIds, gender: draft.gender, minLevel: draft.minLevel, maxLevel: draft.maxLevel, registrationDeadline: draft.registrationDeadline.toISOString(), startsAt: draft.startsAt.toISOString(), endsAt: draft.endsAt.toISOString(), costCents: Math.round(draft.costEuros * 100), city: draft.city.trim() || null, visibility: draft.visibility };
     const id = await this.store.create(request); if (id) await this.router.navigate(['/tornei', id], { queryParams: { view: 'studio' } });
   }
   private validateStep(): string | null { const draft = this.draft(); if (this.step() === 1 && (draft.title.trim().length < 3 || draft.minLevel > draft.maxLevel)) return 'Il nome deve contenere almeno 3 caratteri e la fascia di livello deve essere valida.'; if (this.step() === 2 && !draft.venueId) return 'Seleziona la struttura.'; if (this.step() === 2 && (draft.registrationDeadline >= draft.startsAt || draft.startsAt >= draft.endsAt)) return 'Controlla la sequenza di iscrizioni, inizio e fine torneo.'; return null; }

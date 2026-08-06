@@ -65,7 +65,9 @@ export const TournamentsStore = signalStore(
       reopenTournament: (id: string) => act(id, () => service.reopenTournament(id), 'Torneo riaperto', 'Puoi di nuovo modificare partite e tabelloni.'),
       assignTeamToGroup: (id: string, teamId: string, groupId: string | null) => act(id, () => service.assignTeamToGroup(id, teamId, groupId), 'Assegnazione aggiornata', 'La coppia è stata spostata.'),
       saveGame: (id: string, game: TournamentGameDraft) => act(id, () => service.saveGame(id, game), game.id ? 'Partita aggiornata' : 'Partita aggiunta', 'Il calendario è aggiornato.'),
-      deleteGame: (id: string, gameId: string) => act(id, () => service.deleteGame(id, gameId), 'Partita eliminata', 'Il calendario è aggiornato.'),
+      deleteGame: (id: string, gameId: string, force = false) => act(id, () => service.deleteGame(id, gameId, force), 'Partita eliminata', 'Il calendario è aggiornato.'),
+      setPodium: (id: string, first: string | null, second: string | null, third: string | null) => act(id, () => service.setPodium(id, first, second, third), 'Podio aggiornato', 'Le posizioni finali sono state salvate.'),
+      finishTournament: (id: string) => act(id, () => service.finishTournament(id), 'Torneo concluso', 'Il podio è registrato nelle statistiche dei giocatori.'),
       generateGroupGames: (id: string, groupId: string) => act(id, () => service.generateGroupGames(id, groupId), 'Partite suggerite', 'Sono stati aggiunti solo gli incontri mancanti.'),
       clear(): void { patchState(store, { selected: null, error: null }); },
     };

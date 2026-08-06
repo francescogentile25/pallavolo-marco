@@ -48,7 +48,7 @@ export class TournamentsService {
       p_court_ids: request.courtIds, p_gender: request.gender,
       p_min_level: request.minLevel, p_max_level: request.maxLevel,
       p_registration_deadline: request.registrationDeadline, p_starts_at: request.startsAt,
-      p_ends_at: request.endsAt, p_cost_cents: request.costCents,
+      p_ends_at: request.endsAt, p_cost_cents: request.costCents, p_city: request.city,
     });
     if (error) throw error;
     return this.getTournament((data as { id: string }).id);
@@ -116,7 +116,13 @@ export class TournamentsService {
       p_team1_id: game.team1Id, p_team2_id: game.team2Id, p_bracket_no: game.bracketNo ?? null,
     });
   }
-  async deleteGame(tournamentId: string, gameId: string): Promise<void> { await this.rpc('delete_tournament_game', { p_tournament_id: tournamentId, p_game_id: gameId }); }
+  async deleteGame(tournamentId: string, gameId: string, force = false): Promise<void> {
+    await this.rpc('delete_tournament_game', { p_tournament_id: tournamentId, p_game_id: gameId, p_force: force });
+  }
+  async setPodium(tournamentId: string, first: string | null, second: string | null, third: string | null): Promise<void> {
+    await this.rpc('set_tournament_podium', { p_tournament_id: tournamentId, p_first: first, p_second: second, p_third: third });
+  }
+  async finishTournament(tournamentId: string): Promise<void> { await this.rpc('finish_tournament', { p_tournament_id: tournamentId }); }
   async generateGroupGames(tournamentId: string, groupId: string): Promise<void> { await this.rpc('generate_tournament_group_games', { p_tournament_id: tournamentId, p_group_id: groupId }); }
 
   subscribe(id: string | null, onChange: () => void): RealtimeChannel {
