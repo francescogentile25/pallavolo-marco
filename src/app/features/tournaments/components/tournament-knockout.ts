@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
 import { InputNumber } from 'primeng/inputnumber';
+import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Tournament, TournamentGame } from '../models/tournament.model';
 import { TournamentsStore } from '../store/tournaments.store';
@@ -18,7 +19,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
 
 @Component({
   selector: 'app-tournament-knockout',
-  imports: [Button, DragDropModule, FormsModule, InputNumber, Select],
+  imports: [Button, DragDropModule, FormsModule, InputNumber, InputText, Select],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="bracket-console">
@@ -49,14 +50,20 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
             </button>
           }
           @if (canManage()) {
-            <p-button label="Aggiungi tabellone" icon="pi pi-plus" [text]="true" size="small" [loading]="store.saving()" (onClick)="addBracket()" />
+            <span class="bracket-new">
+              <input pInputText [ngModel]="newBracketName()" (ngModelChange)="newBracketName.set($event)" placeholder="Nome del nuovo tabellone" aria-label="Nome del nuovo tabellone" />
+              <p-button label="Aggiungi tabellone" icon="pi pi-plus" [text]="true" size="small" [loading]="store.saving()" (onClick)="addBracket()" />
+            </span>
           }
         </nav>
       }
 
       @if (canManage()) {
         <div class="bracket-setup">
-          <div><span>Partecipanti</span><p-inputnumber [ngModel]="participants()" (ngModelChange)="participants.set($event ?? 2)" [min]="2" [max]="64" [showButtons]="true" [inputStyle]="{ width: '4rem', textAlign: 'center' }" /></div>
+          <label class="bracket-rename">
+            <span>Nome tabellone</span>
+            <input pInputText [ngModel]="bracketNameDraft()" (ngModelChange)="bracketNameDraft.set($event)" (blur)="saveBracketName()" placeholder="Es. Tabellone consolazione" />
+          </label>
           <p-button label="Genera tabellone" icon="pi pi-sparkles" [loading]="store.saving()" (onClick)="generateBracket()" />
           <p-button label="Aggiungi turno" icon="pi pi-plus" [outlined]="true" severity="secondary" [loading]="store.saving()" (onClick)="addRound()" />
           @if (brackets().length > 1) {
@@ -183,7 +190,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     </div>
   `,
   styles: `
-    :host{display:block;--bracket-line:#cbd5e1;--bracket-stub:18px}
+    :host{display:block}
     .bracket-console{display:grid;gap:20px;padding:22px;margin-bottom:20px;border:1px solid #e2e8f0;border-radius:20px;background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.025)}
     .bracket-heading{display:flex;flex-wrap:wrap;align-items:flex-start;justify-content:space-between;gap:16px;padding-bottom:18px;border-bottom:1px solid #e2e8f0}
     .bracket-title{display:flex;align-items:flex-start;gap:14px}
@@ -195,6 +202,10 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .bracket-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
     .bracket-tabs button{display:inline-flex;min-height:44px;align-items:center;gap:8px;padding:0 15px;color:#64748b;border:1px solid #e2e8f0;border-radius:999px;background:#fff;font:inherit;font-size:.74rem;font-weight:850;cursor:pointer}
     .bracket-tabs button.active{color:#fff;border-color:#0284c7;background:#0284c7}
+    .bracket-new{display:inline-flex;align-items:center;gap:6px}
+    .bracket-new input{min-width:190px}
+    .bracket-rename{display:grid;gap:7px}
+    .bracket-rename>span{color:#64748b;font-size:.66rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
     .bracket-setup{display:grid;align-items:center;gap:12px}
     .bracket-setup>div{display:grid;gap:7px}
     .bracket-setup>div span{color:#64748b;font-size:.66rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
@@ -218,7 +229,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .drag-preview{padding:10px 14px;color:#fff;border-radius:12px;background:#0369a1;box-shadow:0 14px 30px rgb(3 105 161/.24);font-size:.72rem;font-weight:850}
 
     /* ---- albero del tabellone ---- */
-    .bracket-tree{display:flex;align-items:stretch;gap:calc(var(--bracket-stub) * 2);overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
+    .bracket-tree{display:flex;align-items:stretch;gap:18px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
     .round-col{display:flex;min-width:min(86vw,290px);flex-direction:column;gap:14px;scroll-snap-align:start}
     .round-col>header{display:grid;gap:2px;padding:0 4px}
     .round-col>header span{color:#0284c7;font-size:.58rem;font-weight:900;letter-spacing:.1em;text-transform:uppercase}
@@ -226,11 +237,6 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .ties{display:flex;flex:1;flex-direction:column;justify-content:space-around;gap:16px}
     .pair{position:relative;display:flex;flex-direction:column;justify-content:center;gap:16px}
     .tie{position:relative;display:grid;gap:6px;padding:10px;border:1px solid #e2e8f0;border-radius:14px;background:#fff;box-shadow:0 3px 10px rgb(15 23 42/.03)}
-    /* linee: stub in uscita da ogni incontro, verticale che unisce la coppia, stub verso il turno dopo */
-    .round-col:not(.is-last) .tie::after{position:absolute;top:50%;left:100%;width:var(--bracket-stub);border-top:2px solid var(--bracket-line);content:''}
-    .round-col:not(.is-last) .pair:not(.is-single)::before{position:absolute;top:25%;bottom:25%;left:calc(100% + var(--bracket-stub));border-left:2px solid var(--bracket-line);content:''}
-    .round-col:not(.is-last) .pair::after{position:absolute;top:50%;left:calc(100% + var(--bracket-stub));width:var(--bracket-stub);border-top:2px solid var(--bracket-line);content:''}
-    .round-col:not(:first-child) .tie::before{position:absolute;top:50%;right:100%;width:var(--bracket-stub);border-top:2px solid var(--bracket-line);content:''}
     .tie-slot{display:grid;grid-template-columns:minmax(0,1fr) auto auto;align-items:center;gap:8px;min-height:44px;padding:8px 11px;border:1px solid #e2e8f0;border-radius:11px;font-size:.73rem;font-weight:750}
     .tie-slot>span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .tie-slot>b{display:grid;min-width:30px;height:28px;place-items:center;border-radius:8px;background:#f1f5f9;font-size:.75rem;font-weight:900}
@@ -252,7 +258,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .bracket-empty h3{margin:4px;color:var(--color-ink)}
     @media(min-width:760px){
       .bracket-console{padding:30px}
-      .bracket-setup{grid-template-columns:auto auto auto auto 1fr}
+      .bracket-setup{grid-template-columns:auto auto auto 1fr}
       .bracket-layout{grid-template-columns:300px minmax(0,1fr);gap:22px;align-items:start}
       /* i pannelli restano ancorati anche con molte card nei turni */
       .bracket-side{position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow-y:auto}
@@ -268,8 +274,8 @@ export class TournamentKnockout {
   protected readonly store = inject(TournamentsStore);
   private readonly confirmation = inject(ConfirmationService);
 
-  protected readonly participants = signal(4);
   protected readonly heldTeamId = signal<string | null>(null);
+  protected readonly newBracketName = signal('');
   private readonly scoreDrafts = signal<Record<string, ScoreDraft>>({});
 
   protected readonly groupsClosed = computed(() => !!this.tournament().groups_closed_at);
@@ -289,8 +295,24 @@ export class TournamentKnockout {
       previous && brackets.includes(previous.value) ? previous.value : brackets[0],
   });
 
+  private readonly bracketNames = computed(() =>
+    new Map((this.tournament().brackets ?? []).map((item) => [item.bracket_no, item.name])));
+
   protected bracketLabel(bracket: number): string {
-    return bracket === 1 ? 'Tabellone principale' : `Tabellone ${bracket}`;
+    return this.bracketNames().get(bracket) ?? (bracket === 1 ? 'Tabellone principale' : `Tabellone ${bracket}`);
+  }
+
+  /** Nome del tabellone attivo, modificabile: si allinea da solo quando cambi tabellone. */
+  protected readonly bracketNameDraft = linkedSignal<number, string>({
+    source: () => this.activeBracket(),
+    computation: (bracket) => this.bracketNames().get(bracket) ?? '',
+  });
+
+  protected saveBracketName(): void {
+    const bracket = this.activeBracket();
+    const name = this.bracketNameDraft().trim();
+    if (name === (this.bracketNames().get(bracket) ?? '')) return;
+    void this.store.setBracketName(this.tournament().id, bracket, name);
   }
 
   protected readonly rounds = computed<RoundColumn[]>(() => {
@@ -339,11 +361,26 @@ export class TournamentKnockout {
     return entries.sort((a, b) => a.position - b.position || a.groupName.localeCompare(b.groupName));
   });
 
-  /** Vincitori già decisi: si trascinano nel turno successivo (es. la semifinale nella finale). */
+  /**
+   * Vincitori già decisi, sia dei gironi sia del tabellone: si trascinano nel turno
+   * successivo (la semifinale nella finale, il vincitore di un girone nel tabellone).
+   */
   protected readonly winners = computed<WinnerEntry[]>(() => {
-    const games = this.knockoutGames().filter((game) => (game.bracket_no ?? 1) === this.activeBracket());
-    const total = Math.max(0, ...games.map((game) => game.round_no));
-    return games
+    const bracketGames = this.knockoutGames().filter((game) => (game.bracket_no ?? 1) === this.activeBracket());
+    const total = Math.max(0, ...bracketGames.map((game) => game.round_no));
+    const groupNames = new Map((this.tournament().groups ?? []).map((group) => [group.id, group.name]));
+
+    const fromGroups = (this.tournament().games ?? [])
+      .filter((game) => game.phase === 'group' && game.status === 'completed' && !!game.winner_team_id)
+      .sort((a, b) => a.position - b.position)
+      .map((game) => ({
+        gameId: game.id,
+        teamId: game.winner_team_id!,
+        label: this.teamNameById(game.winner_team_id),
+        source: `${groupNames.get(game.group_id ?? '') ?? 'Girone'} · partita #${game.position}`,
+      }));
+
+    const fromBracket = bracketGames
       .filter((game) => game.status === 'completed' && !!game.winner_team_id)
       .sort((a, b) => a.round_no - b.round_no || a.position - b.position)
       .map((game) => ({
@@ -352,6 +389,8 @@ export class TournamentKnockout {
         label: this.teamNameById(game.winner_team_id),
         source: `${this.roundTitleFor(game.round_no, total)} · partita #${game.position}`,
       }));
+
+    return [...fromBracket, ...fromGroups];
   });
 
   protected readonly courtOptions = computed(() =>
@@ -433,9 +472,15 @@ export class TournamentKnockout {
     });
   }
 
+  /** Un turno nuovo nasce grande la meta del precedente; il primo parte dai qualificati. */
+  private nextRoundSlots(): number {
+    const previous = this.rounds().at(-1);
+    if (previous) return Math.max(1, Math.ceil(previous.pairs.flat().length / 2));
+    return Math.max(1, Math.ceil(this.qualified().length / 2));
+  }
+
   protected addRound(): void {
-    const next = this.rounds().length + 1;
-    void this.store.addBracketRound(this.tournament().id, next, Math.max(1, Math.ceil(this.participants() / 2)), this.activeBracket());
+    void this.store.addBracketRound(this.tournament().id, this.rounds().length + 1, this.nextRoundSlots(), this.activeBracket());
   }
 
   protected addMatch(roundNo: number): void {
@@ -444,18 +489,22 @@ export class TournamentKnockout {
 
   protected async addBracket(): Promise<void> {
     const next = Math.max(...this.brackets()) + 1;
-    if (await this.store.addBracketRound(this.tournament().id, 1, Math.max(1, Math.ceil(this.participants() / 2)), next)) {
+    const slots = Math.max(1, Math.ceil(this.qualified().length / 2));
+    if (await this.store.addBracketRound(this.tournament().id, 1, slots, next)) {
       this.activeBracket.set(next);
+      const name = this.newBracketName().trim();
+      if (name) void this.store.setBracketName(this.tournament().id, next, name);
+      this.newBracketName.set('');
     }
   }
 
   protected generateBracket(): void {
-    void this.store.generateBracket(this.tournament().id, Math.max(1, Math.ceil(this.participants() / 2)), this.seedOrder(), this.activeBracket());
+    void this.store.generateBracket(this.tournament().id, Math.max(1, Math.ceil(this.qualified().length / 2)), this.seedOrder(), this.activeBracket());
   }
 
   /** Ordine di semina: 1ª testa contro l'ultima, 2ª contro la penultima e così via. */
   private seedOrder(): string[] {
-    const pool = this.qualified().map((entry) => entry.teamId).slice(0, this.participants());
+    const pool = this.qualified().map((entry) => entry.teamId);
     const ordered: string[] = [];
     let head = 0;
     let tail = pool.length - 1;

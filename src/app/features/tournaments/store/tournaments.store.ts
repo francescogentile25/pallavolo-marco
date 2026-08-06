@@ -59,7 +59,10 @@ export const TournamentsStore = signalStore(
           await service.saveGame(id, { id: game.id, phase: game.phase, groupId: null, bracketNo, roundNo: game.round_no, position: game.position, team1Id, team2Id });
         }
       }, 'Tabellone generato', 'Puoi ancora spostare i giocatori negli slot.'),
-      deleteGroup: (id: string, groupId: string) => act(id, () => service.deleteGroup(id, groupId), 'Girone eliminato', 'Le partite non disputate collegate sono state rimosse.'),
+      deleteGroup: (id: string, groupId: string, force = false) => act(id, () => service.deleteGroup(id, groupId, force), 'Girone eliminato', 'Il girone e le sue partite sono stati rimossi.'),
+      resetGroups: (id: string) => act(id, () => service.resetGroups(id), 'Gironi azzerati', 'Puoi ricostruirli da zero.'),
+      setBracketName: (id: string, bracketNo: number, name: string) => act(id, () => service.setBracketName(id, bracketNo, name), 'Nome aggiornato', 'Il tabellone e stato rinominato.'),
+      reopenTournament: (id: string) => act(id, () => service.reopenTournament(id), 'Torneo riaperto', 'Puoi di nuovo modificare partite e tabelloni.'),
       assignTeamToGroup: (id: string, teamId: string, groupId: string | null) => act(id, () => service.assignTeamToGroup(id, teamId, groupId), 'Assegnazione aggiornata', 'La coppia è stata spostata.'),
       saveGame: (id: string, game: TournamentGameDraft) => act(id, () => service.saveGame(id, game), game.id ? 'Partita aggiornata' : 'Partita aggiunta', 'Il calendario è aggiornato.'),
       deleteGame: (id: string, gameId: string) => act(id, () => service.deleteGame(id, gameId), 'Partita eliminata', 'Il calendario è aggiornato.'),

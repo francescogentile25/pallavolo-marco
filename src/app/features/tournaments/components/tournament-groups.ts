@@ -70,7 +70,12 @@ interface SlotTarget { gameId: string; slot: number; }
               <label for="group-matches">N° partite<p-inputnumber inputId="group-matches" [ngModel]="groupMatches()" (ngModelChange)="groupMatches.set($event ?? 0)" [min]="0" [max]="60" [showButtons]="true" fluid /></label>
               <p-button label="Crea" icon="pi pi-plus" [disabled]="!groupName().trim()" [loading]="store.saving()" (onClick)="createGroup()" />
             </div>
-            <small class="create-hint">{{ unassigned().length }} giocatori disponibili da assegnare.</small>
+            <div class="create-foot">
+              <small class="create-hint">{{ unassigned().length }} giocatori disponibili da assegnare.</small>
+              @if (groups().length) {
+                <p-button label="Elimina tutti i gironi" icon="pi pi-trash" [text]="true" severity="danger" size="small" [loading]="store.saving()" (onClick)="confirmResetGroups()" />
+              }
+            </div>
           </div>
         }
 
@@ -204,6 +209,7 @@ interface SlotTarget { gameId: string; slot: number; }
     .create-fields{display:grid;gap:12px;align-items:end}
     .create-fields label{display:grid;gap:6px;color:#64748b;font-size:.65rem;font-weight:850;letter-spacing:.08em;text-transform:uppercase}
     .create-fields input{width:100%}
+    .create-foot{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:8px}
     .create-hint{color:#94a3b8;font-size:.68rem}
     .group-card{overflow:hidden}
     .group-card>header{display:flex;align-items:center;justify-content:space-between;min-height:74px;padding:14px 20px;color:#fff;background:linear-gradient(105deg,#ff7900,#ffb100 72%,#ffd500)}
@@ -381,12 +387,25 @@ export class TournamentGroups {
   protected generateGames(groupId: string): void { void this.store.generateGroupGames(this.tournament().id, groupId); }
 
   protected confirmDeleteGroup(id: string, name: string): void {
+    const played = this.groupGames(id).some((game) => game.status !== 'scheduled');
     this.confirmation.confirm({
       header: `Elimina ${name}`,
-      message: 'Le partite non ancora disputate del girone verranno eliminate. I gironi con risultati non possono essere rimossi.',
+      message: played
+        ? 'Il girone contiene risultati già registrati: verranno eliminati insieme alle partite. L’operazione non è reversibile.'
+        : 'Il girone e le sue partite verranno eliminati.',
       icon: 'pi pi-trash', acceptLabel: 'Elimina girone', rejectLabel: 'Annulla',
       acceptButtonProps: { severity: 'danger' }, rejectButtonProps: { severity: 'secondary', variant: 'text' },
-      accept: () => void this.store.deleteGroup(this.tournament().id, id),
+      accept: () => void this.store.deleteGroup(this.tournament().id, id, played),
+    });
+  }
+
+  protected confirmResetGroups(): void {
+    this.confirmation.confirm({
+      header: 'Elimina tutti i gironi',
+      message: 'Tutti i gironi, le loro partite e i risultati registrati verranno eliminati, così puoi ricostruirli da zero. L’operazione non è reversibile.',
+      icon: 'pi pi-exclamation-triangle', acceptLabel: 'Elimina tutto', rejectLabel: 'Annulla',
+      acceptButtonProps: { severity: 'danger' }, rejectButtonProps: { severity: 'secondary', variant: 'text' },
+      accept: () => void this.store.resetGroups(this.tournament().id),
     });
   }
 

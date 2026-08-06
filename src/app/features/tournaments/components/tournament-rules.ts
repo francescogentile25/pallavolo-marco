@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject, input, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, OnInit, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { Button } from 'primeng/button';
 import { Checkbox } from 'primeng/checkbox';
@@ -16,12 +16,20 @@ import { TournamentsStore } from '../store/tournaments.store';
     <section class="rule-card">
       <div class="toolbar"><div><strong>Regole attive</strong><span>Puoi cambiarle anche a torneo iniziato; non riscrivono risultati passati.</span></div></div>
       <div class="rule-grid">
-        <label>Formula<p-select [ngModel]="rules().format" (ngModelChange)="updateRule('format', $event)" [options]="formatOptions" optionLabel="label" optionValue="value" fluid /></label>
         <label>Coppie massime<p-inputnumber [ngModel]="rules().maxTeams" (ngModelChange)="updateRule('maxTeams', $event ?? 2)" [min]="2" [max]="64" [showButtons]="true" fluid /></label>
         <label>Set nei gironi<p-select [ngModel]="rules().groupBestOf" (ngModelChange)="updateRule('groupBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
         <label>Set nella fase finale<p-select [ngModel]="rules().knockoutBestOf" (ngModelChange)="updateRule('knockoutBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
         <label>Punti set gironi<p-inputnumber [ngModel]="rules().groupSetPoints" (ngModelChange)="updateRule('groupSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
         <label>Punti set finali<p-inputnumber [ngModel]="rules().knockoutSetPoints" (ngModelChange)="updateRule('knockoutSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
+      </div>
+      <div class="phases">
+        <p class="phases-title">Fasi previste</p>
+        <div class="phases-checks">
+          <p-checkbox inputId="rules-groups" [ngModel]="hasGroups()" (ngModelChange)="setPhase('groups', $event)" [binary]="true" />
+          <label for="rules-groups">Gironi<small>Quanti e con chi si decide in corsa, non prima del torneo.</small></label>
+          <p-checkbox inputId="rules-knockout" [ngModel]="hasKnockout()" (ngModelChange)="setPhase('knockout', $event)" [binary]="true" />
+          <label for="rules-knockout">Fase a eliminazione diretta<small>Uno o piu tabelloni costruiti liberamente.</small></label>
+        </div>
       </div>
       <div class="no-draw"><i class="pi pi-shield" aria-hidden="true"></i><div><strong>Nessun pareggio</strong><span>Ogni set e ogni partita devono avere un vincitore.</span></div></div>
       <div class="checks">
@@ -42,6 +50,11 @@ import { TournamentsStore } from '../store/tournaments.store';
     .toolbar span{color:var(--color-ink-muted);font-size:.68rem}
     .rule-grid{display:grid;gap:12px}
     .rule-grid label{display:grid;gap:7px;color:var(--color-ink);font-size:.68rem;font-weight:850}
+    .phases{padding:14px;margin-top:14px;border:1px solid #d8e8f0;border-radius:14px;background:#fff}
+    .phases-title{margin:0 0 10px;color:#64748b;font-size:.62rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+    .phases-checks{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:10px}
+    .phases-checks label{display:grid;gap:2px;font-size:.72rem;font-weight:800}
+    .phases-checks small{color:var(--color-ink-muted);font-size:.62rem;font-weight:600}
     .no-draw{display:flex;align-items:center;gap:11px;padding:13px;margin-top:14px;color:#075985;border-radius:14px;background:#e0f2fe}
     .no-draw>i{font-size:1.2rem}
     .no-draw div{display:grid;gap:2px}
@@ -56,10 +69,20 @@ export class TournamentRulesEditor implements OnInit {
   protected readonly store = inject(TournamentsStore);
   protected readonly rules = signal<TournamentRules>(this.emptyRules());
 
-  protected readonly formatOptions = [{ label: 'Solo gironi', value: 'groups' }, { label: 'Solo eliminazione', value: 'knockout' }, { label: 'Gironi + fase finale', value: 'mixed' }];
   protected readonly bestOfOptions = [{ label: 'Un set', value: 1 }, { label: 'Al meglio di 3', value: 3 }, { label: 'Al meglio di 5', value: 5 }];
 
   ngOnInit(): void { this.rules.set(this.rulesFromTournament(this.tournament())); }
+
+  protected readonly hasGroups = computed(() => this.rules().format !== 'knockout');
+  protected readonly hasKnockout = computed(() => this.rules().format !== 'groups');
+
+  /** Le due caselle mappano sul formato; almeno una fase deve restare attiva. */
+  protected setPhase(phase: 'groups' | 'knockout', enabled: boolean): void {
+    const groups = phase === 'groups' ? enabled : this.hasGroups();
+    const knockout = phase === 'knockout' ? enabled : this.hasKnockout();
+    if (!groups && !knockout) return;
+    this.updateRule('format', groups && knockout ? 'mixed' : groups ? 'groups' : 'knockout');
+  }
 
   protected updateRule<K extends keyof TournamentRules>(key: K, value: TournamentRules[K]): void {
     this.rules.update(rules => ({ ...rules, [key]: value }));

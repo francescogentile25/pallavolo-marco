@@ -9,6 +9,7 @@ const TOURNAMENT_SELECT = `
   venue:venues!tournaments_venue_id_fkey(id,name,address,city,latitude,longitude),
   courts:tournament_courts(court_id,court:courts!tournament_courts_court_id_fkey(id,venue_id,name,surface,indoor,venue:venues!courts_venue_id_fkey(id,name,address,city,latitude,longitude))),
   teams:tournament_teams(id,tournament_id,status,seed,waitlist_position,members:tournament_team_members(profile_id,status,profile:profiles!tournament_team_members_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url))),
+  brackets:tournament_brackets(bracket_no,name),
   groups:tournament_groups(id,tournament_id,name,position,capacity,planned_matches,links:tournament_group_teams(group_id,team_id,position)),
   games:tournament_games(*,confirmations:tournament_result_confirmations(team_id,profile_id,confirmed_at))
 `;
@@ -97,7 +98,14 @@ export class TournamentsService {
   async deleteBracket(tournamentId: string, bracketNo: number): Promise<void> {
     await this.rpc('delete_tournament_bracket', { p_tournament_id: tournamentId, p_bracket_no: bracketNo });
   }
-  async deleteGroup(tournamentId: string, groupId: string): Promise<void> { await this.rpc('delete_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId }); }
+  async deleteGroup(tournamentId: string, groupId: string, force = false): Promise<void> {
+    await this.rpc('delete_tournament_group', { p_tournament_id: tournamentId, p_group_id: groupId, p_force: force });
+  }
+  async resetGroups(tournamentId: string): Promise<void> { await this.rpc('reset_tournament_groups', { p_tournament_id: tournamentId }); }
+  async setBracketName(tournamentId: string, bracketNo: number, name: string): Promise<void> {
+    await this.rpc('set_tournament_bracket_name', { p_tournament_id: tournamentId, p_bracket_no: bracketNo, p_name: name });
+  }
+  async reopenTournament(tournamentId: string): Promise<void> { await this.rpc('reopen_tournament', { p_tournament_id: tournamentId }); }
   async assignTeamToGroup(tournamentId: string, teamId: string, groupId: string | null): Promise<void> {
     await this.rpc('assign_tournament_team_to_group', { p_tournament_id: tournamentId, p_team_id: teamId, p_group_id: groupId });
   }

@@ -32,6 +32,7 @@ export interface TournamentGroup {
   /** Numero di slot partita pianificati per il girone. */
   planned_matches: number | null;
 }
+export interface TournamentBracket { bracket_no: number; name: string; }
 export interface TournamentGroupTeam { group_id: string; team_id: string; position: number; }
 export interface TournamentGame {
   id: string;
@@ -91,6 +92,7 @@ export interface Tournament {
   venue: Venue;
   courts: readonly TournamentCourtLink[];
   teams: readonly TournamentTeam[];
+  brackets?: readonly TournamentBracket[];
   groups?: readonly TournamentGroup[];
   group_teams?: readonly TournamentGroupTeam[];
   games?: readonly TournamentGame[];
