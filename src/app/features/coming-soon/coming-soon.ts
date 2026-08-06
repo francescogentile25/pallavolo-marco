@@ -47,7 +47,7 @@ import { AuthStore } from '../auth/store/auth.store';
       margin-bottom: 22px;
       place-items: center;
       color: white;
-      border-radius: 20px;
+      border-radius: var(--radius-lg);
       background: var(--color-brand-strong);
       box-shadow: 0 12px 26px rgb(11 112 105 / 0.24);
       font-size: 1.5rem;

@@ -43,24 +43,24 @@ import { TournamentsStore } from '../store/tournaments.store';
   `,
   styles: `
     :host{display:block}
-    .rule-card{padding:20px;border:1px solid #d8e8f0;border-radius:19px;background:#fbfeff}
+    .rule-card{padding:20px;border:1px solid #d9cdb4;border-radius:var(--radius-lg);background:#faf7f0}
     .toolbar{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:0 0 16px}
     .toolbar>div{display:grid;gap:3px}
     .toolbar strong{font-size:.9rem}
     .toolbar span{color:var(--color-ink-muted);font-size:.68rem}
     .rule-grid{display:grid;gap:12px}
     .rule-grid label{display:grid;gap:7px;color:var(--color-ink);font-size:.68rem;font-weight:850}
-    .phases{padding:14px;margin-top:14px;border:1px solid #d8e8f0;border-radius:14px;background:#fff}
-    .phases-title{margin:0 0 10px;color:#64748b;font-size:.62rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
+    .phases{padding:14px;margin-top:14px;border:1px solid #d9cdb4;border-radius:var(--radius);background:#fff}
+    .phases-title{margin:0 0 10px;color:#5b6a72;font-size:.62rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
     .phases-checks{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:10px}
     .phases-checks label{display:grid;gap:2px;font-size:.72rem;font-weight:800}
     .phases-checks small{color:var(--color-ink-muted);font-size:.62rem;font-weight:600}
-    .no-draw{display:flex;align-items:center;gap:11px;padding:13px;margin-top:14px;color:#075985;border-radius:14px;background:#e0f2fe}
+    .no-draw{display:flex;align-items:center;gap:11px;padding:13px;margin-top:14px;color:#14348c;border-radius:var(--radius);background:#e3e8ff}
     .no-draw>i{font-size:1.2rem}
     .no-draw div{display:grid;gap:2px}
     .no-draw span{font-size:.65rem}
     .checks{display:grid;grid-template-columns:auto 1fr;align-items:center;gap:9px;padding:16px 2px;font-size:.68rem}
-    .rule-actions{display:flex;justify-content:flex-end;padding-top:14px;border-top:1px solid #d8e8f0}
+    .rule-actions{display:flex;justify-content:flex-end;padding-top:14px;border-top:1px solid #d9cdb4}
     @media(min-width:760px){.rule-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
   `,
 })

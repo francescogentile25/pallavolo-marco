@@ -33,11 +33,11 @@ import { ProfileMetricPoint } from '../models/profile.model';
   `,
   styles: `
     :host { display: block; }
-    .chart-card { height: 100%; padding: 20px; border: 1px solid var(--color-border); border-radius: 24px; background: var(--color-surface); box-shadow: 0 10px 28px rgb(7 29 38 / .06); }
+    .chart-card { height: 100%; padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: 0 10px 28px rgb(7 29 38 / .06); }
     .chart-heading { display: flex; align-items: start; justify-content: space-between; gap: 16px; }
     .chart-heading p { margin: 0 0 5px; color: var(--color-brand-strong); font-size: .68rem; font-weight: 850; letter-spacing: .09em; text-transform: uppercase; }
     h2 { margin: 0; font: 850 1.12rem/1.2 var(--base-font-family); }
-    strong { display: grid; width: 48px; height: 48px; place-items: center; color: white; border-radius: 16px; background: var(--color-brand-strong); font-size: 1.2rem; }
+    strong { display: grid; width: 48px; height: 48px; place-items: center; color: white; border-radius: var(--radius-lg); background: var(--color-brand-strong); font-size: 1.2rem; }
     svg { width: 100%; height: 130px; margin-top: 14px; overflow: visible; }
     line { stroke: var(--color-border); stroke-width: 1; }
     polyline { fill: none; stroke: var(--color-tournament); stroke-linecap: round; stroke-linejoin: round; stroke-width: 4; }

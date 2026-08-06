@@ -66,10 +66,10 @@ const DROPDOWN_LIMIT = 10;
   styles: `
     :host { display: contents; }
     .bell { position: relative; display: grid; }
-    .bell-trigger { position: relative; display: grid; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: 12px; background: var(--color-surface-muted); cursor: pointer; }
+    .bell-trigger { position: relative; display: grid; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: var(--radius); background: var(--color-surface-muted); cursor: pointer; }
     .bell-trigger:hover { color: var(--color-brand-strong); }
     .bell-badge { position: absolute; top: 3px; right: 3px; min-width: 18px; height: 18px; padding: 0 4px; display: grid; place-items: center; color: white; background: var(--color-brand); border-radius: 999px; box-shadow: 0 0 0 2px var(--color-surface-muted); font-size: .6rem; font-weight: 850; font-variant-numeric: tabular-nums; }
-    .bell-pop { position: absolute; z-index: var(--z-sticky, 50); top: calc(100% + 8px); right: 0; width: 340px; max-width: calc(100vw - 24px); border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); box-shadow: 0 18px 40px rgb(20 24 26 / .16); overflow: hidden; }
+    .bell-pop { position: absolute; z-index: var(--z-sticky, 50); top: calc(100% + 8px); right: 0; width: 340px; max-width: calc(100vw - 24px); border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: 0 18px 40px rgb(20 24 26 / .16); overflow: hidden; }
     .bell-pop-head { display: flex; align-items: center; justify-content: space-between; gap: 8px; padding: 12px 14px; border-bottom: 1px solid var(--color-border); }
     .bell-pop-head strong { font-size: .85rem; }
     .link-btn { padding: 0; color: var(--color-brand-strong); border: 0; background: none; font: inherit; font-size: .72rem; font-weight: 750; cursor: pointer; }
@@ -79,7 +79,7 @@ const DROPDOWN_LIMIT = 10;
     .bell-row:hover { background: var(--color-surface-muted); }
     .bell-row.is-unread { background: color-mix(in srgb, var(--color-brand) 8%, transparent); }
     .bell-row.is-unread:hover { background: color-mix(in srgb, var(--color-brand) 14%, transparent); }
-    .bell-ico { display: grid; width: 34px; height: 34px; place-items: center; color: var(--color-brand-strong); border-radius: 10px; background: var(--color-brand-soft); font-size: .85rem; }
+    .bell-ico { display: grid; width: 34px; height: 34px; place-items: center; color: var(--color-brand-strong); border-radius: var(--radius); background: var(--color-brand-soft); font-size: .85rem; }
     .bell-body { display: grid; gap: 2px; min-width: 0; }
     .bell-body strong { font-size: .78rem; }
     .bell-msg { color: var(--color-ink-muted); font-size: .74rem; line-height: 1.35; }

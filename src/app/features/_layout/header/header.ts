@@ -44,7 +44,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
     @media (max-width: 420px) { .brand img { height: 42px; } }
     .brand strong { font: 800 .93rem/1 var(--display-font); letter-spacing: -.025em; white-space: nowrap; }
     .brand strong span { color: var(--color-brand); }
-    .brand-mark { display: grid; width: 36px; height: 36px; place-items: center; color: white; border-radius: 11px; background: var(--color-ocean); box-shadow: 0 7px 16px rgb(20 24 26 / .16); }
+    .brand-mark { display: grid; width: 36px; height: 36px; place-items: center; color: white; border-radius: var(--radius); background: var(--color-ocean); box-shadow: 0 7px 16px rgb(20 24 26 / .16); }
     nav { display: none; align-items: center; gap: 24px; }
     nav a { display: inline-flex; align-items: center; gap: 7px; padding: 9px 0; color: var(--color-ink-muted); border-bottom: 2px solid transparent; font-size: .81rem; font-weight: 750; text-decoration: none; }
     nav a i { font-size: .76rem; }
@@ -53,11 +53,11 @@ import { NotificationBell } from '../../notifications/components/notification-be
     .account-actions { display: flex; align-items: center; gap: 7px; }
     .user-name { display: none; color: var(--color-ink); font-size: .74rem; font-weight: 800; }
     .user-name small { display: block; color: var(--color-ink-muted); font-size: .62rem; font-weight: 650; text-align: right; }
-    .icon-action { position: relative; display: none; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: 12px; background: var(--color-surface-muted); font: inherit; text-decoration: none; cursor: pointer; }
+    .icon-action { position: relative; display: none; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: var(--radius); background: var(--color-surface-muted); font: inherit; text-decoration: none; cursor: pointer; }
     .icon-action.notifications, .icon-action.logout { display: grid; }
     .icon-action:hover { color: var(--color-brand-strong); transform: translateY(-1px); }
     .notifications span { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border: 2px solid var(--color-surface-muted); border-radius: 50%; background: var(--color-brand); }
-    .user-avatar { display: grid; width: 38px; height: 38px; place-items: center; color: white; border-radius: 11px; background: var(--color-brand); font-size: .68rem; font-weight: 850; text-decoration: none; }
+    .user-avatar { display: grid; width: 38px; height: 38px; place-items: center; color: white; border-radius: var(--radius); background: var(--color-brand); font-size: .68rem; font-weight: 850; text-decoration: none; }
     a:focus-visible, button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
     @media (max-width: 420px) { .brand strong { max-width: 74px; white-space: normal; } .icon-action.logout { display: none; } }
     @media (min-width: 768px) { .app-header { padding-inline: clamp(24px, 4vw, 52px); } nav { display: flex; } .user-name { display: inline; } .icon-action { display: grid; } }

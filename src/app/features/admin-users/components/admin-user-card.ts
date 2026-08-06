@@ -55,16 +55,16 @@ import { UserProfile, UserRole } from '../../auth/models/auth.model';
   `,
   styles: `
     :host { display: block; }
-    .user-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 16px; border: 1px solid var(--color-border); border-radius: 21px; background: var(--color-surface); box-shadow: 0 8px 22px rgb(7 29 38 / .045); }
+    .user-card { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 12px; padding: 16px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: 0 8px 22px rgb(7 29 38 / .045); }
     .user-card.pending { border-color: #f1c6b5; }
-    .user-avatar { display: grid; width: 48px; height: 48px; place-items: center; color: var(--color-brand-strong); border-radius: 15px; background: var(--color-brand-soft); font-size: .78rem; font-weight: 900; }
+    .user-avatar { display: grid; width: 48px; height: 48px; place-items: center; color: var(--color-brand-strong); border-radius: var(--radius); background: var(--color-brand-soft); font-size: .78rem; font-weight: 900; }
     .user-identity { min-width: 0; }
     .name-line { display: flex; align-items: center; gap: 7px; }
     h3 { overflow: hidden; margin: 2px 0 3px; font-size: .98rem; text-overflow: ellipsis; white-space: nowrap; }
     .user-identity p { overflow: hidden; margin: 0 0 9px; color: var(--color-ink-muted); font-size: .72rem; text-overflow: ellipsis; white-space: nowrap; }
     .you-badge, .status { display: inline-flex; align-items: center; gap: 5px; border-radius: 999px; font-size: .65rem; font-weight: 800; }
     .you-badge { padding: 3px 6px; color: var(--color-brand-strong); background: var(--color-brand-soft); }
-    .edit-name { display: grid; width: 26px; height: 26px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: 8px; background: none; cursor: pointer; font-size: .72rem; }
+    .edit-name { display: grid; width: 26px; height: 26px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: var(--radius-sm); background: none; cursor: pointer; font-size: .72rem; }
     .edit-name:hover { color: var(--color-brand-strong); background: var(--color-surface-muted); }
     .status { padding: 4px 7px; color: var(--color-tournament); background: var(--color-tournament-soft); }
     .status.active { color: var(--color-success); background: var(--color-success-soft); }

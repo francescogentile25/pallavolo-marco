@@ -109,11 +109,11 @@ import { FriendsService } from '../services/friends.service';
     .accordion-title > i { color: var(--color-brand-strong); }
     .accordion-title > span { font-weight: 850; }
     .accordion-title small { margin-left: auto; margin-right: 8px; }
-    :host ::ng-deep .p-accordionpanel { overflow: hidden; margin-bottom: 10px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
+    :host ::ng-deep .p-accordionpanel { overflow: hidden; margin-bottom: 10px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
     :host ::ng-deep .p-accordionheader { min-height: 58px; padding: 0 16px; }
     :host ::ng-deep .p-accordioncontent-content { padding: 4px 12px 14px; }
-    .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--color-border); border-radius: 14px; background: var(--color-surface); }
-    .avatar { display: grid; width: 40px; height: 40px; place-items: center; color: white; border-radius: 12px; background: var(--color-brand-strong); font-size: .72rem; font-weight: 850; }
+    .row { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 12px; padding: 10px 12px; margin-bottom: 8px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
+    .avatar { display: grid; width: 40px; height: 40px; place-items: center; color: white; border-radius: var(--radius); background: var(--color-brand-strong); font-size: .72rem; font-weight: 850; }
     .row-body { display: grid; gap: 2px; min-width: 0; }
     .row-body strong { font-size: .84rem; }
     .row-body small { color: var(--color-ink-muted); font-size: .7rem; }
@@ -128,7 +128,7 @@ import { FriendsService } from '../services/friends.service';
     .badge.ok { color: var(--color-success); background: var(--color-success-soft); }
     .search { position: relative; display: block; margin-bottom: 10px; }
     .search i { position: absolute; top: 50%; left: 14px; color: var(--color-ink-muted); transform: translateY(-50%); }
-    .search input { width: 100%; min-height: 46px; padding-left: 40px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+    .search input { width: 100%; min-height: 46px; padding-left: 40px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
     .empty { padding: 14px; color: var(--color-ink-muted); font-size: .8rem; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
     @media (min-width: 700px) {

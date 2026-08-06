@@ -143,8 +143,8 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
   styles: `
     :host { display: block; }
     .create-page { width: min(100%, 760px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 50px); margin: auto; }
-    header { padding: 24px 20px; color: white; border-radius: 27px 27px 0 0; background: linear-gradient(145deg, #071d26, #123945); }
-    .hero-copy > p:first-child, .heading p { margin: 0 0 5px; color: #84efe3; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    header { padding: 24px 20px; color: white; border-radius: var(--radius-sm) var(--radius-lg) 0 0; background: linear-gradient(145deg, #0f1b23, #1d2b33); }
+    .hero-copy > p:first-child, .heading p { margin: 0 0 5px; color: #a3b3fb; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
     h1 { max-width: 12ch; margin: 0; font: 900 clamp(2rem, 10vw, 3.8rem)/.95 var(--display-font); letter-spacing: -.05em; }
     .hero-intro { display: none; }
     .progress { display: flex; gap: 8px; padding: 0; margin: 22px 0 0; list-style: none; }
@@ -157,21 +157,21 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
     .heading { display: flex; align-items: center; justify-content: space-between; margin-bottom: 24px; }
     .heading p { color: var(--color-brand-strong); }
     .heading h2 { margin: 0; font: 900 1.55rem/1 var(--display-font); }
-    .heading > i { display: grid; width: 46px; height: 46px; place-items: center; border-radius: 15px; color: var(--color-brand-strong); background: var(--color-brand-soft); font-size: 1.2rem; }
+    .heading > i { display: grid; width: 46px; height: 46px; place-items: center; border-radius: var(--radius); color: var(--color-brand-strong); background: var(--color-brand-soft); font-size: 1.2rem; }
     .field { display: grid; align-content: start; gap: 7px; min-width: 0; }
     .field label { font-size: .76rem; font-weight: 850; }
     .field label span { color: var(--color-danger); }
-    .field input, .field textarea { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 13px; color: var(--color-ink); background: white; }
+    .field input, .field textarea { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-ink); background: white; }
     .field textarea { padding: 12px; resize: vertical; }
     :host ::ng-deep .field .p-invalid { border-color: var(--color-danger); box-shadow: 0 0 0 3px rgb(196 57 57 / .11); }
     .field-error { display: flex; align-items: center; gap: 6px; margin: 0; color: var(--color-danger); font-size: .7rem; font-weight: 700; line-height: 1.35; }
     .field-error i { flex: 0 0 auto; font-size: .76rem; }
     .field-hint { color: var(--color-ink-muted); font-size: .68rem; line-height: 1.45; }
-    .pill-toggle { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface-muted); }
-    .pill-toggle button { padding: 7px 16px; color: var(--color-ink-muted); border: 0; border-radius: 9px; background: none; font: inherit; font-size: .74rem; font-weight: 750; cursor: pointer; }
+    .pill-toggle { display: inline-flex; gap: 2px; padding: 3px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface-muted); }
+    .pill-toggle button { padding: 7px 16px; color: var(--color-ink-muted); border: 0; border-radius: var(--radius); background: none; font: inherit; font-size: .74rem; font-weight: 750; cursor: pointer; }
     .pill-toggle button.active { color: var(--color-brand-strong); background: white; box-shadow: 0 1px 3px rgb(20 24 26 / .1); }
     .grid, .new-court { display: grid; gap: 15px; }
-    .new-court { padding: 16px; margin-top: 12px; border-radius: 18px; background: var(--color-surface-muted); }
+    .new-court { padding: 16px; margin-top: 12px; border-radius: var(--radius-lg); background: var(--color-surface-muted); }
     .save-court { margin-top: 4px; }
     :host ::ng-deep .save-court-btn { width: 100%; justify-content: center; border-width: 2px; border-color: var(--color-brand); color: var(--color-brand-strong); font-weight: 800; }
     :host ::ng-deep .save-court-btn:hover { background: var(--color-brand-soft); }
@@ -180,10 +180,10 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
     .level-fields { display: grid; grid-template-columns: 1fr auto 1fr; align-items: end; gap: 8px; }
     .level-fields > span { padding-bottom: 15px; }
     .summary { display: grid; gap: 9px; margin-bottom: 20px; }
-    .summary div { display: grid; gap: 3px; padding: 12px; border-radius: 15px; background: var(--color-surface-muted); }
+    .summary div { display: grid; gap: 3px; padding: 12px; border-radius: var(--radius); background: var(--color-surface-muted); }
     .summary span { color: var(--color-ink-muted); font-size: .65rem; }
     .summary strong { font-size: .8rem; }
-    .notice { display: flex; gap: 8px; padding: 12px; color: var(--color-brand-strong); border-radius: 13px; background: var(--color-brand-soft); font-size: .72rem; }
+    .notice { display: flex; gap: 8px; padding: 12px; color: var(--color-brand-strong); border-radius: var(--radius); background: var(--color-brand-soft); font-size: .72rem; }
     .error { padding: 10px 12px; margin: 16px 0 0; color: var(--color-danger); border-left: 3px solid var(--color-danger); border-radius: 0 10px 10px 0; background: rgb(196 57 57 / .07); font-size: .72rem; font-weight: 700; }
     .loading-state { display: grid; place-content: center; justify-items: center; gap: 12px; text-align: center; }
     .loading-state p, .loading-state h2 { margin: 0; }
@@ -203,7 +203,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
 
     @media (min-width: 960px) {
       .create-page { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: 18px; width: min(100%, 1180px); padding: 42px 28px 130px; align-items: stretch; }
-      header { position: relative; display: flex; min-height: 640px; flex-direction: column; overflow: hidden; padding: 44px 34px; border-radius: 30px; }
+      header { position: relative; display: flex; min-height: 640px; flex-direction: column; overflow: hidden; padding: 44px 34px; border-radius: 8px; }
       header::after { position: absolute; right: -105px; bottom: -115px; width: 260px; height: 260px; border: 1px solid rgb(132 239 227 / .18); border-radius: 50%; content: ''; }
       h1 { font-size: clamp(3rem, 4.2vw, 4.25rem); }
       .hero-intro { display: block; max-width: 25ch; margin: 22px 0 0; color: rgb(255 255 255 / .65); font-size: .82rem; line-height: 1.55; }
@@ -214,12 +214,12 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
       .progress-copy { display: grid; gap: 3px; padding-top: 2px; }
       .progress-copy strong { color: rgb(255 255 255 / .9); font-size: .78rem; }
       .progress-copy small { color: rgb(255 255 255 / .48); font-size: .68rem; line-height: 1.35; }
-      .progress li.current .progress-copy strong { color: #84efe3; }
-      .wizard-panel { min-height: 640px; grid-template-rows: 1fr auto; overflow: hidden; border: 1px solid var(--color-border); border-radius: 30px; background: white; box-shadow: 0 18px 45px rgb(7 29 38 / .08); }
+      .progress li.current .progress-copy strong { color: #a3b3fb; }
+      .wizard-panel { min-height: 640px; grid-template-rows: 1fr auto; overflow: hidden; border: 1px solid var(--color-border); border-radius: 8px; background: white; box-shadow: 0 18px 45px rgb(7 29 38 / .08); }
       .form-card { min-height: 0; padding: 44px 46px 34px; border: 0; border-radius: 0; }
       .heading { margin-bottom: 34px; }
       .heading h2 { font-size: 2rem; }
-      .heading > i { width: 54px; height: 54px; border-radius: 17px; font-size: 1.35rem; }
+      .heading > i { width: 54px; height: 54px; border-radius: var(--radius-lg); font-size: 1.35rem; }
       .grid, .new-court { gap: 20px 18px; }
       .summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
       .summary div { min-height: 86px; align-content: center; padding: 16px; }

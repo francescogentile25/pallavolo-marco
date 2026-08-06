@@ -83,11 +83,11 @@ import { MatchesStore } from '../store/matches.store';
   styles: `
     :host { display: block; }
     .matches-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
-    .page-hero { display: grid; gap: 12px; padding: 24px 20px; color: white; border-radius: 24px; background: var(--color-ocean); }
-    .eyebrow { margin: 0 0 5px; color: #f2b08e; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
+    .page-hero { display: grid; gap: 12px; padding: 24px 20px; color: white; border-radius: var(--radius-lg); background: var(--color-ocean); }
+    .eyebrow { margin: 0 0 5px; color: #ffc72c; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0; font: 900 clamp(2rem, 10vw, 4rem)/.95 var(--display-font); letter-spacing: -.05em; }
     .page-hero > p { max-width: 34rem; margin: 0; color: rgb(255 255 255 / .72); font-size: .82rem; line-height: 1.5; }
-    .filters { display: grid; gap: 12px; padding: 16px; margin: 14px 0 24px; border: 1px solid var(--color-border); border-radius: 22px; background: var(--color-surface); }
+    .filters { display: grid; gap: 12px; padding: 16px; margin: 14px 0 24px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
     .filters-title { display: flex; align-items: center; justify-content: space-between; color: var(--color-ink); font-size: .84rem; font-weight: 850; }
     .filters-title span { display: inline-flex; align-items: center; gap: 7px; }
     .filters-title i { color: var(--color-brand); }
@@ -104,7 +104,7 @@ import { MatchesStore } from '../store/matches.store';
     .results-heading h2 { margin: 0; font: 900 1.45rem/1 var(--display-font); }
     .results-heading span { color: var(--color-ink-muted); font-size: .72rem; }
     .match-grid { display: grid; gap: 12px; }
-    .state, .empty { display: grid; min-height: 280px; place-content: center; justify-items: center; gap: 10px; padding: 30px; color: var(--color-ink-muted); text-align: center; border: 1px dashed var(--color-border); border-radius: 24px; }
+    .state, .empty { display: grid; min-height: 280px; place-content: center; justify-items: center; gap: 10px; padding: 30px; color: var(--color-ink-muted); text-align: center; border: 1px dashed var(--color-border); border-radius: var(--radius-lg); }
     .empty i { color: var(--color-brand); font-size: 2rem; }.empty h2, .empty p { margin: 0; }
     .spinner { width: 20px; height: 20px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0,0,0,0); }

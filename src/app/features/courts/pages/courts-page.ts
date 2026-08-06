@@ -103,9 +103,9 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
     h1 { margin: 0 0 8px; font: 900 clamp(2rem, 9vw, 3.4rem)/.95 var(--display-font); letter-spacing: -.045em; }
     .courts-hero p:last-of-type { max-width: 44rem; margin: 0; color: var(--color-ink-muted); line-height: 1.5; }
     .court-list { display: grid; gap: 10px; }
-    .court-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); }
+    .court-card { display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 14px; padding: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
     .court-card.inherited { background: var(--color-surface-muted); }
-    .court-ico { display: grid; width: 44px; height: 44px; place-items: center; color: var(--color-brand-strong); border-radius: 13px; background: var(--color-brand-soft); }
+    .court-ico { display: grid; width: 44px; height: 44px; place-items: center; color: var(--color-brand-strong); border-radius: var(--radius); background: var(--color-brand-soft); }
     .court-body { display: grid; gap: 3px; min-width: 0; }
     .court-body strong { font-size: .88rem; }
     .court-body small { color: var(--color-ink-muted); font-size: .74rem; }
@@ -114,18 +114,18 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
     .court-card.inherited .tag { background: var(--color-surface); }
     .tag-inherited { color: var(--color-brand-strong); background: var(--color-brand-soft); }
     .court-actions { display: flex; gap: 4px; }
-    .court-actions button { display: grid; width: 38px; height: 38px; place-items: center; color: var(--color-ink-muted); border: 1px solid var(--color-border); border-radius: 11px; background: var(--color-surface); cursor: pointer; }
+    .court-actions button { display: grid; width: 38px; height: 38px; place-items: center; color: var(--color-ink-muted); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; }
     .court-actions button:hover { background: var(--color-surface-muted); }
     .court-actions button.danger:hover { color: var(--color-danger); border-color: var(--color-danger); }
     .state { display: grid; min-height: 240px; place-content: center; justify-items: center; gap: 10px; color: var(--color-ink-muted); text-align: center; }
-    .state.empty { border: 1px dashed var(--color-border); border-radius: 20px; }
+    .state.empty { border: 1px dashed var(--color-border); border-radius: var(--radius-lg); }
     .state.empty i { font-size: 2rem; }
     .state.empty h3, .state.empty p { margin: 0; }
     .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
     .court-form { display: grid; gap: 14px; }
     .field { display: grid; gap: 6px; }
     .field label { font-size: .76rem; font-weight: 800; }
-    .field input { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+    .field input { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
     .check { display: flex; align-items: center; gap: 9px; font-size: .8rem; font-weight: 700; }
     .form-error { margin: 0; color: var(--color-danger); font-size: .76rem; }
     .court-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }

@@ -18,10 +18,10 @@ import { FORMAT_LABELS, REGISTRATION_MODE_LABELS, TOURNAMENT_STATUS_LABELS } fro
     </article>
   `,
   styles: `
-    :host { display:block; } article { display:grid; min-height:270px; gap:18px; padding:20px; border:1px solid var(--color-border); border-radius:22px; background:white; box-shadow:0 10px 28px rgb(20 24 26 / .05); }
-    .topline, footer { display:flex; align-items:center; justify-content:space-between; }.topline span { padding:6px 9px; color:var(--color-brand-strong); border-radius:10px; background:var(--color-brand-soft); font-size:.65rem; font-weight:900; text-transform:uppercase; }.topline i { color:var(--color-brand); font-size:1.2rem; }
+    :host { display:block; } article { display:grid; min-height:270px; gap:18px; padding:20px; border:1px solid var(--color-border); border-radius:var(--radius-lg); background:white; box-shadow:0 10px 28px rgb(20 24 26 / .05); }
+    .topline, footer { display:flex; align-items:center; justify-content:space-between; }.topline span { padding:6px 9px; color:var(--color-brand-strong); border-radius:var(--radius); background:var(--color-brand-soft); font-size:.65rem; font-weight:900; text-transform:uppercase; }.topline i { color:var(--color-brand); font-size:1.2rem; }
     h2 { margin:5px 0 6px; font:900 1.5rem/1 var(--display-font); letter-spacing:-.04em; }.date,.place { margin:0; color:var(--color-ink-muted); font-size:.75rem; }.date { color:var(--color-brand-strong); font-weight:800; }.date i { margin-right:5px; }
-    .chips { display:flex; flex-wrap:wrap; gap:6px; }.chips span { padding:6px 8px; border-radius:9px; background:var(--color-surface-muted); font-size:.65rem; font-weight:750; }
+    .chips { display:flex; flex-wrap:wrap; gap:6px; }.chips span { padding:6px 8px; border-radius:var(--radius); background:var(--color-surface-muted); font-size:.65rem; font-weight:750; }
     footer { padding-top:14px; border-top:1px solid var(--color-border); }footer strong { font-size:1.1rem; }footer small { color:var(--color-ink-muted); }a { text-decoration:none; }
   `,
 })

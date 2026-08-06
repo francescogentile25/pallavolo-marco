@@ -144,7 +144,7 @@ interface OpenMatchPreview {
       grid-template-rows: 1fr auto 1fr;
       padding: clamp(20px, 5vw, 34px);
       border: var(--court-line) solid var(--court-tape);
-      border-radius: 4px;
+      border-radius: var(--radius-sm);
       background: var(--court-blue);
       box-shadow: 0 22px 44px rgb(15 27 35 / .22);
       color: var(--court-tape);
@@ -156,7 +156,7 @@ interface OpenMatchPreview {
       width: 10px;
       height: 10px;
       background: var(--court-yellow);
-      border-radius: 2px;
+      border-radius: var(--radius-sm);
     }
     .stake-tl { top: -6px; left: -6px; }
     .stake-tr { top: -6px; right: -6px; }
@@ -219,7 +219,7 @@ interface OpenMatchPreview {
       gap: 12px;
       padding: 0 22px;
       color: var(--court-ink);
-      border-radius: 2px;
+      border-radius: var(--radius-sm);
       background: var(--court-yellow);
       font-family: var(--font-display);
       font-size: 1rem;

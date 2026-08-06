@@ -70,18 +70,18 @@ const PAGE_SIZE = 20;
     h1 { margin: 0 0 8px; font: 900 clamp(2rem, 9vw, 3.4rem)/.95 var(--display-font); letter-spacing: -.045em; }
     .notif-hero > p:last-child { max-width: 40rem; margin: 0; color: var(--color-ink-muted); line-height: 1.5; }
     .notif-list { display: grid; gap: 8px; }
-    .notif-row { display: grid; grid-template-columns: 1fr auto; align-items: center; border: 1px solid var(--color-border); border-radius: 16px; background: var(--color-surface); }
+    .notif-row { display: grid; grid-template-columns: 1fr auto; align-items: center; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
     .notif-row.is-unread { border-color: color-mix(in srgb, var(--color-brand) 40%, var(--color-border)); background: color-mix(in srgb, var(--color-brand) 6%, var(--color-surface)); }
     .notif-main { display: grid; grid-template-columns: auto 1fr; gap: 12px; padding: 14px; text-align: left; border: 0; background: none; cursor: pointer; }
-    .notif-ico { display: grid; width: 42px; height: 42px; place-items: center; color: var(--color-brand-strong); border-radius: 12px; background: var(--color-brand-soft); font-size: .95rem; }
+    .notif-ico { display: grid; width: 42px; height: 42px; place-items: center; color: var(--color-brand-strong); border-radius: var(--radius); background: var(--color-brand-soft); font-size: .95rem; }
     .notif-body { display: grid; gap: 3px; min-width: 0; }
     .notif-body strong { font-size: .84rem; }
     .notif-msg { color: var(--color-ink-muted); font-size: .78rem; line-height: 1.4; }
     .notif-body small { color: var(--color-ink-muted); font-size: .68rem; }
-    .notif-check { display: grid; width: 40px; height: 40px; margin-right: 10px; place-items: center; color: var(--color-brand-strong); border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); cursor: pointer; }
+    .notif-check { display: grid; width: 40px; height: 40px; margin-right: 10px; place-items: center; color: var(--color-brand-strong); border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); cursor: pointer; }
     .notif-check:hover { background: var(--color-surface-muted); }
     .state { display: grid; min-height: 240px; place-content: center; justify-items: center; gap: 10px; color: var(--color-ink-muted); text-align: center; }
-    .state.empty { border: 1px dashed var(--color-border); border-radius: 20px; }
+    .state.empty { border: 1px dashed var(--color-border); border-radius: var(--radius-lg); }
     .state.empty i { font-size: 2rem; }
     .state.empty h3, .state.empty p { margin: 0; }
     .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }

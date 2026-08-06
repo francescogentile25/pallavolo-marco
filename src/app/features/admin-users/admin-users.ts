@@ -185,15 +185,15 @@ import { AdminUsersStore } from './store/admin-users.store';
   styles: `
     :host { display: block; }
     .admin-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
-    .admin-hero { display: grid; gap: 20px; padding: 24px; color: white; border-radius: 28px; background: radial-gradient(circle at 90% 0, rgb(25 199 181 / .48), transparent 40%), linear-gradient(145deg, #071d26, #123945); box-shadow: 0 18px 38px rgb(7 29 38 / .18); }
+    .admin-hero { display: grid; gap: 20px; padding: 24px; color: white; border-radius: 8px; background: radial-gradient(circle at 90% 0, rgb(25 199 181 / .48), transparent 40%), linear-gradient(145deg, #0f1b23, #1d2b33); box-shadow: 0 18px 38px rgb(7 29 38 / .18); }
     .eyebrow { margin: 0 0 6px; color: var(--color-brand); font-size: .68rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
-    .admin-hero .eyebrow { color: #84efe3; }
+    .admin-hero .eyebrow { color: #a3b3fb; }
     h1 { margin: 0; font: 900 clamp(2rem, 10vw, 4rem)/.95 var(--display-font); letter-spacing: -.045em; }
     .admin-hero > div > p:last-child { max-width: 600px; margin: 12px 0 0; color: rgb(255 255 255 / .72); line-height: 1.5; }
     .stats { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-    .stats span { padding: 10px; border-radius: 14px; background: rgb(255 255 255 / .09); color: rgb(255 255 255 / .7); font-size: .65rem; text-align: center; }
+    .stats span { padding: 10px; border-radius: var(--radius); background: rgb(255 255 255 / .09); color: rgb(255 255 255 / .7); font-size: .65rem; text-align: center; }
     .stats strong { display: block; color: white; font-size: 1.35rem; }
-    .filters, .audit-section { padding: 20px; margin-top: 14px; border: 1px solid var(--color-border); border-radius: 24px; background: var(--color-surface); }
+    .filters, .audit-section { padding: 20px; margin-top: 14px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
     .section-title { display: flex; align-items: end; justify-content: space-between; gap: 12px; margin-bottom: 18px; }
     .section-title h2 { margin: 0; font: 900 1.5rem/1 var(--display-font); letter-spacing: -.03em; }
     .section-title > span { color: var(--color-ink-muted); font-size: .72rem; }
@@ -204,7 +204,7 @@ import { AdminUsersStore } from './store/admin-users.store';
     .search-control i { position: absolute; z-index: 1; top: 50%; left: 15px; color: var(--color-ink-muted); transform: translateY(-50%); }
     .search-control input { width: 100%; min-height: 48px; padding-left: 42px; }
     .filter-grid p-select { min-height: 48px; }
-    .page-error { display: flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--color-danger); border-radius: 14px; background: var(--color-danger-soft); }
+    .page-error { display: flex; align-items: center; gap: 8px; padding: 12px 14px; color: var(--color-danger); border-radius: var(--radius); background: var(--color-danger-soft); }
     .users-section { margin-top: 14px; }
     .user-list { display: grid; gap: 10px; }
     p-paginator { display: block; margin-top: 12px; }
@@ -212,21 +212,21 @@ import { AdminUsersStore } from './store/admin-users.store';
     :host ::ng-deep .admin-paginator .p-paginator { display: flex; justify-content: center; align-items: center; flex-wrap: wrap; gap: 2px; padding: 4px; background: transparent; border: 0; }
     :host ::ng-deep .admin-paginator .p-paginator-current { color: var(--color-ink-muted); font-size: .75rem; }
     .loading-state, .empty-state { display: grid; min-height: 240px; place-content: center; justify-items: center; gap: 10px; color: var(--color-ink-muted); text-align: center; }
-    .empty-state { border: 1px dashed var(--color-border); border-radius: 22px; background: var(--color-surface); }
+    .empty-state { border: 1px dashed var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); }
     .empty-state i { font-size: 2rem; }
     .empty-state h3, .empty-state p { margin: 0; }
     .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
     .audit-list { padding: 0; margin: 0; list-style: none; }
     .audit-list li { display: grid; grid-template-columns: auto 1fr; gap: 11px; padding: 12px 0; border-top: 1px solid var(--color-border); }
     .audit-list li:first-child { padding-top: 0; border-top: 0; }
-    .audit-icon { display: grid; width: 36px; height: 36px; place-items: center; color: var(--color-brand-strong); border-radius: 12px; background: var(--color-brand-soft); }
+    .audit-icon { display: grid; width: 36px; height: 36px; place-items: center; color: var(--color-brand-strong); border-radius: var(--radius); background: var(--color-brand-soft); }
     .audit-list p, .audit-list small { display: block; margin: 3px 0 0; color: var(--color-ink-muted); font-size: .72rem; line-height: 1.4; }
     .audit-list strong { font-size: .8rem; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; }
     .admin-form { display: grid; gap: 12px; }
     .af-field { display: grid; gap: 6px; }
     .af-field label { font-size: .76rem; font-weight: 800; }
-    .af-field input { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: 12px; background: var(--color-surface); }
+    .af-field input { width: 100%; min-height: 46px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); }
     .af-field small { color: var(--color-ink-muted); font-size: .68rem; }
     .admin-form-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 18px; }
     @keyframes spin { to { transform: rotate(360deg); } }

@@ -46,21 +46,21 @@ import {
   `,
   styles: `
     :host { display: block; min-width: 0; }
-    .match-card { position: relative; overflow: hidden; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); box-shadow: 0 10px 28px rgb(20 24 26 / .045); transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); }
+    .match-card { position: relative; overflow: hidden; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); box-shadow: 0 10px 28px rgb(20 24 26 / .045); transition: transform var(--duration-fast) var(--ease-out), box-shadow var(--duration-fast) var(--ease-out); }
     .match-card:hover { transform: translateY(-3px); box-shadow: 0 16px 34px rgb(20 24 26 / .09); }
     .topline { position: absolute; z-index: 1; top: 14px; right: 14px; left: 16px; display: flex; align-items: center; justify-content: space-between; pointer-events: none; }
-    .status { padding: 5px 8px; border-radius: 8px; color: var(--color-success); background: var(--color-success-soft); font-size: .66rem; font-weight: 900; text-transform: uppercase; }
+    .status { padding: 5px 8px; border-radius: var(--radius-sm); color: var(--color-success); background: var(--color-success-soft); font-size: .66rem; font-weight: 900; text-transform: uppercase; }
     .status-full, .status-cancelled { color: var(--color-danger); background: var(--color-danger-soft); }
     .status-in_progress { color: var(--color-tournament); background: var(--color-tournament-soft); }
     .status-completed { color: var(--color-ink-muted); background: var(--color-surface-muted); }
-    .more { display: grid; width: 40px; height: 40px; place-items: center; border: 0; border-radius: 12px; color: var(--color-ink); background: var(--color-surface-muted); cursor: pointer; pointer-events: auto; }
+    .more { display: grid; width: 40px; height: 40px; place-items: center; border: 0; border-radius: var(--radius); color: var(--color-ink); background: var(--color-surface-muted); cursor: pointer; pointer-events: auto; }
     .card-link { display: block; padding: 66px 18px 18px; color: inherit; text-decoration: none; }
     .date { margin: 0 0 9px; color: var(--color-brand-strong); font-size: .75rem; font-weight: 850; text-transform: capitalize; }
     .date i { margin-right: 5px; }
     h2 { margin: 0; font: 900 1.28rem/1.1 var(--display-font); letter-spacing: -.025em; }
     .location { margin: 5px 0 16px; color: var(--color-ink-muted); font-size: .78rem; }
     .facts { display: flex; flex-wrap: wrap; gap: 6px; }
-    .facts span { padding: 6px 8px; border-radius: 9px; background: var(--color-surface-muted); font-size: .67rem; font-weight: 750; }
+    .facts span { padding: 6px 8px; border-radius: var(--radius); background: var(--color-surface-muted); font-size: .67rem; font-weight: 750; }
     .facts i { margin-right: 4px; color: var(--color-brand-strong); }
     .availability { display: flex; min-height: 44px; align-items: center; gap: 10px; padding-top: 16px; margin-top: 17px; border-top: 1px solid var(--color-border); font-size: .72rem; }
     .availability > i { margin-left: auto; }

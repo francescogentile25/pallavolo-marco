@@ -19,11 +19,11 @@ import { FriendProfileDetails } from '../models/friend.model';
   `,
   styles: `
     :host { display: block; }
-    .chart-card { padding: 20px; border: 1px solid var(--color-border); border-radius: 22px; background: linear-gradient(155deg, var(--color-surface), var(--color-brand-soft)); box-shadow: 0 12px 30px rgb(7 29 38 / .06); }
+    .chart-card { padding: 20px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: linear-gradient(155deg, var(--color-surface), var(--color-brand-soft)); box-shadow: 0 12px 30px rgb(7 29 38 / .06); }
     .chart-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
     .chart-heading p { margin: 0 0 4px; color: var(--color-brand-strong); font-size: .66rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     h2 { margin: 0; font: 900 1.22rem/1 var(--display-font); }
-    .chart-heading > i { display: grid; width: 42px; height: 42px; place-items: center; color: white; border-radius: 14px; background: var(--color-brand-strong); }
+    .chart-heading > i { display: grid; width: 42px; height: 42px; place-items: center; color: white; border-radius: var(--radius); background: var(--color-brand-strong); }
     .chart-wrap { position: relative; min-height: 230px; margin-top: 12px; }
     .chart-note { margin: 8px 0 0; color: var(--color-ink-muted); font-size: .68rem; line-height: 1.45; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0, 0, 0, 0); }
@@ -38,7 +38,7 @@ export class PlayerAchievementChart {
       datasets: [{
         label: 'Risultati',
         data: [player.matches_played, player.tournaments_played, player.tournaments_won, player.tournament_games_won],
-        backgroundColor: ['#159e91', '#f28a52', '#123945', '#46b86c'],
+        backgroundColor: ['#159e91', '#f28a52', '#1d2b33', '#46b86c'],
         borderRadius: 7,
         maxBarThickness: 34,
       }],
