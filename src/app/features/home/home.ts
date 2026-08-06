@@ -9,6 +9,7 @@ import {
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
+import { Reveal } from '../../shared/motion/reveal.directive';
 import { AuthStore } from '../auth/store/auth.store';
 import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { Tournament } from '../tournaments/models/tournament.model';
@@ -31,11 +32,11 @@ interface OpenMatchPreview {
  */
 @Component({
   selector: 'app-home',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, RouterLink, Reveal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="home">
-      <section class="court" aria-labelledby="home-title">
+      <section class="court" aria-labelledby="home-title" appReveal>
         <span class="stake stake-tl" aria-hidden="true"></span>
         <span class="stake stake-tr" aria-hidden="true"></span>
         <span class="stake stake-bl" aria-hidden="true"></span>
@@ -75,7 +76,8 @@ interface OpenMatchPreview {
         </div>
       </section>
 
-      <section class="block" aria-labelledby="open-title">
+      <div class="mosaic" appReveal="stagger">
+      <section class="block block-open" aria-labelledby="open-title">
         <header class="block-head">
           <h2 id="open-title">Partite aperte</h2>
           <a routerLink="/partite">Tutte <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
@@ -95,7 +97,7 @@ interface OpenMatchPreview {
         </ul>
       </section>
 
-      <section class="block" aria-labelledby="tournament-title">
+      <section class="block block-tournament" aria-labelledby="tournament-title">
         <header class="block-head">
           <h2 id="tournament-title">Prossimo torneo</h2>
           <a routerLink="/tornei">Tutti <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
@@ -122,6 +124,7 @@ interface OpenMatchPreview {
           </a>
         }
       </section>
+      </div>
     </main>
   `,
   styles: `
@@ -233,7 +236,8 @@ interface OpenMatchPreview {
     .receive { color: rgb(255 255 255 / .82); font-size: .9rem; text-decoration: underline; text-underline-offset: 4px; }
 
     /* ---- blocchi ---- */
-    .block { margin-top: 38px; }
+    .mosaic { display: grid; gap: 22px; margin-top: 30px; }
+    .block { margin: 0; }
 
     .block-head {
       display: flex;
@@ -266,6 +270,7 @@ interface OpenMatchPreview {
       gap: 2px 16px;
       padding: 16px;
       border-left: var(--court-line) solid var(--court-blue);
+      border-radius: var(--radius);
       background: var(--court-tape);
     }
 
@@ -288,6 +293,7 @@ interface OpenMatchPreview {
       color: inherit;
       background: var(--court-tape);
       border-left: var(--court-line) solid var(--court-yellow);
+      border-radius: var(--radius);
       text-decoration: none;
     }
 
@@ -297,6 +303,7 @@ interface OpenMatchPreview {
       padding: 8px 12px;
       background: var(--court-ink);
       color: var(--court-tape);
+      border-radius: var(--radius-sm);
       font-size: 1.7rem;
       font-weight: 700;
       line-height: 1;
@@ -333,8 +340,12 @@ interface OpenMatchPreview {
       .net-band { writing-mode: vertical-rl; padding: 18px 9px; }
       .net-band b { font-size: 1.5rem; }
 
-      .rally { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+      /* mosaico: partite e torneo affiancati sotto il campo */
+      .mosaic { grid-template-columns: minmax(0, 1.75fr) minmax(260px, 1fr); align-items: start; gap: 26px; }
+      .rally { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .side { grid-template-columns: minmax(0, 1fr) auto; }
+      .block-tournament .tournament { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; }
+      .block-tournament .tournament > i { display: none; }
     }
 
     @media (prefers-reduced-motion: reduce) {

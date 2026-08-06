@@ -1,4 +1,6 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
+import { gsap } from 'gsap';
+import { motionAllowed } from '../../../shared/motion/reveal.directive';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '../../auth/store/auth.store';
 import { NotificationBell } from '../../notifications/components/notification-bell';
@@ -13,7 +15,8 @@ import { NotificationBell } from '../../notifications/components/notification-be
         <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
       </a>
 
-      <nav aria-label="Navigazione desktop">
+      <nav aria-label="Navigazione desktop" #navEl>
+        <span class="nav-marker" aria-hidden="true"></span>
         <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"><i class="pi pi-home"></i> Home</a>
         <a routerLink="/partite" routerLinkActive="is-active"><i class="pi pi-users"></i> Partite</a>
         <a routerLink="/tornei" routerLinkActive="is-active"><i class="pi pi-trophy"></i> Tornei</a>
@@ -45,11 +48,14 @@ import { NotificationBell } from '../../notifications/components/notification-be
     .brand strong { font: 800 .93rem/1 var(--display-font); letter-spacing: -.025em; white-space: nowrap; }
     .brand strong span { color: var(--color-brand); }
     .brand-mark { display: grid; width: 36px; height: 36px; place-items: center; color: white; border-radius: var(--radius); background: var(--color-ocean); box-shadow: 0 7px 16px rgb(20 24 26 / .16); }
-    nav { display: none; align-items: center; gap: 24px; }
+    nav { position: relative; display: none; align-items: center; gap: 24px; }
+    .nav-marker { position: absolute; bottom: 0; left: 0; height: 2px; width: 0; background: var(--color-brand); opacity: 0; pointer-events: none; }
     nav a { display: inline-flex; align-items: center; gap: 7px; padding: 9px 0; color: var(--color-ink-muted); border-bottom: 2px solid transparent; font-size: .81rem; font-weight: 750; text-decoration: none; }
     nav a i { font-size: .76rem; }
     nav a:hover, nav a.is-active { color: var(--color-ink); }
-    nav a.is-active { border-bottom-color: var(--color-brand); }
+    nav a.is-active { border-bottom-color: transparent; }
+    .brand img { transition: transform var(--duration-fast) var(--ease-out); }
+    .brand:hover img { transform: rotate(-2deg) scale(1.03); }
     .account-actions { display: flex; align-items: center; gap: 7px; }
     .user-name { display: none; color: var(--color-ink); font-size: .74rem; font-weight: 800; }
     .user-name small { display: block; color: var(--color-ink-muted); font-size: .62rem; font-weight: 650; text-align: right; }
@@ -65,6 +71,41 @@ import { NotificationBell } from '../../notifications/components/notification-be
 })
 export class Header {
   protected readonly authStore = inject(AuthStore);
+  private readonly navEl = viewChild<ElementRef<HTMLElement>>('navEl');
+
+  constructor() {
+    afterNextRender(() => this.trackNav());
+  }
+
+  /**
+   * Un trattino scorre sotto la voce puntata e torna sull'attiva quando esci dal
+   * menu: da qui si legge dove stai andando prima ancora di cliccare.
+   */
+  private trackNav(): void {
+    const nav = this.navEl()?.nativeElement;
+    if (!nav || !motionAllowed()) return;
+    const marker = nav.querySelector<HTMLElement>('.nav-marker');
+    if (!marker) return;
+
+    const moveTo = (link: HTMLElement | null, immediate = false) => {
+      if (!link) { gsap.to(marker, { opacity: 0, duration: 0.18 }); return; }
+      gsap.to(marker, {
+        x: link.offsetLeft,
+        width: link.offsetWidth,
+        opacity: 1,
+        duration: immediate ? 0 : 0.32,
+        ease: 'power3.out',
+      });
+    };
+    const active = () => nav.querySelector<HTMLElement>('a.is-active');
+
+    nav.querySelectorAll<HTMLElement>('a').forEach((link) => {
+      link.addEventListener('pointerenter', () => moveTo(link));
+      link.addEventListener('focus', () => moveTo(link));
+    });
+    nav.addEventListener('pointerleave', () => moveTo(active()));
+    moveTo(active(), true);
+  }
 
   protected logout(): void { void this.authStore.logout(); }
 
