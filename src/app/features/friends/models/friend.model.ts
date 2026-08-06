@@ -30,6 +30,8 @@ export interface FriendProfileDetails {
   matches_played: number;
   tournaments_played: number;
   tournaments_won: number;
+  tournaments_second: number;
+  tournaments_third: number;
   tournament_games_played: number;
   tournament_games_won: number;
   best_set_score: number;

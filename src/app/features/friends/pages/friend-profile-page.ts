@@ -45,6 +45,23 @@ const SIDE_LABELS: Record<string, string> = { sinistra: 'Sinistra', destra: 'Des
           </div>
         </section>
 
+        <section class="fp-podium" aria-labelledby="podium-title">
+          <div class="section-head"><div><p class="eyebrow">Tornei</p><h2 id="podium-title">Albo d'oro</h2></div></div>
+          @if (totalPodiums(p) > 0) {
+            <div class="podiums">
+              @for (place of podiumPlaces(p); track place.label) {
+                <article [class]="'podium place-' + place.position">
+                  <span class="podium-icon"><i class="pi pi-trophy" aria-hidden="true"></i></span>
+                  <strong>{{ place.count }}</strong>
+                  <p>{{ place.label }}</p>
+                </article>
+              }
+            </div>
+          } @else {
+            <p class="podium-empty">Nessun podio nei tornei conclusi.</p>
+          }
+        </section>
+
         <app-player-achievement-chart [profile]="p" />
       } @else {
         <div class="state empty">
@@ -64,6 +81,18 @@ const SIDE_LABELS: Record<string, string> = { sinistra: 'Sinistra', destra: 'Des
     .fp-avatar img { width: 100%; height: 100%; object-fit: cover; }
     .eyebrow { margin: 0 0 6px; color: #84efe3; font-size: .68rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     .fp-hero h1 { margin: 0; font: 900 clamp(1.6rem, 6vw, 2.4rem)/1.02 var(--display-font); letter-spacing: -.03em; overflow-wrap: anywhere; }
+    .fp-podium { padding: 18px; border: 1px solid var(--color-border); border-radius: 20px; background: var(--color-surface); }
+    .podiums { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+    .podium { display: grid; justify-items: center; gap: 4px; padding: 14px 8px; border: 1px solid var(--color-border); border-radius: 16px; text-align: center; }
+    .podium-icon { display: grid; width: 38px; height: 38px; place-items: center; border-radius: 12px; }
+    .podium strong { font-size: 1.6rem; line-height: 1; }
+    .podium p { margin: 0; color: var(--color-ink-muted); font-size: .64rem; font-weight: 700; }
+    .podium.place-1 { border-color: #fcd34d; background: #fffbeb; }
+    .podium.place-1 .podium-icon { color: #b45309; background: #fef3c7; }
+    .podium.place-2 .podium-icon { color: #64748b; background: #f1f5f9; }
+    .podium.place-3 { border-color: #fdba74; background: #fff7ed; }
+    .podium.place-3 .podium-icon { color: #c2410c; background: #ffedd5; }
+    .podium-empty { margin: 0; color: var(--color-ink-muted); font-size: .74rem; }
     .fp-metrics { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; margin-top: 14px; }
     .fp-metrics article { padding: 16px 12px; border: 1px solid var(--color-border); border-radius: 18px; background: var(--color-surface); text-align: center; }
     .fp-metrics span { display: block; color: var(--color-ink-muted); font-size: .66rem; font-weight: 700; }
@@ -108,6 +137,16 @@ export class FriendProfilePage implements OnInit {
   }
 
   protected initials(p: FriendProfileDetails): string { return `${p.nome?.[0] ?? ''}${p.cognome?.[0] ?? ''}`.toUpperCase(); }
+  protected podiumPlaces(p: FriendProfileDetails) {
+    return [
+      { position: 1, label: 'Primi posti', count: p.tournaments_won },
+      { position: 2, label: 'Secondi posti', count: p.tournaments_second },
+      { position: 3, label: 'Terzi posti', count: p.tournaments_third },
+    ];
+  }
+  protected totalPodiums(p: FriendProfileDetails): number {
+    return p.tournaments_won + p.tournaments_second + p.tournaments_third;
+  }
   protected sideLabel(side: string): string { return SIDE_LABELS[side] ?? side; }
   protected winRate(profile: FriendProfileDetails): number {
     return profile.tournament_games_played ? Math.round((profile.tournament_games_won / profile.tournament_games_played) * 100) : 0;
