@@ -7,9 +7,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <meta name="theme-color" content="#0b1e25">
   <meta name="description" content="Partite, tornei e community di beach volley sempre a portata di mano.">
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wdth,wght@100..125,400..800&family=Instrument+Sans:wght@400..700&family=JetBrains+Mono:wght@400..700&display=swap">
+  <!-- I font sono serviti dal nostro dominio: nessuna richiesta bloccante a terzi.
+       Le famiglie arrivano dai pacchetti @fontsource-variable, dichiarati in angular.json. -->
+  <!-- Prima connessione a Supabase aperta subito: la sessione e i dati partono
+       senza pagare DNS e TLS. Deve restare allineato a SUPABASE_URL. -->
+  <link rel="preconnect" href="https://hgsluedylltwrtzcunoj.supabase.co" crossorigin>
   <link rel="icon" type="image/png" href="assets/img/favicon.png">
   <link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
 </head>

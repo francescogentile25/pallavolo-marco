@@ -13,8 +13,8 @@
 
 :root {
   --base-font-size: 16px;
-  --base-font-family: 'Instrument Sans', 'Aptos', system-ui, sans-serif;
-  --display-font: 'Archivo', 'Aptos Display', system-ui, sans-serif;
+  --base-font-family: 'Instrument Sans Variable', 'Instrument Sans', 'Aptos', system-ui, sans-serif;
+  --display-font: 'Archivo Variable', 'Archivo', 'Aptos Display', system-ui, sans-serif;
   --color-ocean: #122430;
   --color-ink: #132430;
   --color-ink-muted: #5f6d73;
@@ -64,8 +64,8 @@
   --court-ratio: 2 / 1;
   --court-line: 3px;
   --font-display: 'Archivo', 'Aptos Display', system-ui, sans-serif;
-  --font-body: 'Instrument Sans', 'Aptos', system-ui, sans-serif;
-  --font-numeric: 'JetBrains Mono', ui-monospace, monospace;
+  --font-body: 'Instrument Sans Variable', 'Instrument Sans', 'Aptos', system-ui, sans-serif;
+  --font-numeric: 'JetBrains Mono Variable', 'JetBrains Mono', ui-monospace, monospace;
 }
 
 :root:has(.app-bottom-dock.has-actions) {

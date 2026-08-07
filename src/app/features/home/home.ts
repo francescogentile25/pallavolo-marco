@@ -31,7 +31,7 @@ const DAY = 24 * 60 * 60 * 1000;
   template: `
     <main class="page">
       <section class="hero" [class.hero-empty]="!nextMatch()" #hero>
-        <span class="hero-media" #heroMedia aria-hidden="true"></span>
+        <img class="hero-media" #heroMedia src="assets/images/tournaments-hero.webp" alt="" fetchpriority="high" decoding="async" />
         <span class="hero-veil" aria-hidden="true"></span>
         <div class="hero-inner">
           <div class="hero-content">
@@ -161,7 +161,9 @@ const DAY = 24 * 60 * 60 * 1000;
     /* ---- testata: la prossima partita ---- */
     .hero{position:relative;overflow:hidden;color:white;border-radius:28px;background:#062f46;box-shadow:0 26px 75px rgb(4 42 63/.18)}
     /* Foto e velo su due strati: solo cosi l'immagine puo scorrere sotto al testo. */
-    .hero-media{position:absolute;inset:-10% 0;z-index:0;background:url('/assets/images/tournaments-hero.webp') center 44%/cover no-repeat;will-change:transform}
+    /* Elemento piu grande della prima schermata: caricato con priorita alta,
+       cosi la testata si vede prima invece di aspettare il turno del CSS. */
+    .hero-media{position:absolute;inset:-10% 0;z-index:0;width:100%;height:120%;object-fit:cover;object-position:center 44%;will-change:transform}
     .hero-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgb(3 43 64/.97) 0%,rgb(3 43 64/.92) 32%,rgb(3 43 64/.55) 62%,rgb(3 43 64/.3) 100%),linear-gradient(180deg,transparent 45%,rgb(0 30 45/.2))}
     .hero h1 .line{display:block;overflow:hidden}
     .hero h1 .line>span{display:block}
