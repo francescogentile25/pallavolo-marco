@@ -1,8 +1,10 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnDestroy, OnInit, untracked, viewChild } from '@angular/core';
+import { gsap } from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
-import { Reveal } from '../../shared/motion/reveal.directive';
+import { motionAllowed, Reveal } from '../../shared/motion/reveal.directive';
 import { WeatherPanel } from '../../shared/weather/weather-panel';
 import { AuthStore } from '../auth/store/auth.store';
 import { BeachMatch } from '../matches/models/match.model';
@@ -13,6 +15,8 @@ import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { CalendarEvent, HomeCalendar } from './components/home-calendar';
 
 const DAY = 24 * 60 * 60 * 1000;
+
+gsap.registerPlugin(ScrollTrigger);
 
 /**
  * Home: la prossima partita occupa la testata, il programma personale e il meteo
@@ -25,12 +29,14 @@ const DAY = 24 * 60 * 60 * 1000;
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page">
-      <section class="hero" [class.hero-empty]="!nextMatch()">
+      <section class="hero" [class.hero-empty]="!nextMatch()" #hero>
+        <span class="hero-media" #heroMedia aria-hidden="true"></span>
+        <span class="hero-veil" aria-hidden="true"></span>
         <div class="hero-inner">
           <div class="hero-content">
             @if (nextMatch(); as match) {
               <span class="eyebrow light">La tua prossima partita</span>
-              <h1>Il campo<br />ti aspetta.</h1>
+              <h1><span class="line"><span>Il campo</span></span><span class="line"><span>ti aspetta.</span></span></h1>
               <p class="hero-description">
                 {{ whenLabel(match.starts_at) }} giochi a
                 <strong>{{ match.court.venue.name }}</strong>. Preparati per il prossimo match.
@@ -54,7 +60,7 @@ const DAY = 24 * 60 * 60 * 1000;
               </div>
             } @else {
               <span class="eyebrow light">Nessuna partita in programma</span>
-              <h1>Il campo<br />è libero.</h1>
+              <h1><span class="line"><span>Il campo</span></span><span class="line"><span>è libero.</span></span></h1>
               <p class="hero-description">
                 Non sei iscritto a nessuna partita. <strong>Aprine una</strong> oppure entra in una di quelle qui sotto.
               </p>
@@ -68,7 +74,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
           @if (nextMatch(); as match) {
             <aside class="hero-side">
-              <p class="places"><strong>{{ spots(match) }}</strong><span>{{ spots(match) === 1 ? 'posto libero' : 'posti liberi' }}</span></p>
+              <p class="places"><strong #spotsValue>{{ spots(match) }}</strong><span>{{ spots(match) === 1 ? 'posto libero' : 'posti liberi' }}</span></p>
             </aside>
           }
         </div>
@@ -144,9 +150,12 @@ const DAY = 24 * 60 * 60 * 1000;
     .eyebrow.light{color:var(--court-yellow)}
 
     /* ---- testata: la prossima partita ---- */
-    .hero{position:relative;overflow:hidden;color:white;border-radius:28px;box-shadow:0 26px 75px rgb(4 42 63/.18);
-      background:linear-gradient(90deg,rgb(3 43 64/.97) 0%,rgb(3 43 64/.92) 32%,rgb(3 43 64/.55) 62%,rgb(3 43 64/.3) 100%),url('/assets/images/tournaments-hero.webp') center 44%/cover no-repeat}
-    .hero::after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 45%,rgb(0 30 45/.2))}
+    .hero{position:relative;overflow:hidden;color:white;border-radius:28px;background:#062f46;box-shadow:0 26px 75px rgb(4 42 63/.18)}
+    /* Foto e velo su due strati: solo cosi l'immagine puo scorrere sotto al testo. */
+    .hero-media{position:absolute;inset:-10% 0;z-index:0;background:url('/assets/images/tournaments-hero.webp') center 44%/cover no-repeat;will-change:transform}
+    .hero-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgb(3 43 64/.97) 0%,rgb(3 43 64/.92) 32%,rgb(3 43 64/.55) 62%,rgb(3 43 64/.3) 100%),linear-gradient(180deg,transparent 45%,rgb(0 30 45/.2))}
+    .hero h1 .line{display:block;overflow:hidden}
+    .hero h1 .line>span{display:block}
     .hero-inner{position:relative;z-index:2;display:grid;min-height:430px;grid-template-columns:minmax(0,1fr) 150px}
     .hero-empty .hero-inner{grid-template-columns:minmax(0,1fr)}
     .hero-content{display:flex;width:min(660px,100%);flex-direction:column;justify-content:center;padding:48px 24px}
@@ -246,6 +255,15 @@ const DAY = 24 * 60 * 60 * 1000;
   `,
 })
 export class Home implements OnInit, OnDestroy {
+  private readonly hero = viewChild<ElementRef<HTMLElement>>('hero');
+  private readonly heroMedia = viewChild<ElementRef<HTMLElement>>('heroMedia');
+  private readonly spotsValue = viewChild<ElementRef<HTMLElement>>('spotsValue');
+
+  private intro?: gsap.core.Timeline;
+  private parallax?: ScrollTrigger;
+  private lastHadMatch: boolean | null = null;
+  private countedNode: HTMLElement | null = null;
+
   private readonly pageActions = inject(PageActionsService);
   private readonly authStore = inject(AuthStore);
   private readonly matchesStore = inject(MatchesStore);
@@ -317,6 +335,71 @@ export class Home implements OnInit, OnDestroy {
       .sort((first, second) => Date.parse(first.starts_at) - Date.parse(second.starts_at)),
   );
 
+  constructor() {
+    // La testata cambia quando arrivano le partite: l'ingresso va suonato sul
+    // contenuto definitivo, non su quello di attesa.
+    afterRenderEffect(() => {
+      const hasMatch = !!this.nextMatch();
+      if (this.lastHadMatch === hasMatch) return;
+      this.lastHadMatch = hasMatch;
+      untracked(() => this.playIntro());
+    });
+
+    afterRenderEffect(() => {
+      const node = this.spotsValue()?.nativeElement ?? null;
+      if (!node || node === this.countedNode) return;
+      this.countedNode = node;
+      untracked(() => this.countSpots(node));
+    });
+  }
+
+  /** Ingresso orchestrato della testata, piu il parallasse della foto sullo scorrimento. */
+  private playIntro(): void {
+    if (!motionAllowed()) return;
+    const root = this.hero()?.nativeElement;
+    if (!root) return;
+
+    this.intro?.kill();
+    const select = gsap.utils.selector(root);
+    this.intro = gsap.timeline({ defaults: { ease: 'power3.out' } })
+      .from(select('.hero-media'), { scale: 1.14, duration: 1.6, ease: 'power2.out' }, 0)
+      .from(select('.eyebrow'), { opacity: 0, y: 14, duration: 0.5 }, 0.15)
+      .from(select('h1 .line > span'), { yPercent: 115, duration: 0.9, stagger: 0.09 }, 0.2)
+      .from(select('.hero-description'), { opacity: 0, y: 16, duration: 0.6 }, 0.5)
+      .from(select('.summary-item'), { opacity: 0, y: 14, duration: 0.5, stagger: 0.08 }, 0.6)
+      .from(select('.hero-actions .btn'), { opacity: 0, y: 14, duration: 0.5, stagger: 0.1 }, 0.72)
+      .from(select('.hero-side'), { opacity: 0, xPercent: 40, duration: 0.7 }, 0.55);
+
+    const media = this.heroMedia()?.nativeElement;
+    if (media && !this.parallax) {
+      this.parallax = ScrollTrigger.create({
+        trigger: root,
+        start: 'top top',
+        end: 'bottom top',
+        scrub: true,
+        animation: gsap.fromTo(media, { yPercent: -4 }, { yPercent: 6, ease: 'none' }),
+      });
+    }
+  }
+
+  /** I posti liberi salgono da zero: e il numero che decide se scendi in campo. */
+  private countSpots(node: HTMLElement): void {
+    if (!motionAllowed()) return;
+    const target = Number(node.textContent?.trim() ?? '0');
+    if (!Number.isFinite(target) || target <= 0) return;
+    const state = { value: 0 };
+    node.textContent = '0';
+    gsap.to(state, {
+      value: target,
+      duration: 0.9,
+      delay: 0.7,
+      ease: 'power2.out',
+      snap: { value: 1 },
+      onUpdate: () => { node.textContent = String(Math.round(state.value)); },
+      onComplete: () => { node.textContent = String(target); },
+    });
+  }
+
   protected spots(match: BeachMatch): number { return availableSpots(match); }
   protected levelText(match: BeachMatch): string { return levelLabel(match.max_level); }
   protected confirmedTeams(tournament: Tournament): number {
@@ -370,5 +453,7 @@ export class Home implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.pageActions.clear();
+    this.intro?.kill();
+    this.parallax?.kill();
   }
 }

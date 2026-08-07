@@ -1,6 +1,8 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, ElementRef, input, signal, untracked, viewChild } from '@angular/core';
+import { gsap } from 'gsap';
 import { RouterLink } from '@angular/router';
+import { motionAllowed } from '../../../shared/motion/reveal.directive';
 
 export type CalendarEventKind = 'match' | 'tournament';
 
@@ -87,7 +89,7 @@ function dayKey(value: Date): string {
         </ol>
       }
 
-      <div class="grid" [class.month]="view() === 'month'">
+      <div class="grid" [class.month]="view() === 'month'" #grid>
         @for (cell of cells(); track cell.key) {
           <div class="day" [class.today]="cell.today" [class.outside]="cell.outside">
             @if (view() === 'week') { <span class="day-name">{{ cell.weekdayLabel }}</span> }
@@ -181,6 +183,9 @@ function dayKey(value: Date): string {
 export class HomeCalendar {
   readonly events = input<readonly CalendarEvent[]>([]);
 
+  private readonly grid = viewChild<ElementRef<HTMLElement>>('grid');
+  private lastPeriod = '';
+
   protected readonly weekdays = WEEKDAYS;
   protected readonly view = signal<'week' | 'month'>('week');
   /** Giorno di riferimento: la vista ci costruisce sopra settimana o mese. */
@@ -219,6 +224,21 @@ export class HomeCalendar {
       };
     });
   });
+
+  constructor() {
+    // Cambio di periodo o di scala: la griglia si ricompone, cosi il salto e leggibile.
+    afterRenderEffect(() => {
+      const period = `${this.view()}:${this.cursor().getTime()}`;
+      const host = this.grid()?.nativeElement;
+      if (!host || period === this.lastPeriod) return;
+      const first = !this.lastPeriod;
+      this.lastPeriod = period;
+      if (first || !motionAllowed()) return;
+      untracked(() => {
+        gsap.from(host.children, { opacity: 0, y: 8, duration: 0.32, ease: 'power2.out', stagger: 0.012, overwrite: true });
+      });
+    });
+  }
 
   protected setView(view: 'week' | 'month'): void {
     this.view.set(view);
