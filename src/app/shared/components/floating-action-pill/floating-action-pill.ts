@@ -99,7 +99,7 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
       outline-offset: 2px;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 1024px) {
       .action-pill { display: flex; }
     }
   `,

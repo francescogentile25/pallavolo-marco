@@ -1,4 +1,4 @@
-import { afterNextRender, ChangeDetectionStrategy, Component, ElementRef, inject, viewChild } from '@angular/core';
+import { afterNextRender, ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
 import { gsap } from 'gsap';
 import { motionAllowed } from '../../../shared/motion/reveal.directive';
 import { RouterLink, RouterLinkActive } from '@angular/router';
@@ -35,20 +35,25 @@ import { NotificationBell } from '../../notifications/components/notification-be
         }
         <app-notification-bell />
         <button class="icon-action logout" type="button" aria-label="Esci" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i></button>
-        <a class="user-avatar" routerLink="/profilo" aria-label="Apri il tuo profilo">{{ userInitials() }}</a>
+        <a class="user-avatar" routerLink="/profilo" aria-label="Apri il tuo profilo">
+          @if (avatarUrl(); as url) {
+            <img [src]="url" alt="" (error)="avatarBroken.set(true)" />
+          } @else { {{ userInitials() }} }
+        </a>
       </div>
     </header>
   `,
   styles: `
     :host { display: block; }
-    .app-header { position: sticky; z-index: var(--z-sticky); top: 0; display: flex; height: var(--header-height); align-items: center; justify-content: space-between; padding: max(8px, env(safe-area-inset-top)) 16px 8px; color: var(--color-ink); border-bottom: 1px solid var(--color-border); background: rgb(255 255 255 / .92); box-shadow: 0 5px 20px rgb(20 24 26 / .035); backdrop-filter: blur(18px); }
-    .brand { display: inline-flex; align-items: center; text-decoration: none; }
-    .brand img { height: 54px; width: auto; display: block; }
+    .app-header { position: sticky; z-index: var(--z-sticky); top: 0; display: flex; height: var(--header-height); align-items: center; justify-content: space-between; flex-wrap: nowrap; gap: 12px; padding: max(8px, env(safe-area-inset-top)) 16px 8px; color: var(--color-ink); border-bottom: 1px solid var(--color-border); background: rgb(255 255 255 / .92); box-shadow: 0 5px 20px rgb(20 24 26 / .035); backdrop-filter: blur(18px); }
+    .brand { display: inline-flex; min-width: 0; flex: 0 1 auto; align-items: center; text-decoration: none; }
+    .brand img { height: 54px; width: auto; max-width: 100%; display: block; }
+    @media (max-width: 1179px) { .brand img { height: 46px; } }
     @media (max-width: 420px) { .brand img { height: 42px; } }
     .brand strong { font: 800 .93rem/1 var(--display-font); letter-spacing: -.025em; white-space: nowrap; }
     .brand strong span { color: var(--color-brand); }
     .brand-mark { display: grid; width: 36px; height: 36px; place-items: center; color: white; border-radius: var(--radius); background: var(--color-ocean); box-shadow: 0 7px 16px rgb(20 24 26 / .16); }
-    nav { position: relative; display: none; align-items: center; gap: 24px; }
+    nav { position: relative; display: none; min-width: 0; align-items: center; gap: 24px; }
     .nav-marker { position: absolute; bottom: 0; left: 0; height: 2px; width: 0; background: var(--color-brand); opacity: 0; pointer-events: none; }
     nav a { display: inline-flex; align-items: center; gap: 7px; padding: 9px 0; color: var(--color-ink-muted); border-bottom: 2px solid transparent; font-size: .81rem; font-weight: 750; text-decoration: none; }
     nav a i { font-size: .76rem; }
@@ -56,21 +61,29 @@ import { NotificationBell } from '../../notifications/components/notification-be
     nav a.is-active { border-bottom-color: transparent; }
     .brand img { transition: transform var(--duration-fast) var(--ease-out); }
     .brand:hover img { transform: rotate(-2deg) scale(1.03); }
-    .account-actions { display: flex; align-items: center; gap: 7px; }
-    .user-name { display: none; color: var(--color-ink); font-size: .74rem; font-weight: 800; }
+    .account-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; }
+    .user-name { display: none; max-width: 15ch; overflow: hidden; color: var(--color-ink); font-size: .74rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .user-name small { display: block; color: var(--color-ink-muted); font-size: .62rem; font-weight: 650; text-align: right; }
     .icon-action { position: relative; display: none; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: var(--radius); background: var(--color-surface-muted); font: inherit; text-decoration: none; cursor: pointer; }
     .icon-action.notifications, .icon-action.logout { display: grid; }
     .icon-action:hover { color: var(--color-brand-strong); transform: translateY(-1px); }
     .notifications span { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border: 2px solid var(--color-surface-muted); border-radius: 50%; background: var(--color-brand); }
-    .user-avatar { display: grid; width: 38px; height: 38px; place-items: center; color: white; border-radius: var(--radius); background: var(--color-brand); font-size: .68rem; font-weight: 850; text-decoration: none; }
+    .user-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; overflow: hidden; color: white; border-radius: var(--radius); background: var(--color-brand); font-size: .68rem; font-weight: 850; text-decoration: none; }
+    .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
     a:focus-visible, button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
     @media (max-width: 420px) { .brand strong { max-width: 74px; white-space: normal; } .icon-action.logout { display: none; } }
-    @media (min-width: 768px) { .app-header { padding-inline: clamp(24px, 4vw, 52px); } nav { display: flex; } .user-name { display: inline; } .icon-action { display: grid; } }
+    /* Fra 768 e 1023 la barra non conteneva logo, sei voci, nome utente e azioni:
+       fino a 1024 resta il dock in basso, come su telefono. */
+    @media (min-width: 768px) { .app-header { padding-inline: clamp(20px, 3vw, 52px); } }
+    @media (min-width: 1024px) { nav { display: flex; gap: 16px; } .icon-action { display: grid; } }
+    @media (min-width: 1180px) { nav { gap: 24px; } .user-name { display: inline; } }
   `,
 })
 export class Header {
   protected readonly authStore = inject(AuthStore);
+  protected readonly avatarBroken = signal(false);
+  /** Segue lo snapshot del profilo: cambiando la foto la navbar si aggiorna da sola. */
+  protected readonly avatarUrl = computed(() => (this.avatarBroken() ? null : this.authStore.profile()?.avatar_url ?? null));
   private readonly navEl = viewChild<ElementRef<HTMLElement>>('navEl');
 
   constructor() {

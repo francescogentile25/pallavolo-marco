@@ -219,7 +219,7 @@ import { AuthStore } from '../../../features/auth/store/auth.store';
       outline-offset: 2px;
     }
 
-    @media (min-width: 768px) {
+    @media (min-width: 1024px) {
       .app-bottom-dock { display: none; }
     }
 
