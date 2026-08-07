@@ -24,7 +24,7 @@ interface SlotRequest {
   template: `
     @if (point(); as forecast) {
       <section class="slot" [class]="'slot slot-' + verdict()?.level" aria-labelledby="weather-slot-title">
-        <app-weather-glyph class="glyph" [code]="forecast.weatherCode" />
+        <app-weather-glyph class="glyph" [code]="forecast.weatherCode" [night]="nightAtStart()" />
         <div class="lead">
           <p class="eyebrow" id="weather-slot-title">Meteo all'inizio</p>
           <p class="headline"><b class="num">{{ forecast.temperature | number: '1.0-0' }}°</b> {{ describe(forecast.weatherCode) }}</p>
@@ -75,6 +75,13 @@ export class WeatherSlot {
 
   private readonly weather = inject(WeatherService);
   protected readonly point = signal<WeatherPoint | null>(null);
+  /** L'ora di inizio decide se mostrare l'icona diurna o notturna. */
+  protected readonly nightAtStart = computed(() => {
+    const forecast = this.point();
+    if (!forecast) return false;
+    const hour = new Date(forecast.time).getHours();
+    return hour < 6 || hour >= 21;
+  });
   protected readonly verdict = computed(() => {
     const forecast = this.point();
     return forecast ? playability(forecast) : null;

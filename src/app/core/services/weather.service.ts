@@ -44,13 +44,18 @@ export class WeatherService {
     const cached = this.read<WeatherSnapshot | null>(key, FORECAST_TTL);
     if (cached !== undefined) return cached;
 
-    const url = `${FORECAST_URL}?latitude=${latitude}&longitude=${longitude}&current=${CURRENT_FIELDS}&daily=sunset&forecast_days=1&timezone=UTC`;
+    const url = `${FORECAST_URL}?latitude=${latitude}&longitude=${longitude}&current=${CURRENT_FIELDS}&daily=sunrise,sunset&forecast_days=1&timezone=UTC`;
     const data = await this.request<ForecastResponse>(url);
     const current = data?.current ? this.pointFromCurrent(data.current) : null;
     if (!current) { this.write(key, null); return null; }
 
+    const sunrise = data?.daily?.['sunrise']?.[0] ?? null;
     const sunset = data?.daily?.['sunset']?.[0] ?? null;
-    const value: WeatherSnapshot = { current, sunset: sunset ? this.toInstant(sunset) : null };
+    const value: WeatherSnapshot = {
+      current,
+      sunrise: sunrise ? this.toInstant(sunrise) : null,
+      sunset: sunset ? this.toInstant(sunset) : null,
+    };
     this.write(key, value);
     return value;
   }

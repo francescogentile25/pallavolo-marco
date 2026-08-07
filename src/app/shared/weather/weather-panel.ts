@@ -3,6 +3,8 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { RouterLink } from '@angular/router';
 import { WeatherService } from '../../core/services/weather.service';
 import { WeatherGlyph } from './weather-glyph';
+import { WeatherScene } from './weather-scene';
+import { isNight } from './weather-icon.model';
 import { playability, weatherDescription, WeatherSnapshot } from './weather.model';
 
 /**
@@ -12,16 +14,17 @@ import { playability, weatherDescription, WeatherSnapshot } from './weather.mode
  */
 @Component({
   selector: 'app-weather-panel',
-  imports: [DatePipe, DecimalPipe, RouterLink, WeatherGlyph],
+  imports: [DatePipe, DecimalPipe, RouterLink, WeatherGlyph, WeatherScene],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="weather" aria-labelledby="weather-title">
+      @if (snapshot(); as data) { <app-weather-scene [code]="data.current.weatherCode" [night]="night()" /> }
       <div class="top">
         <div>
           <span class="eyebrow">Meteo di oggi</span>
           <h2 id="weather-title">{{ place() || 'La tua città' }}</h2>
         </div>
-        @if (snapshot(); as data) { <app-weather-glyph class="glyph" [code]="data.current.weatherCode" /> }
+        @if (snapshot(); as data) { <app-weather-glyph class="glyph" [code]="data.current.weatherCode" [night]="night()" /> }
       </div>
 
       @if (!hasPlace()) {
@@ -57,11 +60,9 @@ import { playability, weatherDescription, WeatherSnapshot } from './weather.mode
     :host{display:block;height:100%}
     .num{font-family:var(--font-numeric);font-variant-numeric:tabular-nums}
     .weather{position:relative;display:flex;height:100%;flex-direction:column;overflow:hidden;padding:24px;color:white;border-radius:var(--radius-lg);
-      background:linear-gradient(145deg,#056cad 0%,#0477bd 52%,#084866 100%);box-shadow:0 18px 50px rgb(7 54 79/.12)}
-    .weather::before,.weather::after{content:'';position:absolute;border-radius:50%;background:rgb(255 255 255/.05)}
-    .weather::before{top:-115px;right:-120px;width:280px;height:280px}
-    .weather::after{right:-80px;bottom:-120px;width:220px;height:220px}
+      background:linear-gradient(145deg,#056cad 0%,#0477bd 52%,#084866 100%);box-shadow:0 18px 50px rgb(7 54 79/.12);text-shadow:0 1px 12px rgb(4 30 48/.35)}
     .weather>*{position:relative;z-index:2}
+    app-weather-scene{z-index:0}
 
     .top{display:flex;justify-content:space-between;gap:16px}
     .eyebrow{display:inline-flex;color:#b5def0;font-size:.62rem;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
@@ -99,6 +100,11 @@ export class WeatherPanel {
   private readonly weather = inject(WeatherService);
   protected readonly snapshot = signal<WeatherSnapshot | null>(null);
   protected readonly loading = signal(false);
+  /** Notte secondo alba e tramonto del luogo: decide icone e colore del cielo. */
+  protected readonly night = computed(() => {
+    const data = this.snapshot();
+    return isNight(new Date(), data?.sunrise ?? null, data?.sunset ?? null);
+  });
   protected readonly verdict = computed(() => {
     const current = this.snapshot()?.current;
     return current ? playability(current) : null;

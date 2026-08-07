@@ -20,7 +20,8 @@ export interface WeatherPoint {
 
 export interface WeatherSnapshot {
   current: WeatherPoint;
-  /** Tramonto di oggi: dice fino a quando si vede la palla. */
+  /** Alba e tramonto di oggi: dicono fino a quando si vede la palla, e se e notte. */
+  sunrise: string | null;
   sunset: string | null;
 }
 

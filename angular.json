@@ -50,6 +50,11 @@
                 "glob": "**/*",
                 "input": "public"
               },
+              {
+                "glob": "{clear-day,clear-night,drizzle,fog-day,fog-night,overcast-day,overcast-night,partly-cloudy-day,partly-cloudy-day-rain,partly-cloudy-night,partly-cloudy-night-rain,rain,sleet,snow,thunderstorms-day,thunderstorms-day-rain,thunderstorms-night,thunderstorms-night-rain}.svg",
+                "input": "node_modules/@bybas/weather-icons/production/fill/all",
+                "output": "assets/weather"
+              },
               "src/assets"
             ],
             "styles": [
@@ -120,6 +125,11 @@
               {
                 "glob": "**/*",
                 "input": "public"
+              },
+              {
+                "glob": "{clear-day,clear-night,drizzle,fog-day,fog-night,overcast-day,overcast-night,partly-cloudy-day,partly-cloudy-day-rain,partly-cloudy-night,partly-cloudy-night-rain,rain,sleet,snow,thunderstorms-day,thunderstorms-day-rain,thunderstorms-night,thunderstorms-night-rain}.svg",
+                "input": "node_modules/@bybas/weather-icons/production/fill/all",
+                "output": "assets/weather"
               },
               "src/assets"
             ],
