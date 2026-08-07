@@ -13,6 +13,7 @@ export type AppNotificationType =
   | 'tournament_cancelled'
   | 'tournament_result_recorded'
   | 'tournament_result_pending'
+  | 'tournament_result_rejected'
   | 'tournament_waitlist_promoted'
   | 'friend_request_received'
   | 'friend_request_accepted'

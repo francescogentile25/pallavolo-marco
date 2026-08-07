@@ -11,7 +11,7 @@ const TOURNAMENT_SELECT = `
   teams:tournament_teams!tournament_teams_tournament_id_fkey(id,tournament_id,status,seed,waitlist_position,members:tournament_team_members(profile_id,status,profile:profiles!tournament_team_members_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url))),
   brackets:tournament_brackets(bracket_no,name),
   groups:tournament_groups(id,tournament_id,name,position,capacity,planned_matches,links:tournament_group_teams(group_id,team_id,position)),
-  games:tournament_games(*,confirmations:tournament_result_confirmations(team_id,profile_id,confirmed_at))
+  games:tournament_games(*,confirmations:tournament_result_confirmations(team_id,profile_id,confirmed_at),proposals:tournament_result_proposals(id,game_id,proposed_by,team1_scores,team2_scores,status,created_at,proposer:profiles!tournament_result_proposals_proposed_by_fkey(id,nome,cognome)))
 `;
 
 @Injectable({ providedIn: 'root' })
@@ -65,6 +65,12 @@ export class TournamentsService {
   async advanceGroups(id: string): Promise<void> { await this.rpc('advance_tournament_group_stage', { p_tournament_id: id }); }
   async submitResult(gameId: string, first: readonly number[], second: readonly number[]): Promise<void> { await this.rpc('submit_tournament_result', { p_game_id: gameId, p_team1_scores: first, p_team2_scores: second }); }
   async confirmResult(gameId: string): Promise<void> { await this.rpc('confirm_tournament_result', { p_game_id: gameId }); }
+  async proposeResult(gameId: string, first: readonly number[], second: readonly number[]): Promise<void> {
+    await this.rpc('propose_tournament_result', { p_game_id: gameId, p_team1_scores: first, p_team2_scores: second });
+  }
+  async reviewResult(gameId: string, accept: boolean): Promise<void> {
+    await this.rpc('review_tournament_result', { p_game_id: gameId, p_accept: accept });
+  }
   async rescheduleGame(gameId: string, scheduledAt: string, courtId: string): Promise<void> { await this.rpc('reschedule_tournament_game', { p_game_id: gameId, p_scheduled_at: scheduledAt, p_court_id: courtId }); }
   async cancel(id: string): Promise<void> { await this.rpc('cancel_tournament', { p_tournament_id: id }); }
   async archive(id: string): Promise<void> { await this.rpc('archive_tournament', { p_tournament_id: id }); }

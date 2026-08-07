@@ -34,6 +34,18 @@ export interface TournamentGroup {
 }
 export interface TournamentBracket { bracket_no: number; name: string; }
 export interface TournamentGroupTeam { group_id: string; team_id: string; position: number; }
+/** Risultato proposto da chi ha giocato, in attesa che l'organizzatore lo validi. */
+export interface TournamentResultProposal {
+  id: number;
+  game_id: string;
+  proposed_by: string;
+  team1_scores: readonly number[];
+  team2_scores: readonly number[];
+  status: 'pending' | 'accepted' | 'rejected';
+  created_at: string;
+  proposer?: { id: string; nome: string; cognome: string };
+}
+
 export interface TournamentGame {
   id: string;
   tournament_id: string;
@@ -53,6 +65,7 @@ export interface TournamentGame {
   winner_team_id: string | null;
   next_game_id: string | null;
   confirmations?: readonly { team_id: string; profile_id: string; confirmed_at: string }[];
+  proposals?: readonly TournamentResultProposal[];
 }
 
 export interface Tournament {
