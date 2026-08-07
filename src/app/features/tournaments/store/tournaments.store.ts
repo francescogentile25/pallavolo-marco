@@ -32,6 +32,7 @@ export const TournamentsStore = signalStore(
       submitResult: (id: string, gameId: string, first: readonly number[], second: readonly number[]) => act(id, () => service.submitResult(gameId, first, second), 'Risultato salvato', 'Classifica e tabellone sono aggiornati.'),
       proposeResult: (id: string, gameId: string, first: readonly number[], second: readonly number[]) => act(id, () => service.proposeResult(gameId, first, second), 'Risultato proposto', 'L’organizzatore lo riceverà e dovrà validarlo.'),
       reviewResult: (id: string, gameId: string, accept: boolean) => act(id, () => service.reviewResult(gameId, accept), accept ? 'Risultato validato' : 'Proposta rifiutata', accept ? 'Il punteggio è ora effettivo.' : 'Chi lo ha proposto è stato avvisato.'),
+      advanceBye: (id: string, gameId: string) => act(id, () => service.advanceBye(gameId), 'Squadra qualificata', 'Con il BYE passa senza giocare.'),
       confirmResult: (id: string, gameId: string) => act(id, () => service.confirmResult(gameId), 'Risultato confermato', 'La conferma della tua coppia è registrata.'),
       rescheduleGame: (id: string, gameId: string, scheduledAt: string, courtId: string) => act(id, () => service.rescheduleGame(gameId, scheduledAt, courtId), 'Calendario aggiornato', 'Orario e campo dell’incontro sono stati salvati.'),
       cancel: (id: string) => act(id, () => service.cancel(id), 'Torneo annullato', 'Lo stato è visibile a tutti gli iscritti.'),

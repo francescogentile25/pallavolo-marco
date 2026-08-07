@@ -174,7 +174,12 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                           </label>
                           <footer>
                             @if (!groupsClosed() && hasGroups()) { <small class="locked"><i class="pi pi-lock" aria-hidden="true"></i> Risultati bloccati</small> }
-                            <p-button icon="pi pi-check" [text]="true" size="small" ariaLabel="Salva risultato" [disabled]="!canScore(game) || !validScore(game)" [loading]="store.saving()" (onClick)="saveScore(game)" />
+                            @if (isBye(game)) {
+                              <small class="bye-hint"><i class="pi pi-forward" aria-hidden="true"></i> BYE: passa senza giocare</small>
+                              <p-button icon="pi pi-check" [text]="true" size="small" ariaLabel="Fai passare la squadra con il BYE" [loading]="store.saving()" (onClick)="advanceBye(game)" />
+                            } @else {
+                              <p-button icon="pi pi-check" [text]="true" size="small" ariaLabel="Salva risultato" [disabled]="!canScore(game) || !validScore(game)" [loading]="store.saving()" (onClick)="saveScore(game)" />
+                            }
                             <p-button icon="pi pi-trash" [text]="true" severity="danger" size="small" ariaLabel="Elimina partita" (onClick)="confirmDeleteGame(game)" />
                           </footer>
                         </div>
@@ -287,6 +292,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .tie-scores em{color:#8d7f66;font-size:.6rem;font-style:normal;font-weight:900}
     .tie-edit footer{display:flex;align-items:center;justify-content:flex-end;gap:6px}
     .locked{margin-right:auto;color:#8d7f66;font-size:.62rem;font-weight:750}
+    .bye-hint{display:inline-flex;align-items:center;gap:5px;margin-right:auto;color:#7d5a10;font-size:.62rem;font-weight:800}
     .tie-court{display:flex;align-items:center;gap:6px;margin:0;color:#5b6a72;font-size:.66rem}
     .bracket-empty{display:grid;min-width:min(88vw,560px);min-height:230px;place-content:center;justify-items:center;gap:6px;padding:26px;color:#8d7f66;text-align:center;border:1px dashed #d9cdb4;border-radius:var(--radius-lg)}
     .bracket-empty i{color:#8d7f66;font-size:2rem}
@@ -518,6 +524,22 @@ export class TournamentKnockout {
     const won = first.filter((value, index) => value > second[index]).length;
     const lost = first.length - won;
     return Math.max(won, lost) === this.setsToWin(game);
+  }
+
+  /**
+   * Bye: un solo posto occupato in un incontro del tabellone. Non serve punteggio,
+   * la squadra presente e gia qualificata.
+   */
+  protected isBye(game: TournamentGame): boolean {
+    if (!this.canManage() || game.phase === 'group') return false;
+    if (game.status === 'completed' || game.status === 'walkover') return false;
+    if (!this.groupsClosed() && this.hasGroups()) return false;
+    return !!game.team1_id !== !!game.team2_id;
+  }
+
+  protected async advanceBye(game: TournamentGame): Promise<void> {
+    if (!this.isBye(game)) return;
+    await this.store.advanceBye(this.tournament().id, game.id);
   }
 
   protected async saveScore(game: TournamentGame): Promise<void> {

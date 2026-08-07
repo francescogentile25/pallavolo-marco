@@ -66,6 +66,9 @@ export class TournamentsService {
   async closeRegistrations(id: string): Promise<void> { await this.rpc('close_tournament_registrations', { p_tournament_id: id }); }
   async advanceGroups(id: string): Promise<void> { await this.rpc('advance_tournament_group_stage', { p_tournament_id: id }); }
   async submitResult(gameId: string, first: readonly number[], second: readonly number[]): Promise<void> { await this.rpc('submit_tournament_result', { p_game_id: gameId, p_team1_scores: first, p_team2_scores: second }); }
+  /** Bye: la sola squadra in tabellone passa al turno successivo senza punteggio. */
+  async advanceBye(gameId: string): Promise<void> { await this.rpc('advance_tournament_bye', { p_game_id: gameId }); }
+
   async confirmResult(gameId: string): Promise<void> { await this.rpc('confirm_tournament_result', { p_game_id: gameId }); }
   async proposeResult(gameId: string, first: readonly number[], second: readonly number[]): Promise<void> {
     await this.rpc('propose_tournament_result', { p_game_id: gameId, p_team1_scores: first, p_team2_scores: second });
