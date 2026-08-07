@@ -16,6 +16,7 @@ interface CacheEntry<T> { at: number; value: T }
 interface ForecastResponse {
   current?: Record<string, number | string>;
   hourly?: Record<string, (number | string | null)[]>;
+  daily?: Record<string, (string | null)[]>;
 }
 
 /**
@@ -60,21 +61,20 @@ export class WeatherService {
     return value;
   }
 
-  /** Condizioni attuali piu le ore successive, per la home. */
+  /** Condizioni attuali e tramonto: quello che serve alla testata della home. */
   async snapshot(coordinates: Coordinates): Promise<WeatherSnapshot | null> {
     const { latitude, longitude } = roundCoordinates(coordinates);
     const key = `now:${latitude},${longitude}`;
     const cached = this.read<WeatherSnapshot | null>(key, FORECAST_TTL);
     if (cached !== undefined) return cached;
 
-    const url = `${FORECAST_URL}?latitude=${latitude}&longitude=${longitude}&current=${CURRENT_FIELDS}&hourly=${HOURLY_FIELDS}&forecast_days=2&timezone=UTC`;
+    const url = `${FORECAST_URL}?latitude=${latitude}&longitude=${longitude}&current=${CURRENT_FIELDS}&daily=sunset&forecast_days=1&timezone=UTC`;
     const data = await this.request<ForecastResponse>(url);
     const current = data?.current ? this.pointFromCurrent(data.current) : null;
     if (!current) { this.write(key, null); return null; }
 
-    const now = Date.now();
-    const hours = this.pointsFromHourly(data?.hourly).filter(point => Date.parse(point.time) >= now).slice(0, 6);
-    const value: WeatherSnapshot = { current, hours };
+    const sunset = data?.daily?.['sunset']?.[0] ?? null;
+    const value: WeatherSnapshot = { current, sunset: sunset ? this.toInstant(sunset) : null };
     this.write(key, value);
     return value;
   }

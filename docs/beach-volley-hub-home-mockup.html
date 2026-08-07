@@ -1,0 +1,1520 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Beach Volley Hub — Home Mockup</title>
+
+  <!--
+    MOCKUP STATICO PRONTO DA ADATTARE AL PROGETTO REALE.
+
+    Note per l'integrazione:
+    - HTML e CSS sono nello stesso file.
+    - Nessuna dipendenza JavaScript.
+    - I dati sono demo/statici.
+    - La foto hero usa un URL remoto: sostituirlo con un asset del progetto.
+    - Le icone sono volutamente semplici/inline per rendere il mockup portabile.
+    - Le classi sono organizzate per sezioni e possono essere convertite facilmente
+      in componenti Angular/React/Vue.
+  -->
+
+  <style>
+    :root {
+      --navy: #062f46;
+      --navy-2: #0b3e59;
+      --blue: #075dac;
+      --blue-2: #058ed1;
+      --blue-3: #35a9e0;
+      --light-blue: #e2f5fc;
+      --yellow: #f8b922;
+      --orange: #ff945e;
+      --cream: #f2ead9;
+      --white: #ffffff;
+      --text: #082b3d;
+      --muted: #648092;
+      --border: #d4e2e8;
+      --page: #f5fafc;
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+      --shadow: 0 18px 50px rgba(7, 54, 79, 0.08);
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    html {
+      scroll-behavior: smooth;
+    }
+
+    body {
+      margin: 0;
+      min-height: 100vh;
+      font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont,
+        "Segoe UI", sans-serif;
+      color: var(--text);
+      background:
+        radial-gradient(circle at top right, rgba(53, 169, 224, 0.08), transparent 28%),
+        linear-gradient(180deg, #f6fbfd 0%, #f9fbfa 50%, #f4eee2 100%);
+    }
+
+    button,
+    input,
+    select,
+    textarea {
+      font: inherit;
+    }
+
+    button,
+    a {
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button {
+      cursor: pointer;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    /* =========================
+       HEADER
+    ========================= */
+
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      min-height: 78px;
+      padding: 0 34px;
+      display: grid;
+      grid-template-columns: 245px 1fr auto;
+      align-items: center;
+      gap: 24px;
+      background: rgba(255, 255, 255, 0.92);
+      border-bottom: 1px solid #dfeaf0;
+      backdrop-filter: blur(16px);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .brand-mark {
+      width: 46px;
+      height: 46px;
+      border: 2px solid #9eb1bc;
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 12px;
+      font-weight: 900;
+      color: #678090;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .brand-mark::before,
+    .brand-mark::after {
+      content: "";
+      position: absolute;
+      width: 52px;
+      height: 16px;
+      border: 2px solid #8ba1ae;
+      border-radius: 50%;
+      transform: rotate(-35deg);
+    }
+
+    .brand-mark::after {
+      transform: rotate(35deg);
+    }
+
+    .brand-copy {
+      display: flex;
+      flex-direction: column;
+      line-height: 1.08;
+    }
+
+    .brand-copy strong {
+      font-size: 13px;
+      letter-spacing: 0.02em;
+    }
+
+    .brand-copy span {
+      margin-top: 4px;
+      font-size: 8px;
+      font-weight: 800;
+      color: var(--blue);
+      letter-spacing: 0.14em;
+    }
+
+    .main-nav {
+      height: 78px;
+      display: flex;
+      align-items: stretch;
+      gap: 4px;
+    }
+
+    .main-nav a {
+      padding: 0 14px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      color: #627e90;
+      font-size: 14px;
+      font-weight: 750;
+      border-bottom: 3px solid transparent;
+      transition: 160ms ease;
+    }
+
+    .main-nav a:hover,
+    .main-nav a.active {
+      color: var(--navy);
+    }
+
+    .main-nav a.active {
+      background: #edf7fb;
+      border-bottom-color: var(--blue-2);
+    }
+
+    .nav-icon {
+      font-size: 15px;
+      line-height: 1;
+    }
+
+    .user-area {
+      display: flex;
+      align-items: center;
+      gap: 9px;
+    }
+
+    .user-copy {
+      margin-right: 4px;
+      display: flex;
+      flex-direction: column;
+      text-align: right;
+    }
+
+    .user-copy strong {
+      font-size: 13px;
+    }
+
+    .user-copy span {
+      margin-top: 3px;
+      font-size: 11px;
+      color: #728999;
+    }
+
+    .icon-btn,
+    .avatar {
+      width: 44px;
+      height: 44px;
+      border: 0;
+      border-radius: 14px;
+      display: grid;
+      place-items: center;
+    }
+
+    .icon-btn {
+      position: relative;
+      background: #edf6fa;
+      color: var(--navy);
+    }
+
+    .badge {
+      position: absolute;
+      top: -4px;
+      right: -3px;
+      min-width: 18px;
+      height: 18px;
+      padding: 0 5px;
+      border-radius: 999px;
+      display: grid;
+      place-items: center;
+      background: var(--blue);
+      color: white;
+      font-size: 10px;
+      font-weight: 900;
+      border: 2px solid white;
+    }
+
+    .avatar {
+      background: var(--blue-2);
+      color: white;
+      font-size: 12px;
+      font-weight: 900;
+    }
+
+    /* =========================
+       PAGE
+    ========================= */
+
+    .page {
+      width: min(1360px, calc(100% - 48px));
+      margin: 0 auto;
+      padding: 32px 0 132px;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    .eyebrow.light {
+      color: var(--orange);
+    }
+
+    /* =========================
+       HERO
+    ========================= */
+
+    .hero {
+      position: relative;
+      min-height: 510px;
+      border-radius: var(--radius-xl);
+      overflow: hidden;
+      color: white;
+      background:
+        linear-gradient(
+          90deg,
+          rgba(3, 43, 64, 0.98) 0%,
+          rgba(3, 43, 64, 0.94) 32%,
+          rgba(3, 43, 64, 0.55) 62%,
+          rgba(3, 43, 64, 0.34) 100%
+        ),
+        url("https://images.unsplash.com/photo-1612872087720-bb876e2e67d1?auto=format&fit=crop&w=1800&q=90")
+          center 44% / cover no-repeat;
+      box-shadow: 0 26px 75px rgba(4, 42, 63, 0.18);
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+      background: linear-gradient(180deg, transparent 45%, rgba(0, 30, 45, 0.18));
+    }
+
+    .hero-inner {
+      position: relative;
+      z-index: 2;
+      min-height: 510px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 150px;
+    }
+
+    .hero-content {
+      width: min(660px, 100%);
+      padding: 62px 0 56px 58px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    .hero h1 {
+      margin: 18px 0 14px;
+      font-size: clamp(56px, 5.8vw, 88px);
+      line-height: 0.95;
+      letter-spacing: -0.055em;
+      font-weight: 650;
+    }
+
+    .hero-description {
+      max-width: 570px;
+      margin: 0;
+      font-size: 17px;
+      line-height: 1.55;
+      color: #dceaf0;
+    }
+
+    .hero-description strong {
+      color: white;
+    }
+
+    .match-summary {
+      width: fit-content;
+      max-width: 100%;
+      margin-top: 27px;
+      padding: 16px 19px;
+      display: flex;
+      align-items: stretch;
+      gap: 18px;
+      border: 1px solid rgba(255, 255, 255, 0.28);
+      border-radius: 15px;
+      background: rgba(5, 53, 76, 0.48);
+      backdrop-filter: blur(10px);
+    }
+
+    .summary-item {
+      min-width: 108px;
+      display: flex;
+      gap: 10px;
+      align-items: center;
+    }
+
+    .summary-icon {
+      width: 30px;
+      height: 30px;
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      color: #caecf8;
+      border: 1px solid rgba(255,255,255,.18);
+    }
+
+    .summary-copy {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .summary-copy span {
+      color: #a8c7d5;
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 0.12em;
+    }
+
+    .summary-copy strong {
+      font-size: 12px;
+    }
+
+    .summary-separator {
+      width: 1px;
+      background: rgba(255, 255, 255, 0.2);
+    }
+
+    .hero-actions {
+      margin-top: 24px;
+      display: flex;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+
+    .btn {
+      min-height: 52px;
+      padding: 0 22px;
+      border-radius: 14px;
+      border: 0;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 16px;
+      font-weight: 850;
+      transition: 160ms ease;
+    }
+
+    .btn:hover {
+      transform: translateY(-2px);
+    }
+
+    .btn-primary {
+      min-width: 195px;
+      background: var(--yellow);
+      color: var(--navy);
+      box-shadow: 0 10px 28px rgba(248, 185, 34, 0.24);
+    }
+
+    .btn-secondary {
+      color: white;
+      background: rgba(255, 255, 255, 0.08);
+      border: 1px solid rgba(255, 255, 255, 0.45);
+    }
+
+    .hero-side {
+      position: relative;
+      z-index: 2;
+      border-left: 1px solid rgba(255, 255, 255, 0.38);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(2, 47, 70, 0.42);
+    }
+
+    .places {
+      text-align: center;
+    }
+
+    .places strong {
+      display: block;
+      color: var(--yellow);
+      font-size: 51px;
+      line-height: 0.95;
+    }
+
+    .places span {
+      display: block;
+      margin-top: 12px;
+      font-size: 13px;
+      font-weight: 900;
+      line-height: 1.5;
+    }
+
+    /* =========================
+       SECTION COMMON
+    ========================= */
+
+    .top-grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1.65fr) minmax(320px, 0.95fr);
+      gap: 22px;
+    }
+
+    .bottom-grid {
+      margin-top: 24px;
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+      gap: 22px;
+    }
+
+    .panel {
+      background: rgba(255, 255, 255, 0.94);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      box-shadow: var(--shadow);
+    }
+
+    .panel-padding {
+      padding: 24px;
+    }
+
+    .section-head {
+      display: flex;
+      align-items: flex-end;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .section-head h2 {
+      margin: 5px 0 0;
+      font-size: 28px;
+      line-height: 1.08;
+      letter-spacing: -0.035em;
+    }
+
+    .section-link {
+      color: var(--blue);
+      font-size: 13px;
+      font-weight: 850;
+      white-space: nowrap;
+    }
+
+    /* =========================
+       CALENDAR
+    ========================= */
+
+    .week-nav {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #6a8391;
+      font-size: 12px;
+      font-weight: 800;
+    }
+
+    .week-nav button {
+      width: 34px;
+      height: 34px;
+      border: 1px solid #d9e8ef;
+      border-radius: 50%;
+      background: white;
+      color: var(--blue);
+      font-size: 20px;
+    }
+
+    .calendar {
+      margin-top: 20px;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      overflow: hidden;
+    }
+
+    .day {
+      min-height: 155px;
+      padding: 13px 8px;
+      text-align: center;
+      border-right: 1px solid var(--border);
+      background: white;
+    }
+
+    .day:last-child {
+      border-right: 0;
+    }
+
+    .day.today {
+      background: linear-gradient(180deg, #f0f9fd, #e8f6fb);
+      box-shadow: inset 0 3px 0 var(--blue-2);
+    }
+
+    .day-name {
+      display: block;
+      color: #718796;
+      font-size: 9px;
+      font-weight: 900;
+      letter-spacing: 0.09em;
+    }
+
+    .day-number {
+      display: block;
+      margin-top: 6px;
+      font-size: 17px;
+      font-weight: 900;
+    }
+
+    .event {
+      margin-top: 17px;
+      padding: 8px 7px;
+      border-radius: 9px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      text-align: left;
+      gap: 2px;
+      font-size: 9px;
+      font-weight: 850;
+      line-height: 1.25;
+    }
+
+    .event.match {
+      color: #086391;
+      background: #dff4fd;
+      border-left: 3px solid var(--blue-2);
+    }
+
+    .event.tournament {
+      color: #755400;
+      background: #fff1c6;
+      border-left: 3px solid var(--yellow);
+    }
+
+    .event time {
+      font-size: 9px;
+      opacity: 0.75;
+    }
+
+    .calendar-legend {
+      margin-top: 17px;
+      display: flex;
+      flex-wrap: wrap;
+      gap: 22px;
+      color: #5e7787;
+      font-size: 11px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+    }
+
+    .legend-dot {
+      width: 9px;
+      height: 9px;
+      border-radius: 50%;
+    }
+
+    .dot-blue { background: var(--blue-2); }
+    .dot-yellow { background: var(--yellow); }
+
+    /* =========================
+       WEATHER
+    ========================= */
+
+    .weather {
+      position: relative;
+      overflow: hidden;
+      min-height: 100%;
+      padding: 24px;
+      color: white;
+      background: linear-gradient(145deg, #056cad 0%, #0477bd 52%, #084866 100%);
+      border: 0;
+    }
+
+    .weather::before,
+    .weather::after {
+      content: "";
+      position: absolute;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.05);
+    }
+
+    .weather::before {
+      width: 280px;
+      height: 280px;
+      right: -120px;
+      top: -115px;
+    }
+
+    .weather::after {
+      width: 220px;
+      height: 220px;
+      right: -80px;
+      bottom: -120px;
+    }
+
+    .weather > * {
+      position: relative;
+      z-index: 2;
+    }
+
+    .weather .eyebrow {
+      color: #b5def0;
+    }
+
+    .weather-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .weather h2 {
+      margin: 7px 0 0;
+      font-size: 28px;
+    }
+
+    .sun {
+      width: 64px;
+      height: 64px;
+      display: grid;
+      place-items: center;
+      color: var(--yellow);
+      font-size: 50px;
+    }
+
+    .temperature {
+      margin-top: 20px;
+      font-size: 75px;
+      line-height: 1;
+      letter-spacing: -0.07em;
+      font-weight: 600;
+    }
+
+    .weather-title {
+      display: block;
+      margin-top: 8px;
+      font-size: 16px;
+    }
+
+    .weather-copy {
+      margin: 6px 0 0;
+      color: #d3edf7;
+      font-size: 12px;
+    }
+
+    .weather-stats {
+      margin-top: 28px;
+      padding-top: 18px;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      border-top: 1px solid rgba(255,255,255,.2);
+    }
+
+    .weather-stat {
+      min-width: 0;
+      padding-right: 10px;
+    }
+
+    .weather-stat + .weather-stat {
+      padding-left: 13px;
+      border-left: 1px solid rgba(255,255,255,.12);
+    }
+
+    .weather-stat span {
+      display: block;
+      color: #b6d9e8;
+      font-size: 8px;
+      font-weight: 850;
+      letter-spacing: 0.1em;
+    }
+
+    .weather-stat strong {
+      display: block;
+      margin-top: 5px;
+      font-size: 12px;
+    }
+
+    /* =========================
+       LIST SECTIONS
+    ========================= */
+
+    .list-panel {
+      padding: 22px;
+    }
+
+    .list-panel .section-head {
+      padding: 0 1px 16px;
+      border-bottom: 2px solid rgba(8, 43, 61, 0.12);
+    }
+
+    .cards {
+      margin-top: 15px;
+      display: flex;
+      flex-direction: column;
+      gap: 11px;
+    }
+
+    .match-card,
+    .tournament-card {
+      background: white;
+      border: 1px solid var(--border);
+      border-radius: 17px;
+      transition: 160ms ease;
+    }
+
+    .match-card:hover,
+    .tournament-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 14px 36px rgba(8, 43, 61, 0.08);
+    }
+
+    /* OPEN MATCHES */
+
+    .match-card {
+      position: relative;
+      padding: 16px;
+      overflow: hidden;
+    }
+
+    .match-card::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 3px;
+      height: 100%;
+      background: var(--blue);
+    }
+
+    .match-card-head,
+    .match-card-footer,
+    .tournament-card-footer {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      min-height: 26px;
+      padding: 0 10px;
+      border-radius: 9px;
+      font-size: 9px;
+      font-weight: 850;
+      background: #eef6f9;
+    }
+
+    .places-pill {
+      color: var(--blue);
+      background: var(--light-blue);
+    }
+
+    .places-pill strong {
+      margin-right: 3px;
+      font-size: 12px;
+    }
+
+    .match-card h3 {
+      margin: 13px 0 7px;
+      font-size: 16px;
+    }
+
+    .meta {
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .meta-icon {
+      color: var(--blue-2);
+    }
+
+    .match-card-footer {
+      margin-top: 15px;
+    }
+
+    .players {
+      display: flex;
+      align-items: center;
+    }
+
+    .player {
+      width: 29px;
+      height: 29px;
+      margin-right: -5px;
+      display: grid;
+      place-items: center;
+      border: 2px solid white;
+      border-radius: 50%;
+      background: #e1f2f7;
+      color: #587684;
+      font-size: 8px;
+      font-weight: 800;
+    }
+
+    .player.more {
+      color: white;
+      background: var(--blue);
+    }
+
+    .text-action {
+      padding: 0;
+      border: 0;
+      background: transparent;
+      color: var(--blue);
+      font-size: 10px;
+      font-weight: 900;
+    }
+
+    /* TOURNAMENTS */
+
+    .tournament-card {
+      display: grid;
+      grid-template-columns: 72px 1fr;
+      gap: 16px;
+      padding: 15px;
+      border-left: 3px solid var(--yellow);
+    }
+
+    .date-card {
+      width: 68px;
+      height: 68px;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      color: white;
+      background: var(--navy);
+    }
+
+    .date-card strong {
+      font-size: 27px;
+      line-height: 1;
+    }
+
+    .date-card span {
+      margin-top: 5px;
+      color: var(--yellow);
+      font-size: 7px;
+      font-weight: 950;
+      letter-spacing: 0.14em;
+    }
+
+    .tournament-kicker {
+      color: var(--blue);
+      font-size: 8px;
+      font-weight: 900;
+      letter-spacing: 0.07em;
+      text-transform: uppercase;
+    }
+
+    .tournament-card h3 {
+      margin: 5px 0 5px;
+      font-size: 17px;
+    }
+
+    .tournament-card p {
+      margin: 0;
+      color: var(--muted);
+      font-size: 11px;
+    }
+
+    .tournament-card-footer {
+      margin-top: 13px;
+      font-size: 10px;
+    }
+
+    .team-count {
+      color: #4c6878;
+    }
+
+    .details-link {
+      color: var(--blue);
+      font-weight: 900;
+    }
+
+    /* =========================
+       FLOATING ACTIONS
+    ========================= */
+
+    .floating-actions {
+      position: fixed;
+      right: 32px;
+      bottom: 24px;
+      z-index: 80;
+      padding: 7px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 14px 50px rgba(4, 43, 64, 0.18);
+      backdrop-filter: blur(14px);
+    }
+
+    .floating-actions button {
+      min-height: 46px;
+      padding: 0 20px;
+      border: 0;
+      border-radius: 999px;
+      font-weight: 850;
+    }
+
+    .float-secondary {
+      color: var(--navy);
+      background: #f1f5f3;
+    }
+
+    .float-primary {
+      color: white;
+      background: var(--blue);
+    }
+
+    /* =========================
+       RESPONSIVE
+    ========================= */
+
+    @media (max-width: 1120px) {
+      .navbar {
+        grid-template-columns: auto 1fr auto;
+      }
+
+      .brand-copy,
+      .user-copy {
+        display: none;
+      }
+
+      .main-nav a {
+        padding: 0 10px;
+      }
+
+      .top-grid,
+      .bottom-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .weather {
+        min-height: 330px;
+      }
+    }
+
+    @media (max-width: 840px) {
+      .navbar {
+        padding: 0 18px;
+        grid-template-columns: auto 1fr;
+      }
+
+      .main-nav {
+        display: none;
+      }
+
+      .user-area {
+        justify-self: end;
+      }
+
+      .page {
+        width: min(100% - 28px, 1360px);
+        padding-top: 16px;
+      }
+
+      .hero {
+        min-height: 590px;
+        background-position: 62% center;
+      }
+
+      .hero-inner {
+        min-height: 590px;
+        grid-template-columns: 1fr;
+      }
+
+      .hero-content {
+        padding: 42px 28px;
+        justify-content: flex-end;
+        background: linear-gradient(
+          90deg,
+          rgba(3,43,64,.88),
+          rgba(3,43,64,.55),
+          transparent
+        );
+      }
+
+      .hero h1 {
+        font-size: 58px;
+      }
+
+      .hero-side {
+        display: none;
+      }
+
+      .match-summary {
+        flex-wrap: wrap;
+      }
+
+      .summary-separator {
+        display: none;
+      }
+
+      .calendar {
+        overflow-x: auto;
+        grid-template-columns: repeat(7, 100px);
+      }
+
+      .floating-actions {
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        justify-content: flex-end;
+      }
+    }
+
+    @media (max-width: 560px) {
+      .navbar .icon-btn:first-of-type {
+        display: none;
+      }
+
+      .hero h1 {
+        font-size: 48px;
+      }
+
+      .hero-description {
+        font-size: 14px;
+      }
+
+      .hero-actions {
+        flex-direction: column;
+      }
+
+      .btn {
+        width: 100%;
+      }
+
+      .match-summary {
+        width: 100%;
+      }
+
+      .section-head {
+        align-items: center;
+      }
+
+      .week-nav span {
+        display: none;
+      }
+
+      .panel-padding,
+      .list-panel,
+      .weather {
+        padding: 18px;
+      }
+
+      .tournament-card {
+        grid-template-columns: 64px 1fr;
+        gap: 12px;
+      }
+
+      .date-card {
+        width: 60px;
+        height: 64px;
+      }
+
+      .floating-actions .float-secondary {
+        display: none;
+      }
+
+      .floating-actions .float-primary {
+        width: 100%;
+      }
+    }
+  </style>
+</head>
+
+<body>
+  <header class="navbar">
+    <a class="brand" href="#" aria-label="Beach Volley Hub">
+      <div class="brand-mark" aria-hidden="true">BV</div>
+      <div class="brand-copy">
+        <strong>BEACH VOLLEY HUB</strong>
+        <span>CONNECTING PLAYERS</span>
+      </div>
+    </a>
+
+    <nav class="main-nav" aria-label="Navigazione principale">
+      <a href="#" class="active"><span class="nav-icon">⌂</span>Home</a>
+      <a href="#"><span class="nav-icon">♙</span>Partite</a>
+      <a href="#"><span class="nav-icon">♕</span>Tornei</a>
+      <a href="#"><span class="nav-icon">⌖</span>Campi</a>
+      <a href="#"><span class="nav-icon">♙</span>Amici</a>
+      <a href="#"><span class="nav-icon">♙</span>Profilo</a>
+    </nav>
+
+    <div class="user-area">
+      <div class="user-copy">
+        <strong>Francesco Gentile</strong>
+        <span>Amministratore</span>
+      </div>
+
+      <button class="icon-btn" aria-label="Tornei">♕</button>
+
+      <button class="icon-btn" aria-label="Notifiche">
+        ♧
+        <span class="badge">2</span>
+      </button>
+
+      <div class="avatar">FG</div>
+    </div>
+  </header>
+
+  <main class="page">
+
+    <!-- HERO / PROSSIMA PARTITA -->
+    <section class="hero">
+      <div class="hero-inner">
+
+        <div class="hero-content">
+          <span class="eyebrow light">LA TUA PROSSIMA PARTITA</span>
+
+          <h1>Il campo<br />ti aspetta.</h1>
+
+          <p class="hero-description">
+            Oggi giochi al <strong>Pala Beach Tiburtina</strong>.
+            Preparati per il prossimo match.
+          </p>
+
+          <div class="match-summary">
+            <div class="summary-item">
+              <span class="summary-icon">◷</span>
+              <div class="summary-copy">
+                <span>OGGI</span>
+                <strong>19:30</strong>
+              </div>
+            </div>
+
+            <div class="summary-separator"></div>
+
+            <div class="summary-item">
+              <span class="summary-icon">▥</span>
+              <div class="summary-copy">
+                <span>LIVELLO</span>
+                <strong>Intermedio</strong>
+              </div>
+            </div>
+
+            <div class="summary-separator"></div>
+
+            <div class="summary-item">
+              <span class="summary-icon">⌖</span>
+              <div class="summary-copy">
+                <span>CAMPO</span>
+                <strong>Pala Beach Tiburtina</strong>
+              </div>
+            </div>
+          </div>
+
+          <div class="hero-actions">
+            <button class="btn btn-primary">
+              Crea una partita <span>→</span>
+            </button>
+
+            <button class="btn btn-secondary">
+              ▣ Le mie partite
+            </button>
+          </div>
+        </div>
+
+        <aside class="hero-side">
+          <div class="places">
+            <strong>2</strong>
+            <span>POSTI<br />LIBERI</span>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- CALENDARIO + METEO -->
+    <section class="top-grid">
+
+      <article class="panel panel-padding">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">IL TUO PROGRAMMA</span>
+            <h2>Questa settimana</h2>
+          </div>
+
+          <div class="week-nav">
+            <span>10 — 16 Agosto</span>
+            <button aria-label="Settimana precedente">‹</button>
+            <button aria-label="Settimana successiva">›</button>
+          </div>
+        </div>
+
+        <div class="calendar">
+          <div class="day">
+            <span class="day-name">LUN</span>
+            <strong class="day-number">10</strong>
+          </div>
+
+          <div class="day">
+            <span class="day-name">MAR</span>
+            <strong class="day-number">11</strong>
+            <div class="event match">
+              <time>19:30</time>
+              <span>Partita</span>
+            </div>
+          </div>
+
+          <div class="day today">
+            <span class="day-name">MER</span>
+            <strong class="day-number">12</strong>
+            <div class="event match">
+              <time>20:00</time>
+              <span>Pala Beach</span>
+            </div>
+          </div>
+
+          <div class="day">
+            <span class="day-name">GIO</span>
+            <strong class="day-number">13</strong>
+          </div>
+
+          <div class="day">
+            <span class="day-name">VEN</span>
+            <strong class="day-number">14</strong>
+            <div class="event match">
+              <time>18:00</time>
+              <span>Partita</span>
+            </div>
+          </div>
+
+          <div class="day">
+            <span class="day-name">SAB</span>
+            <strong class="day-number">15</strong>
+            <div class="event tournament">
+              <time>16:00</time>
+              <span>Sunset Cup</span>
+            </div>
+          </div>
+
+          <div class="day">
+            <span class="day-name">DOM</span>
+            <strong class="day-number">16</strong>
+          </div>
+        </div>
+
+        <div class="calendar-legend">
+          <span class="legend-item">
+            <i class="legend-dot dot-blue"></i>
+            Le mie partite
+          </span>
+
+          <span class="legend-item">
+            <i class="legend-dot dot-yellow"></i>
+            I miei tornei
+          </span>
+        </div>
+      </article>
+
+      <aside class="panel weather">
+        <div class="weather-top">
+          <div>
+            <span class="eyebrow">METEO DI OGGI</span>
+            <h2>Roma</h2>
+          </div>
+
+          <div class="sun" aria-hidden="true">☀</div>
+        </div>
+
+        <div class="temperature">31°</div>
+
+        <strong class="weather-title">Perfetto per giocare</strong>
+        <p class="weather-copy">Soleggiato · vento leggero</p>
+
+        <div class="weather-stats">
+          <div class="weather-stat">
+            <span>VENTO</span>
+            <strong>8 km/h</strong>
+          </div>
+
+          <div class="weather-stat">
+            <span>UMIDITÀ</span>
+            <strong>44%</strong>
+          </div>
+
+          <div class="weather-stat">
+            <span>TRAMONTO</span>
+            <strong>20:17</strong>
+          </div>
+        </div>
+      </aside>
+
+    </section>
+
+    <!-- PARTITE APERTE + TORNEI APERTI -->
+    <section class="bottom-grid">
+
+      <article class="panel list-panel">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">VICINO A TE</span>
+            <h2>Partite aperte</h2>
+          </div>
+
+          <a href="#" class="section-link">Vedi tutte →</a>
+        </div>
+
+        <div class="cards">
+
+          <article class="match-card">
+            <div class="match-card-head">
+              <span class="pill">Intermedio</span>
+              <span class="pill places-pill"><strong>2</strong> posti</span>
+            </div>
+
+            <h3>Pala Beach Tiburtina</h3>
+
+            <div class="meta">
+              <span class="meta-icon">▣</span>
+              <span>Oggi, 19:30</span>
+            </div>
+
+            <div class="match-card-footer">
+              <div class="players">
+                <span class="player">FG</span>
+                <span class="player">MR</span>
+                <span class="player more">+2</span>
+              </div>
+
+              <button class="text-action">Partecipa →</button>
+            </div>
+          </article>
+
+          <article class="match-card">
+            <div class="match-card-head">
+              <span class="pill">Base</span>
+              <span class="pill places-pill"><strong>1</strong> posto</span>
+            </div>
+
+            <h3>Beach Town Ostia</h3>
+
+            <div class="meta">
+              <span class="meta-icon">▣</span>
+              <span>Domani, 18:00</span>
+            </div>
+
+            <div class="match-card-footer">
+              <div class="players">
+                <span class="player">FG</span>
+                <span class="player">MR</span>
+                <span class="player more">+3</span>
+              </div>
+
+              <button class="text-action">Partecipa →</button>
+            </div>
+          </article>
+
+          <article class="match-card">
+            <div class="match-card-head">
+              <span class="pill">Avanzato</span>
+              <span class="pill places-pill"><strong>2</strong> posti</span>
+            </div>
+
+            <h3>Empire Sport</h3>
+
+            <div class="meta">
+              <span class="meta-icon">▣</span>
+              <span>Sabato, 10:00</span>
+            </div>
+
+            <div class="match-card-footer">
+              <div class="players">
+                <span class="player">FG</span>
+                <span class="player">LC</span>
+                <span class="player more">+2</span>
+              </div>
+
+              <button class="text-action">Partecipa →</button>
+            </div>
+          </article>
+
+        </div>
+      </article>
+
+      <article class="panel list-panel">
+        <div class="section-head">
+          <div>
+            <span class="eyebrow">COMPETIZIONI</span>
+            <h2>Tornei aperti</h2>
+          </div>
+
+          <a href="#" class="section-link">Vedi tutti →</a>
+        </div>
+
+        <div class="cards">
+
+          <article class="tournament-card">
+            <div class="date-card">
+              <strong>15</strong>
+              <span>AGO</span>
+            </div>
+
+            <div>
+              <span class="tournament-kicker">ISCRIZIONI APERTE</span>
+              <h3>Sunset Cup</h3>
+              <p>Rimini · Sabato, 16:00</p>
+
+              <div class="tournament-card-footer">
+                <span class="team-count">♙ 12 squadre</span>
+                <a href="#" class="details-link">Dettagli →</a>
+              </div>
+            </div>
+          </article>
+
+          <article class="tournament-card">
+            <div class="date-card">
+              <strong>23</strong>
+              <span>AGO</span>
+            </div>
+
+            <div>
+              <span class="tournament-kicker">ISCRIZIONI APERTE</span>
+              <h3>Roma Beach Challenge</h3>
+              <p>Roma · Domenica, 10:00</p>
+
+              <div class="tournament-card-footer">
+                <span class="team-count">♙ 8 squadre</span>
+                <a href="#" class="details-link">Dettagli →</a>
+              </div>
+            </div>
+          </article>
+
+        </div>
+      </article>
+
+    </section>
+
+  </main>
+
+  <div class="floating-actions">
+    <button class="float-secondary">♕ Organizza un torneo</button>
+    <button class="float-primary">＋ Crea una partita</button>
+  </div>
+
+</body>
+</html>

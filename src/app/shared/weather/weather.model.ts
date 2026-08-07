@@ -29,8 +29,8 @@ export interface WeatherPoint {
 
 export interface WeatherSnapshot {
   current: WeatherPoint;
-  /** Prossime ore, gia tagliate a partire da adesso. */
-  hours: readonly WeatherPoint[];
+  /** Tramonto di oggi: dice fino a quando si vede la palla. */
+  sunset: string | null;
 }
 
 export type WeatherGlyph = 'sereno' | 'poco-nuvoloso' | 'nuvoloso' | 'nebbia' | 'pioggia' | 'neve' | 'temporale';
