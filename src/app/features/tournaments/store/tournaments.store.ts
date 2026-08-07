@@ -44,6 +44,7 @@ export const TournamentsStore = signalStore(
       async uploadLogo(file: File): Promise<string | null> {
         try { return await service.uploadLogo(file); } catch (error) { fail(error); return null; }
       },
+      setLogo: (id: string, logoUrl: string | null) => act(id, () => service.setLogo(id, logoUrl), logoUrl ? 'Logo aggiornato' : 'Logo rimosso', logoUrl ? 'Compare nella testata del torneo.' : 'La testata torna senza logo.'),
       setGameCourt: (id: string, gameId: string, courtId: string | null) => act(id, () => service.setGameCourt(gameId, courtId), 'Campo aggiornato', courtId ? 'Il campo dell’incontro è stato assegnato.' : 'Il campo dell’incontro è stato rimosso.'),
       closeGroups: (id: string) => act(id, () => service.closeGroups(id), 'Gironi chiusi', 'Ora puoi registrare i risultati del tabellone.'),
       reopenGroups: (id: string) => act(id, () => service.reopenGroups(id), 'Gironi riaperti', 'I risultati del tabellone restano bloccati.'),

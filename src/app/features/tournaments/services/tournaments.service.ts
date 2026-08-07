@@ -105,6 +105,10 @@ export class TournamentsService {
     return this.supabase.client.storage.from('tournament-logos').getPublicUrl(path).data.publicUrl;
   }
 
+  async setLogo(tournamentId: string, logoUrl: string | null): Promise<void> {
+    await this.rpc('set_tournament_logo', { p_tournament_id: tournamentId, p_logo_url: logoUrl });
+  }
+
   async setGameCourt(gameId: string, courtId: string | null): Promise<void> {
     await this.rpc('set_tournament_game_court', { p_game_id: gameId, p_court_id: courtId });
   }
