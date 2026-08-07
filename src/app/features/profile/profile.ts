@@ -1,4 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { PageAction } from '../../core/models/page-action.model';
 import { FormControl, FormGroup, FormsModule, ReactiveFormsModule, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
@@ -24,11 +26,16 @@ import { Reveal } from '../../shared/motion/reveal.directive';
         <div class="loading-state" role="status"><span class="spinner"></span> Caricamento profilo</div>
       } @else if (store.profile(); as profile) {
         <header class="hero">
-          <span class="hero-avatar" aria-hidden="true">
+          <label class="hero-avatar" [class.is-busy]="uploadingAvatar()">
+            <input class="file-input" type="file" accept="image/*" (change)="onAvatarSelected($event)" [disabled]="uploadingAvatar()" />
+            <span class="sr-only">Cambia foto profilo</span>
             @if (avatarPreview() && !avatarBroken()) {
               <img [src]="avatarPreview()" [alt]="'Avatar di ' + store.fullName()" (error)="avatarBroken.set(true)" />
-            } @else { {{ initials() }} }
-          </span>
+            } @else { <span aria-hidden="true">{{ initials() }}</span> }
+            <span class="hero-avatar-edit" aria-hidden="true">
+              <i class="pi" [class.pi-camera]="!uploadingAvatar()" [class.pi-spinner]="uploadingAvatar()" [class.pi-spin]="uploadingAvatar()"></i>
+            </span>
+          </label>
           <div class="hero-id">
             <p class="eyebrow">Il tuo profilo</p>
             <h1>{{ profile.nome }} {{ profile.cognome }}</h1>
@@ -122,22 +129,9 @@ import { Reveal } from '../../shared/motion/reveal.directive';
                     <p-select inputId="profile-rating" formControlName="autovalutazione" [options]="ratingOptions" optionLabel="label" optionValue="value" [invalid]="showError('autovalutazione')" fluid />
                     <small>È distinta dal livello calcolato tramite le valutazioni.</small>
                   </div>
-                  <div class="field wide">
-                    <label>Foto profilo</label>
-                    <div class="avatar-upload">
-                      <span class="up-preview" aria-hidden="true">
-                        @if (avatarPreview() && !avatarBroken()) { <img [src]="avatarPreview()" alt="" (error)="avatarBroken.set(true)" /> } @else { {{ initials() }} }
-                      </span>
-                      <label class="up-btn">
-                        <input type="file" accept="image/*" (change)="onAvatarSelected($event)" hidden [disabled]="uploadingAvatar()" />
-                        <i class="pi pi-upload" aria-hidden="true"></i> {{ uploadingAvatar() ? 'Caricamento…' : 'Carica foto' }}
-                      </label>
-                    </div>
-                    <small>Immagine quadrata consigliata, max 5 MB. Salva per applicare.</small>
-                  </div>
                 </div>
                 @if (store.error()) { <p class="form-error" role="alert">{{ store.error() }}</p> }
-                <p-button class="save" type="submit" label="Salva modifiche" icon="pi pi-check" [loading]="store.saving()" [disabled]="profileForm.pristine" />
+                <p class="save-hint">{{ formDirty() ? 'Hai modifiche non salvate: usa il pulsante Salva in basso.' : 'Le modifiche si salvano dal pulsante che compare in basso.' }}</p>
               </form>
             </div>
           </details>
@@ -160,7 +154,7 @@ import { Reveal } from '../../shared/motion/reveal.directive';
                 <div class="field"><label for="pw-conf">Conferma password</label><input id="pw-conf" pInputText type="password" autocomplete="new-password" [ngModel]="pwConfirm()" (ngModelChange)="pwConfirm.set($event)" /></div>
               </div>
               @if (pwError()) { <p class="form-error" role="alert">{{ pwError() }}</p> }
-              <p-button class="save" type="button" label="Aggiorna password" icon="pi pi-key" [loading]="pwSaving()" [disabled]="!pwValid()" (onClick)="changePassword()" />
+              <p class="save-hint">{{ pwValid() ? 'Password pronta: usa il pulsante Aggiorna password in basso.' : 'Inserisci e conferma la nuova password, poi salvala dal pulsante in basso.' }}</p>
             </div>
           </details>
         </section>
@@ -185,8 +179,11 @@ import { Reveal } from '../../shared/motion/reveal.directive';
     .profile-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
 
     .hero { display: grid; gap: 16px; padding: 22px; color: white; border-radius: var(--radius-lg); background: var(--color-ocean); }
-    .hero-avatar { display: grid; width: 76px; height: 76px; place-items: center; overflow: hidden; color: var(--color-ocean); border-radius: 50%; background: var(--color-tournament); font: 900 1.5rem var(--display-font); }
+    .hero-avatar { position: relative; display: grid; width: 84px; height: 84px; place-items: center; overflow: hidden; color: var(--color-ocean); border-radius: 50%; background: var(--color-tournament); font: 900 1.6rem var(--display-font); cursor: pointer; }
     .hero-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .hero-avatar-edit { position: absolute; inset: auto 0 0 0; display: grid; place-items: center; padding: 5px 0 6px; color: white; background: rgb(19 36 48 / .72); font-size: .72rem; }
+    .hero-avatar:hover .hero-avatar-edit, .hero-avatar.is-busy .hero-avatar-edit { background: rgb(19 36 48 / .88); }
+    .hero-avatar:has(.file-input:focus-visible) { outline: 3px solid var(--color-tournament); outline-offset: 3px; }
     .eyebrow { margin: 0 0 4px; color: var(--color-tournament); font-size: .66rem; font-weight: 900; letter-spacing: .12em; text-transform: uppercase; }
     .hero h1 { margin: 0; font: 800 clamp(1.9rem, 6vw, 2.8rem)/1 var(--display-font); font-stretch: 118%; letter-spacing: -.03em; }
     .hero-email { margin: 6px 0 10px; color: rgb(255 255 255 / .72); font-size: .82rem; }
@@ -238,10 +235,10 @@ import { Reveal } from '../../shared/motion/reveal.directive';
     .wide { grid-column: 1 / -1; }
     .lock-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; color: var(--color-ink-muted); border-radius: var(--radius); background: var(--color-surface-muted); font-size: .76rem; }
     .link-btn { color: var(--color-brand-strong); border: 0; background: none; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
-    .avatar-upload { display: flex; align-items: center; gap: 12px; }
-    .up-preview { display: grid; width: 54px; height: 54px; place-items: center; overflow: hidden; color: white; border-radius: 50%; background: var(--color-brand); font-weight: 900; }
-    .up-preview img { width: 100%; height: 100%; object-fit: cover; }
-    .up-btn { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; padding: 0 16px; border: 1px solid var(--color-border); border-radius: var(--radius-pill); font-size: .8rem; font-weight: 750; cursor: pointer; }
+    .save-hint { margin: 16px 0 0; color: var(--color-ink-muted); font-size: .76rem; }
+    .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+    .file-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }
+    .file-input:disabled { cursor: wait; }
     .pref-row { display: flex; align-items: center; justify-content: space-between; gap: 16px; padding-top: 16px; }
     .pref-copy { display: grid; gap: 3px; }
     .pref-copy small { color: var(--color-ink-muted); font-size: .74rem; }
@@ -291,6 +288,8 @@ export class Profile implements OnInit, OnDestroy {
   protected readonly nameReqForm = signal<{ nome: string; cognome: string }>({ nome: '', cognome: '' });
   protected readonly nameReqSaving = signal(false);
   protected readonly uploadingAvatar = signal(false);
+  /** Il form reattivo non e un signal: questo tiene traccia di quando ha modifiche da salvare. */
+  protected readonly formDirty = signal(false);
   protected readonly sideOptions: { label: string; value: PreferredSide }[] = [
     { label: 'Indifferente', value: 'indifferente' },
     { label: 'Sinistra', value: 'sinistra' },
@@ -327,11 +326,27 @@ export class Profile implements OnInit, OnDestroy {
       this.profileForm.reset({ nome: profile.nome, cognome: profile.cognome, lato_preferito: profile.lato_preferito, avatar_url: profile.avatar_url ?? '', autovalutazione: profile.autovalutazione });
       this.avatarPreview.set(profile.avatar_url);
       this.avatarBroken.set(false);
+      this.formDirty.set(false);
+    });
+
+    this.profileForm.valueChanges
+      .pipe(takeUntilDestroyed())
+      .subscribe(() => this.formDirty.set(this.profileForm.dirty));
+
+    // La barra in basso mostra solo quello che c'e davvero da salvare.
+    effect(() => {
+      const actions: PageAction[] = [];
+      if (this.formDirty()) {
+        actions.push({ id: 'save-profile', label: 'Salva modifiche', shortLabel: 'Salva', icon: 'pi-check', primary: true, click: () => void this.save() });
+      }
+      if (this.pwValid()) {
+        actions.push({ id: 'save-password', label: 'Aggiorna password', shortLabel: 'Password', icon: 'pi-key', click: () => void this.changePassword() });
+      }
+      this.pageActions.set(actions);
     });
   }
 
   ngOnInit(): void {
-    this.pageActions.set([{ id: 'save-profile', label: 'Salva profilo', shortLabel: 'Salva', icon: 'pi-check', primary: true, click: () => void this.save() }]);
     void this.store.load();
   }
   ngOnDestroy(): void { this.pageActions.clear(); }
@@ -342,7 +357,7 @@ export class Profile implements OnInit, OnDestroy {
     if (this.profileForm.invalid || this.store.saving()) return;
     const value = this.profileForm.getRawValue();
     const saved = await this.store.save({ ...value, nome: value.nome.trim(), cognome: value.cognome.trim(), avatar_url: value.avatar_url.trim() || null });
-    if (saved) this.profileForm.markAsPristine();
+    if (saved) { this.profileForm.markAsPristine(); this.formDirty.set(false); }
   }
   protected levelLabel(value: number): string { if (value <= 2) return 'Principiante'; if (value <= 4) return 'Intermedio'; if (value === 5) return 'Intermedio avanzato'; if (value === 6) return 'Avanzato'; return 'Pro player'; }
   protected selfRatingLabel(value: number): string {
@@ -366,6 +381,7 @@ export class Profile implements OnInit, OnDestroy {
       this.profileForm.controls.avatar_url.setValue(url);
       this.profileForm.controls.avatar_url.markAsDirty();
       this.profileForm.markAsDirty();
+      this.formDirty.set(true);
       this.avatarPreview.set(url);
       this.avatarBroken.set(false);
     }
