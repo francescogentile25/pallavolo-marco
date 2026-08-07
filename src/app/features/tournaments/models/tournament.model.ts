@@ -104,6 +104,9 @@ export interface Tournament {
   groups_closed_at: string | null;
   /** Citta in cui si svolge il torneo, se diversa da quella della struttura. */
   city: string | null;
+  city_place_id: number | null;
+  city_latitude: number | null;
+  city_longitude: number | null;
   /** Logo della societa organizzante, mostrato nella testata del torneo. */
   organizer_logo_url: string | null;
   champion_team_id: string | null;
@@ -162,6 +165,9 @@ export interface CreateTournamentRequest {
   endsAt: string;
   costCents: number;
   city: string | null;
+  cityPlaceId: number | null;
+  cityLatitude: number | null;
+  cityLongitude: number | null;
   logoUrl: string | null;
   visibility: 'public' | 'private';
 }

@@ -1,9 +1,11 @@
-import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnDestroy, OnInit, untracked, viewChild } from '@angular/core';
+import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, untracked, viewChild } from '@angular/core';
 import { gsap } from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
+import { PlacesService } from '../../core/services/places.service';
+import { distanceKm, PlaceRef, sameCityName } from '../../shared/places/place.model';
 import { motionAllowed, Reveal } from '../../shared/motion/reveal.directive';
 import { WeatherPanel } from '../../shared/weather/weather-panel';
 import { AuthStore } from '../auth/store/auth.store';
@@ -15,8 +17,15 @@ import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { CalendarEvent, HomeCalendar } from './components/home-calendar';
 
 const DAY = 24 * 60 * 60 * 1000;
+/** Quanto lontano si e disposti a spostarsi per giocare. */
+const NEARBY_KM = 50;
 
 gsap.registerPlugin(ScrollTrigger);
+
+/** Chiave stabile per confrontare e memorizzare i nomi dei comuni. */
+function cityKey(value: string | null | undefined): string {
+  return (value ?? '').trim().toLocaleLowerCase('it');
+}
 
 /**
  * Home: la prossima partita occupa la testata, il programma personale e il meteo
@@ -88,7 +97,7 @@ gsap.registerPlugin(ScrollTrigger);
       <section class="bottom-grid" appReveal="stagger">
         <article class="panel list-panel" aria-labelledby="open-matches-title">
           <div class="section-head">
-            <div><span class="eyebrow">Vicino a te</span><h2 id="open-matches-title">Partite aperte</h2></div>
+            <div><span class="eyebrow">{{ nearbyLabel() }}</span><h2 id="open-matches-title">Partite aperte</h2></div>
             <a class="section-link" routerLink="/partite">Vedi tutte <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
           </div>
 
@@ -110,14 +119,18 @@ gsap.registerPlugin(ScrollTrigger);
                 </div>
               </a>
             } @empty {
-              <p class="empty">Nessuna partita aperta in questo momento. <a routerLink="/partite/nuova">Aprine una</a>.</p>
+              @if (cityName()) {
+                <p class="empty">Nessuna partita aperta entro {{ nearbyKm }} km da {{ cityName() }}. <a routerLink="/partite">Guarda tutte le partite</a> o <a routerLink="/partite/nuova">aprine una</a>.</p>
+              } @else {
+                <p class="empty">Nessuna partita aperta in questo momento. <a routerLink="/partite/nuova">Aprine una</a>.</p>
+              }
             }
           </div>
         </article>
 
         <article class="panel list-panel" aria-labelledby="open-tournaments-title">
           <div class="section-head">
-            <div><span class="eyebrow">Competizioni</span><h2 id="open-tournaments-title">Tornei aperti</h2></div>
+            <div><span class="eyebrow">{{ nearbyLabel() }}</span><h2 id="open-tournaments-title">Tornei aperti</h2></div>
             <a class="section-link" routerLink="/tornei">Vedi tutti <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
           </div>
 
@@ -136,7 +149,11 @@ gsap.registerPlugin(ScrollTrigger);
                 </span>
               </a>
             } @empty {
-              <p class="empty">Nessun torneo con iscrizioni aperte. <a routerLink="/tornei">Guarda il calendario</a>.</p>
+              @if (cityName()) {
+                <p class="empty">Nessun torneo con iscrizioni aperte entro {{ nearbyKm }} km da {{ cityName() }}. <a routerLink="/tornei">Guarda il calendario</a>.</p>
+              } @else {
+                <p class="empty">Nessun torneo con iscrizioni aperte. <a routerLink="/tornei">Guarda il calendario</a>.</p>
+              }
             }
           </div>
         </article>
@@ -268,8 +285,16 @@ export class Home implements OnInit, OnDestroy {
   private readonly authStore = inject(AuthStore);
   private readonly matchesStore = inject(MatchesStore);
   private readonly tournamentsStore = inject(TournamentsStore);
+  private readonly places = inject(PlacesService);
 
   protected readonly cityName = computed(() => this.authStore.profile()?.city ?? null);
+  /** Punto di riferimento: null quando l'utente non ha ancora scelto il comune. */
+  private readonly homePlace = computed(() => {
+    const profile = this.authStore.profile();
+    if (!profile?.city_latitude || !profile.city_longitude) return null;
+    return { placeId: profile.city_place_id ?? null, latitude: profile.city_latitude, longitude: profile.city_longitude };
+  });
+  private readonly resolvedPlaces = signal<ReadonlyMap<string, PlaceRef | null>>(new Map());
   protected readonly cityLatitude = computed(() => this.authStore.profile()?.city_latitude ?? null);
   protected readonly cityLongitude = computed(() => this.authStore.profile()?.city_longitude ?? null);
 
@@ -278,6 +303,12 @@ export class Home implements OnInit, OnDestroy {
     this.myUpcomingMatches()[0] ?? null,
   );
 
+  protected readonly nearbyKm = NEARBY_KM;
+  protected readonly nearbyLabel = computed(() => {
+    const city = this.cityName();
+    return city ? `Entro ${NEARBY_KM} km da ${city}` : 'Vicino a te';
+  });
+
   protected readonly openMatches = computed<readonly BeachMatch[]>(() => {
     const me = this.authStore.authUser()?.id;
     return this.matchesStore
@@ -285,17 +316,45 @@ export class Home implements OnInit, OnDestroy {
       .filter(match => match.status === 'open'
         && Date.parse(match.starts_at) >= Date.now()
         && availableSpots(match) > 0
-        && !match.participants.some(participant => participant.profile_id === me))
+        && !match.participants.some(participant => participant.profile_id === me)
+        && this.isNearby(match.court.venue.place_id ?? null, match.court.venue.latitude, match.court.venue.longitude, match.court.venue.city))
       .slice(0, 3);
   });
 
   protected readonly openTournaments = computed<readonly Tournament[]>(() =>
     this.tournamentsStore
       .tournaments()
-      .filter(tournament => tournament.status === 'published' && Date.parse(tournament.registration_deadline) >= Date.now())
+      .filter(tournament => tournament.status === 'published'
+        && Date.parse(tournament.registration_deadline) >= Date.now()
+        && this.isNearby(
+          tournament.city_place_id ?? tournament.venue.place_id ?? null,
+          tournament.city_latitude ?? tournament.venue.latitude,
+          tournament.city_longitude ?? tournament.venue.longitude,
+          tournament.city || tournament.venue.city,
+        ))
       .sort((first, second) => Date.parse(first.starts_at) - Date.parse(second.starts_at))
       .slice(0, 3),
   );
+
+  /**
+   * Vicino significa: stesso comune dell'anagrafica, oppure entro il raggio.
+   * I luoghi salvati prima dell'anagrafica non hanno coordinate: per quelli si
+   * usa il comune risolto a posteriori, e in ultima istanza il nome.
+   */
+  private isNearby(placeId: number | null, latitude: number | null, longitude: number | null, city: string | null): boolean {
+    const home = this.homePlace();
+    if (!home) return true;
+    if (placeId !== null && home.placeId !== null && placeId === home.placeId) return true;
+
+    const resolved = latitude === null || longitude === null ? this.resolvedPlaces().get(cityKey(city)) ?? null : null;
+    const point = latitude !== null && longitude !== null
+      ? { latitude, longitude }
+      : resolved
+        ? { latitude: resolved.latitude, longitude: resolved.longitude }
+        : null;
+    if (point) return distanceKm(home, point) <= NEARBY_KM;
+    return sameCityName(city, this.cityName());
+  }
 
   /** Programma personale: le partite a cui sono iscritto e i tornei che gioco o organizzo. */
   protected readonly calendarEvents = computed<readonly CalendarEvent[]>(() => {
@@ -336,6 +395,24 @@ export class Home implements OnInit, OnDestroy {
   );
 
   constructor() {
+    // Sedi e tornei creati prima dell'anagrafica hanno solo il nome del comune:
+    // lo si risolve una volta sola, cosi il raggio vale anche per i dati storici.
+    effect(() => {
+      const missing = new Set<string>();
+      for (const match of this.matchesStore.matches()) {
+        const venue = match.court.venue;
+        if (venue.latitude === null || venue.longitude === null) missing.add(cityKey(venue.city));
+      }
+      for (const tournament of this.tournamentsStore.tournaments()) {
+        const latitude = tournament.city_latitude ?? tournament.venue.latitude;
+        if (latitude === null) missing.add(cityKey(tournament.city || tournament.venue.city));
+      }
+      const known = this.resolvedPlaces();
+      const pending = [...missing].filter(name => name.length > 1 && !known.has(name));
+      if (!pending.length) return;
+      untracked(() => void this.resolvePlaces(pending));
+    });
+
     // La testata cambia quando arrivano le partite: l'ingresso va suonato sul
     // contenuto definitivo, non su quello di attesa.
     afterRenderEffect(() => {
@@ -350,6 +427,15 @@ export class Home implements OnInit, OnDestroy {
       if (!node || node === this.countedNode) return;
       this.countedNode = node;
       untracked(() => this.countSpots(node));
+    });
+  }
+
+  private async resolvePlaces(names: readonly string[]): Promise<void> {
+    const found = await Promise.all(names.map(name => this.places.resolve(name)));
+    this.resolvedPlaces.update(current => {
+      const next = new Map(current);
+      names.forEach((name, index) => next.set(name, found[index]));
+      return next;
     });
   }
 

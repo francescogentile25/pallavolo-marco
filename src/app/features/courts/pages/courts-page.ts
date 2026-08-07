@@ -6,14 +6,16 @@ import { Checkbox } from 'primeng/checkbox';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
 import { PageActionsService } from '../../../core/services/page-actions.service';
+import { PlaceSelect } from '../../../shared/places/place-select';
+import { PlaceRef } from '../../../shared/places/place.model';
 import { CourtInput, CourtItem } from '../models/court.model';
 import { CourtsService } from '../services/courts.service';
 
-const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '', indoor: false };
+const EMPTY: CourtInput = { venueName: '', address: '', city: '', placeId: null, latitude: null, longitude: null, courtName: '', indoor: false };
 
 @Component({
   selector: 'app-courts-page',
-  imports: [FormsModule, Button, Checkbox, Dialog, InputText],
+  imports: [FormsModule, Button, Checkbox, Dialog, InputText, PlaceSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="courts-page">
@@ -79,8 +81,9 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
             <input id="c-address" pInputText [ngModel]="form().address" (ngModelChange)="setField('address', $event)" maxlength="180" autocomplete="street-address" />
           </div>
           <div class="field">
-            <label for="c-city">Città</label>
-            <input id="c-city" pInputText [ngModel]="form().city" (ngModelChange)="setField('city', $event)" maxlength="100" autocomplete="address-level2" />
+            <label for="c-city">Comune</label>
+            <app-place-select inputId="c-city" [text]="form().city" (placeChange)="setPlace($event)" />
+            <small>Scegli il comune dall'elenco: serve a trovare i campi vicini e il meteo giusto.</small>
           </div>
           <div class="check">
             <p-checkbox inputId="c-indoor" [ngModel]="form().indoor" (ngModelChange)="setField('indoor', $event)" [binary]="true" />
@@ -163,6 +166,17 @@ export class CourtsPage implements OnInit, OnDestroy {
     this.form.update((f) => ({ ...f, [key]: value }));
   }
 
+  /** Il comune scelto porta con se coordinate e identificativo condiviso. */
+  protected setPlace(place: PlaceRef | null): void {
+    this.form.update((f) => ({
+      ...f,
+      city: place?.name ?? '',
+      placeId: place?.placeId ?? null,
+      latitude: place?.latitude ?? null,
+      longitude: place?.longitude ?? null,
+    }));
+  }
+
   protected canSave(): boolean {
     const f = this.form();
     return !!f.venueName.trim() && !!f.courtName.trim() && !!f.address.trim() && !!f.city.trim();
@@ -177,7 +191,7 @@ export class CourtsPage implements OnInit, OnDestroy {
 
   protected openEdit(c: CourtItem): void {
     this.editing.set(c);
-    this.form.set({ venueName: c.venue.name, address: c.venue.address, city: c.venue.city, courtName: c.name, indoor: c.indoor });
+    this.form.set({ venueName: c.venue.name, address: c.venue.address, city: c.venue.city, placeId: null, latitude: null, longitude: null, courtName: c.name, indoor: c.indoor });
     this.error.set(null);
     this.dialogOpen.set(true);
   }
@@ -190,6 +204,9 @@ export class CourtsPage implements OnInit, OnDestroy {
       venueName: this.form().venueName.trim(),
       address: this.form().address.trim(),
       city: this.form().city.trim(),
+      placeId: this.form().placeId,
+      latitude: this.form().latitude,
+      longitude: this.form().longitude,
       courtName: this.form().courtName.trim(),
       indoor: this.form().indoor,
     };

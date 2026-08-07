@@ -9,6 +9,8 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Textarea } from 'primeng/textarea';
 import { PageActionsService } from '../../../core/services/page-actions.service';
+import { PlaceSelect } from '../../../shared/places/place-select';
+import { PlaceRef } from '../../../shared/places/place.model';
 import { MatchGender } from '../../matches/models/match.model';
 import { CreateTournamentRequest } from '../models/tournament.model';
 import { TournamentsStore } from '../store/tournaments.store';
@@ -26,13 +28,14 @@ interface TournamentDraft {
   endsAt: Date;
   costEuros: number;
   city: string;
+  cityPlace: PlaceRef | null;
   logoUrl: string | null;
   visibility: 'public' | 'private';
 }
 
 @Component({
   selector: 'app-tournament-create',
-  imports: [Button, CurrencyPipe, DatePicker, FormsModule, InputNumber, InputText, Select, Textarea],
+  imports: [Button, CurrencyPipe, DatePicker, FormsModule, InputNumber, InputText, PlaceSelect, Select, Textarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main>
@@ -81,7 +84,7 @@ interface TournamentDraft {
               <div class="field"><label for="start">Inizio torneo <b>*</b></label><p-datepicker inputId="start" [ngModel]="draft().startsAt" (ngModelChange)="update('startsAt', $event)" name="start" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
               <div class="field"><label for="end">Fine prevista <b>*</b></label><p-datepicker inputId="end" [ngModel]="draft().endsAt" (ngModelChange)="update('endsAt', $event)" name="end" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="draft().startsAt" appendTo="body" fluid /></div>
               <div class="field"><label for="deadline">Chiusura iscrizioni <b>*</b></label><p-datepicker inputId="deadline" [ngModel]="draft().registrationDeadline" (ngModelChange)="update('registrationDeadline', $event)" name="deadline" [showTime]="true" hourFormat="24" dateFormat="dd/mm/yy" [minDate]="minimumDate" appendTo="body" fluid /></div>
-              <div class="field"><label for="city">Città dell'evento</label><input id="city" pInputText [ngModel]="draft().city" (ngModelChange)="update('city', $event)" name="city" placeholder="Es. Rimini" /><small>Lasciala vuota per usare quella della struttura.</small></div>
+              <div class="field"><label for="city">Comune dell'evento</label><app-place-select inputId="city" [text]="draft().city" (placeChange)="chooseCity($event)" /><small>Lascialo vuoto per usare il comune della struttura.</small></div>
               <div class="field"><label for="cost">Costo iscrizione individuale</label><p-inputnumber inputId="cost" [ngModel]="draft().costEuros" (ngModelChange)="update('costEuros', $event ?? 0)" name="cost" mode="currency" currency="EUR" locale="it-IT" [min]="0" [max]="1000" fluid /></div>
             </div>
           </section>
@@ -131,7 +134,7 @@ export class TournamentCreate implements OnInit, OnDestroy {
   protected readonly levels = [1, 2, 3, 4, 5, 6, 7];
   protected readonly genderOptions = [{ label: 'Misto', value: 'mixed' }, { label: 'Maschile', value: 'male' }, { label: 'Femminile', value: 'female' }];
   private readonly start = (() => { const value = new Date(); value.setDate(value.getDate() + 14); value.setHours(9, 0, 0, 0); return value; })();
-  protected readonly draft = signal<TournamentDraft>({ title: '', description: '', venueId: '', courtIds: [], gender: 'mixed', minLevel: 1, maxLevel: 7, registrationDeadline: new Date(this.start.getTime() - 24 * 60 * 60 * 1000), startsAt: this.start, endsAt: new Date(this.start.getTime() + 8 * 60 * 60 * 1000), costEuros: 0, city: '', logoUrl: null, visibility: 'public' });
+  protected readonly draft = signal<TournamentDraft>({ title: '', description: '', venueId: '', courtIds: [], gender: 'mixed', minLevel: 1, maxLevel: 7, registrationDeadline: new Date(this.start.getTime() - 24 * 60 * 60 * 1000), startsAt: this.start, endsAt: new Date(this.start.getTime() + 8 * 60 * 60 * 1000), costEuros: 0, city: '', cityPlace: null, logoUrl: null, visibility: 'public' });
   protected readonly venueOptions = computed(() => { const seen = new Map<string, string>(); for (const court of this.store.courts()) seen.set(court.venue.id, `${court.venue.name} · ${court.venue.city}`); return [...seen].map(([value, label]) => ({ value, label })); });
   protected readonly courtOptions = computed(() => this.store.courts().filter(court => court.venue_id === this.draft().venueId).map(court => ({ value: court.id, label: court.name })));
   protected readonly venueLabel = computed(() => this.venueOptions().find(option => option.value === this.draft().venueId)?.label ?? 'Struttura da selezionare');
@@ -152,13 +155,19 @@ export class TournamentCreate implements OnInit, OnDestroy {
     this.uploadingLogo.set(false);
     if (url) this.update('logoUrl', url);
   }
+  /** Il comune scelto porta con se coordinate e identificativo condiviso. */
+  protected chooseCity(place: PlaceRef | null): void {
+    this.draft.update(draft => ({ ...draft, city: place?.name ?? '', cityPlace: place }));
+    this.error.set(null);
+  }
+
   protected selectVenue(id: string): void { this.draft.update(draft => ({ ...draft, venueId: id, courtIds: this.store.courts().filter(court => court.venue_id === id).map(court => court.id) })); this.error.set(null); }
   protected next(): void { this.attempted.set(true); const message = this.validateStep(); if (message) { this.error.set(message); return; } this.error.set(null); this.attempted.set(false); this.step.update(value => Math.min(3, value + 1)); }
   protected back(): void { if (this.step() === 1) { void this.router.navigateByUrl('/tornei'); return; } this.error.set(null); this.step.update(value => value - 1); }
   protected async submit(event: Event): Promise<void> {
     event.preventDefault(); const message = this.validateAll(); if (message) { this.error.set(message); return; }
     const draft = this.draft();
-    const request: CreateTournamentRequest = { title: draft.title.trim(), description: draft.description.trim() || null, venueId: draft.venueId, courtIds: draft.courtIds, gender: draft.gender, minLevel: draft.minLevel, maxLevel: draft.maxLevel, registrationDeadline: draft.registrationDeadline.toISOString(), startsAt: draft.startsAt.toISOString(), endsAt: draft.endsAt.toISOString(), costCents: Math.round(draft.costEuros * 100), city: draft.city.trim() || null, logoUrl: draft.logoUrl, visibility: draft.visibility };
+    const request: CreateTournamentRequest = { title: draft.title.trim(), description: draft.description.trim() || null, venueId: draft.venueId, courtIds: draft.courtIds, gender: draft.gender, minLevel: draft.minLevel, maxLevel: draft.maxLevel, registrationDeadline: draft.registrationDeadline.toISOString(), startsAt: draft.startsAt.toISOString(), endsAt: draft.endsAt.toISOString(), costCents: Math.round(draft.costEuros * 100), city: draft.city.trim() || null, cityPlaceId: draft.cityPlace?.placeId ?? null, cityLatitude: draft.cityPlace?.latitude ?? null, cityLongitude: draft.cityPlace?.longitude ?? null, logoUrl: draft.logoUrl, visibility: draft.visibility };
     const id = await this.store.create(request); if (id) await this.router.navigate(['/tornei', id], { queryParams: { view: 'studio' } });
   }
   private validateStep(): string | null { const draft = this.draft(); if (this.step() === 1 && (draft.title.trim().length < 3 || draft.minLevel > draft.maxLevel)) return 'Il nome deve contenere almeno 3 caratteri e la fascia di livello deve essere valida.'; if (this.step() === 2 && !draft.venueId) return 'Seleziona la struttura.'; if (this.step() === 2 && (draft.registrationDeadline >= draft.startsAt || draft.startsAt >= draft.endsAt)) return 'Controlla la sequenza di iscrizioni, inizio e fine torneo.'; return null; }

@@ -20,6 +20,8 @@ export interface UserProfile {
   city: string | null;
   city_latitude: number | null;
   city_longitude: number | null;
+  /** Identificativo del comune nell'anagrafica condivisa. */
+  city_place_id: number | null;
   created_at: string;
   updated_at: string;
 }

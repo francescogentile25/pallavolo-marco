@@ -4,15 +4,6 @@ export interface Coordinates {
   longitude: number;
 }
 
-/** Risultato della geocodifica Open-Meteo, usato nell'autocomplete della citta. */
-export interface GeoPlace extends Coordinates {
-  id: number;
-  name: string;
-  admin1: string | null;
-  country: string | null;
-  countryCode: string | null;
-}
-
 /** Misura puntuale: vale sia per l'adesso sia per una singola ora futura. */
 export interface WeatherPoint {
   time: string;
@@ -88,10 +79,4 @@ export function playability(point: WeatherPoint): Playability {
 
 export function roundCoordinates(value: Coordinates): Coordinates {
   return { latitude: Math.round(value.latitude * 100) / 100, longitude: Math.round(value.longitude * 100) / 100 };
-}
-
-/** Etichetta completa del luogo, senza ripetere il nome quando la provincia coincide. */
-export function placeLabel(place: GeoPlace): string {
-  const parts = [place.name, place.admin1 && place.admin1 !== place.name ? place.admin1 : null, place.country];
-  return parts.filter(Boolean).join(', ');
 }

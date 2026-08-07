@@ -1,4 +1,4 @@
-import { placeLabel, playability, roundCoordinates, weatherDescription, weatherGlyph, WeatherPoint } from './weather.model';
+import { playability, roundCoordinates, weatherDescription, weatherGlyph, WeatherPoint } from './weather.model';
 
 function point(overrides: Partial<WeatherPoint> = {}): WeatherPoint {
   return {
@@ -52,9 +52,4 @@ describe('weather.model', () => {
     expect(roundCoordinates({ latitude: 44.057551, longitude: 12.565281 })).toEqual({ latitude: 44.06, longitude: 12.57 });
   });
 
-  it('non ripete il nome quando la provincia coincide', () => {
-    const place = { id: 1, name: 'Roma', admin1: 'Roma', country: 'Italia', countryCode: 'IT', latitude: 41.9, longitude: 12.5 };
-    expect(placeLabel(place)).toBe('Roma, Italia');
-    expect(placeLabel({ ...place, admin1: 'Lazio' })).toBe('Roma, Lazio, Italia');
-  });
 });

@@ -6,30 +6,21 @@ import { RouterLink } from '@angular/router';
 import { ButtonModule } from 'primeng/button';
 import { Dialog } from 'primeng/dialog';
 import { InputText } from 'primeng/inputtext';
-import { AutoComplete, AutoCompleteCompleteEvent, AutoCompleteSelectEvent } from 'primeng/autocomplete';
 import { Select } from 'primeng/select';
 import { ToggleSwitch } from 'primeng/toggleswitch';
 import { Tooltip } from 'primeng/tooltip';
 import { PageActionsService } from '../../core/services/page-actions.service';
-import { WeatherService } from '../../core/services/weather.service';
-import { placeLabel } from '../../shared/weather/weather.model';
+import { PlaceSelect } from '../../shared/places/place-select';
+import { PlaceRef } from '../../shared/places/place.model';
 import { PreferredSide } from '../auth/models/auth.model';
 import { capabilitiesForRole, USER_ROLE_LABELS } from '../auth/auth.utils';
 import { ProfileHistoryChart } from './components/profile-history-chart';
 import { ProfileStore } from './store/profile.store';
 import { Reveal } from '../../shared/motion/reveal.directive';
 
-/** Voce dell'autocomplete: etichetta leggibile piu le coordinate gia risolte. */
-interface CitySuggestion {
-  label: string;
-  name: string;
-  latitude: number;
-  longitude: number;
-}
-
 @Component({
   selector: 'app-profile',
-  imports: [ReactiveFormsModule, FormsModule, RouterLink, AutoComplete, ButtonModule, Dialog, InputText, Select, ToggleSwitch, Tooltip, ProfileHistoryChart, Reveal],
+  imports: [ReactiveFormsModule, FormsModule, RouterLink, ButtonModule, Dialog, InputText, Select, ToggleSwitch, Tooltip, ProfileHistoryChart, PlaceSelect, Reveal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="profile-page">
@@ -151,23 +142,9 @@ interface CitySuggestion {
             <summary><span><i class="pi pi-map-marker" aria-hidden="true"></i> Città e meteo</span><i class="pi pi-chevron-down chev" aria-hidden="true"></i></summary>
             <div class="panel-body">
               <div class="field">
-                <label for="profile-city">La tua città</label>
-                <p-autocomplete
-                  inputId="profile-city"
-                  [ngModel]="citySelection()"
-                  (ngModelChange)="citySelection.set($event)"
-                  [suggestions]="citySuggestions()"
-                  (completeMethod)="searchCity($event)"
-                  (onSelect)="chooseCity($event)"
-                  optionLabel="label"
-                  [delay]="350"
-                  [minQueryLength]="2"
-                  [forceSelection]="true"
-                  emptyMessage="Nessuna città trovata"
-                  placeholder="Cerca la città dove giochi"
-                  appendTo="body"
-                  fluid />
-                <small>Serve al meteo in home. La scelta si salva subito.</small>
+                <label for="profile-city">Il tuo comune</label>
+                <app-place-select inputId="profile-city" [text]="citySelection()" (placeChange)="chooseCity($event)" />
+                <small>Decide il meteo in home e quali partite e tornei ti compaiono come vicini. La scelta si salva subito.</small>
               </div>
               @if (profile.city) {
                 <div class="pref-row">
@@ -311,7 +288,6 @@ export class Profile implements OnInit, OnDestroy {
   protected readonly roleLabels = USER_ROLE_LABELS;
   protected readonly canOrganizeTournaments = (role: Parameters<typeof capabilitiesForRole>[0]): boolean => capabilitiesForRole(role).organizeTournaments;
   private readonly pageActions = inject(PageActionsService);
-  private readonly weather = inject(WeatherService);
   protected readonly avatarPreview = signal<string | null>(null);
   protected readonly avatarBroken = signal(false);
   protected readonly isAdmin = computed(() => this.store.profile()?.ruolo === 'admin');
@@ -331,8 +307,7 @@ export class Profile implements OnInit, OnDestroy {
   protected readonly nameReqForm = signal<{ nome: string; cognome: string }>({ nome: '', cognome: '' });
   protected readonly nameReqSaving = signal(false);
   protected readonly uploadingAvatar = signal(false);
-  protected readonly citySelection = signal<string | CitySuggestion>('');
-  protected readonly citySuggestions = signal<CitySuggestion[]>([]);
+  protected readonly citySelection = signal('');
   /** Il form reattivo non e un signal: questo tiene traccia di quando ha modifiche da salvare. */
   protected readonly formDirty = signal(false);
   protected readonly sideOptions: { label: string; value: PreferredSide }[] = [
@@ -396,22 +371,16 @@ export class Profile implements OnInit, OnDestroy {
     void this.store.load();
   }
   ngOnDestroy(): void { this.pageActions.clear(); }
-  /** Suggerimenti dal geocoding: la scelta porta con se le coordinate, cosi la home non geocodifica. */
-  protected async searchCity(event: AutoCompleteCompleteEvent): Promise<void> {
-    const places = await this.weather.searchCity(event.query);
-    this.citySuggestions.set(places.map((place) => ({ label: placeLabel(place), name: place.name, latitude: place.latitude, longitude: place.longitude })));
-  }
-
-  protected async chooseCity(event: AutoCompleteSelectEvent): Promise<void> {
-    const choice = event.value as CitySuggestion;
-    const saved = await this.store.saveCity(choice.name, choice.latitude, choice.longitude);
+  /** La scelta porta con se coordinate e identificativo del comune: si salva subito. */
+  protected async chooseCity(place: PlaceRef | null): Promise<void> {
+    if (!place) { await this.clearCity(); return; }
+    const saved = await this.store.saveCity(place.name, place.latitude, place.longitude, place.placeId);
     if (!saved) this.citySelection.set(this.store.profile()?.city ?? '');
   }
 
   protected async clearCity(): Promise<void> {
-    await this.store.saveCity(null, null, null);
+    await this.store.saveCity(null, null, null, null);
     this.citySelection.set('');
-    this.citySuggestions.set([]);
   }
 
   protected updateAvatarPreview(): void { this.avatarPreview.set(this.profileForm.controls.avatar_url.value.trim() || null); this.avatarBroken.set(false); }

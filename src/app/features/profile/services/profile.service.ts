@@ -83,11 +83,12 @@ export class ProfileService {
   }
 
   /** La citta si salva da sola alla scelta, come l'avatar: non passa dal modulo. */
-  async setCity(city: string | null, latitude: number | null, longitude: number | null): Promise<UserProfile> {
+  async setCity(city: string | null, latitude: number | null, longitude: number | null, placeId: number | null): Promise<UserProfile> {
     const { data, error } = await this.supabase.client.rpc('set_my_city', {
       p_city: city,
       p_latitude: latitude,
       p_longitude: longitude,
+      p_place_id: placeId,
     });
 
     if (error) throw error;

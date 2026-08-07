@@ -6,7 +6,7 @@ import { CreateTournamentRequest, Tournament, TournamentGameDraft, TournamentRul
 
 const TOURNAMENT_SELECT = `
   *,
-  venue:venues!tournaments_venue_id_fkey(id,name,address,city,latitude,longitude),
+  venue:venues!tournaments_venue_id_fkey(id,name,address,city,latitude,longitude,place_id),
   courts:tournament_courts(court_id,court:courts!tournament_courts_court_id_fkey(id,venue_id,name,surface,indoor,venue:venues!courts_venue_id_fkey(id,name,address,city,latitude,longitude))),
   teams:tournament_teams!tournament_teams_tournament_id_fkey(id,tournament_id,status,seed,waitlist_position,members:tournament_team_members(profile_id,status,profile:profiles!tournament_team_members_profile_id_fkey(id,nome,cognome,livello,lato_preferito,avatar_url))),
   brackets:tournament_brackets(bracket_no,name),
@@ -52,6 +52,12 @@ export class TournamentsService {
     });
     if (error) throw error;
     const created = (data as { id: string }).id;
+    if (request.city) {
+      await this.rpc('set_tournament_city', {
+        p_tournament_id: created, p_city: request.city,
+        p_place_id: request.cityPlaceId, p_latitude: request.cityLatitude, p_longitude: request.cityLongitude,
+      });
+    }
     if (request.logoUrl) await this.rpc('set_tournament_logo', { p_tournament_id: created, p_logo_url: request.logoUrl });
     return this.getTournament(created);
   }

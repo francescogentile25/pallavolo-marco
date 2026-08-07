@@ -16,6 +16,9 @@ export interface CourtInput {
   venueName: string;
   address: string;
   city: string;
+  placeId: number | null;
+  latitude: number | null;
+  longitude: number | null;
   courtName: string;
   indoor: boolean;
 }

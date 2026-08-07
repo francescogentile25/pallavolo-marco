@@ -79,9 +79,9 @@ export const ProfileStore = signalStore(
         }
       },
 
-      async saveCity(city: string | null, latitude: number | null, longitude: number | null): Promise<boolean> {
+      async saveCity(city: string | null, latitude: number | null, longitude: number | null, placeId: number | null): Promise<boolean> {
         try {
-          const profile = await profileService.setCity(city, latitude, longitude);
+          const profile = await profileService.setCity(city, latitude, longitude, placeId);
           patchState(store, { profile });
           authStore.updateProfileSnapshot(profile);
           messageService.add({

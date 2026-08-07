@@ -11,17 +11,19 @@ import { PageActionsService } from '../../../core/services/page-actions.service'
 import { AuthStore } from '../../auth/store/auth.store';
 import { FriendsService } from '../../friends/services/friends.service';
 import { MatchGender } from '../models/match.model';
+import { PlaceSelect } from '../../../shared/places/place-select';
+import { PlaceRef } from '../../../shared/places/place.model';
 import { MatchesStore } from '../store/matches.store';
 
 interface MatchFormModel {
   courtId: string; date: string; time: string; duration: string; capacity: string;
   gender: MatchGender; minLevel: string; maxLevel: string; notes: string; visibility: 'public' | 'private'; invitedPlayerIds: string[];
 }
-interface CourtFormModel { venueName: string; address: string; city: string; courtName: string; indoor: boolean; }
+interface CourtFormModel { venueName: string; address: string; city: string; placeId: number | null; latitude: number | null; longitude: number | null; courtName: string; indoor: boolean; }
 
 @Component({
   selector: 'app-match-create',
-  imports: [Button, Checkbox, FormField, FormsModule, InputText, MultiSelect, Select],
+  imports: [Button, Checkbox, FormField, FormsModule, InputText, MultiSelect, PlaceSelect, Select],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="create-page">
@@ -62,7 +64,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
                 <div class="field"><label for="venue">Nome struttura <span aria-hidden="true">*</span></label><input id="venue" pInputText [formField]="courtForm.venueName" [class.p-invalid]="showError(courtForm.venueName())" [attr.aria-invalid]="showError(courtForm.venueName())" />@if (showError(courtForm.venueName())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Inserisci il nome della struttura.</p> }</div>
                 <div class="field"><label for="court-name">Nome campo <span aria-hidden="true">*</span></label><input id="court-name" pInputText [formField]="courtForm.courtName" [class.p-invalid]="showError(courtForm.courtName())" [attr.aria-invalid]="showError(courtForm.courtName())" />@if (showError(courtForm.courtName())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Inserisci il nome del campo.</p> }</div>
                 <div class="field wide"><label for="address">Indirizzo <span aria-hidden="true">*</span></label><input id="address" pInputText [formField]="courtForm.address" autocomplete="street-address" [class.p-invalid]="showError(courtForm.address())" [attr.aria-invalid]="showError(courtForm.address())" />@if (showError(courtForm.address())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Inserisci l'indirizzo.</p> }</div>
-                <div class="field"><label for="city">Città <span aria-hidden="true">*</span></label><input id="city" pInputText [formField]="courtForm.city" autocomplete="address-level2" [class.p-invalid]="showError(courtForm.city())" [attr.aria-invalid]="showError(courtForm.city())" />@if (showError(courtForm.city())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Inserisci la città.</p> }</div>
+                <div class="field"><label for="city">Comune <span aria-hidden="true">*</span></label><app-place-select inputId="city" [text]="courtModel().city" [invalid]="showError(courtForm.city())" (placeChange)="chooseCourtPlace($event)" />@if (showError(courtForm.city())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Scegli il comune dall'elenco.</p> }</div>
                 <div class="check"><p-checkbox inputId="indoor" [ngModel]="courtModel().indoor" (ngModelChange)="updateCourtField('indoor', $event)" [ngModelOptions]="standaloneNgModel" [binary]="true" /><label for="indoor">Campo coperto</label></div>
                 <p-button class="wide save-court" styleClass="save-court-btn" type="button" [outlined]="true" label="Salva e seleziona campo" icon="pi pi-check" [loading]="store.saving()" (onClick)="createCourt()" />
               </div>
@@ -252,7 +254,7 @@ export class MatchCreate implements OnInit, OnDestroy {
     required(p.time, { message: "Seleziona l'orario." });
     maxLength(p.notes, 1000, { message: 'Le note non possono superare 1000 caratteri.' });
   });
-  protected readonly courtModel = signal<CourtFormModel>({ venueName:'', address:'', city:'', courtName:'Campo 1', indoor:false });
+  protected readonly courtModel = signal<CourtFormModel>({ venueName:'', address:'', city:'', placeId:null, latitude:null, longitude:null, courtName:'Campo 1', indoor:false });
   protected readonly courtForm = form(this.courtModel, p => {
     required(p.venueName, { message: 'Inserisci il nome della struttura.' });
     required(p.address, { message: "Inserisci l'indirizzo." });
@@ -301,7 +303,18 @@ export class MatchCreate implements OnInit, OnDestroy {
     if (key === 'capacity' || key === 'minLevel' || key === 'maxLevel') this.normalizeInvites();
   }
   protected updateCourtField<K extends keyof CourtFormModel>(key: K, value: CourtFormModel[K]): void { this.courtModel.update(current => ({ ...current, [key]: value })); }
-  protected async createCourt(): Promise<void> { this.courtForm().markAsTouched(); if (this.courtForm().invalid()) return; const v=this.courtModel(); const id=await this.store.createCourt({venueName:v.venueName.trim(),address:v.address.trim(),city:v.city.trim(),courtName:v.courtName.trim(),indoor:v.indoor}); if(id){this.matchForm.courtId().value.set(id);this.showNewCourt.set(false);} }
+  /** Il comune scelto porta con se coordinate e identificativo condiviso. */
+  protected chooseCourtPlace(place: PlaceRef | null): void {
+    this.courtModel.update(model => ({
+      ...model,
+      city: place?.name ?? '',
+      placeId: place?.placeId ?? null,
+      latitude: place?.latitude ?? null,
+      longitude: place?.longitude ?? null,
+    }));
+  }
+
+  protected async createCourt(): Promise<void> { this.courtForm().markAsTouched(); if (this.courtForm().invalid()) return; const v=this.courtModel(); const id=await this.store.createCourt({venueName:v.venueName.trim(),address:v.address.trim(),city:v.city.trim(),placeId:v.placeId,latitude:v.latitude,longitude:v.longitude,courtName:v.courtName.trim(),indoor:v.indoor}); if(id){this.matchForm.courtId().value.set(id);this.showNewCourt.set(false);} }
   protected next(): void {
     this.stepError.set(null);
     if (this.step() === 1 && !this.model().courtId) {

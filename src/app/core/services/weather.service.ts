@@ -1,12 +1,11 @@
-import { Injectable } from '@angular/core';
-import { Coordinates, GeoPlace, roundCoordinates, WeatherPoint, WeatherSnapshot } from '../../shared/weather/weather.model';
+import { inject, Injectable } from '@angular/core';
+import { Coordinates, roundCoordinates, WeatherPoint, WeatherSnapshot } from '../../shared/weather/weather.model';
+import { PlacesService } from './places.service';
 
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
-const GEOCODING_URL = 'https://geocoding-api.open-meteo.com/v1/search';
 const CURRENT_FIELDS = 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index';
 const HOURLY_FIELDS = 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,uv_index';
 const FORECAST_TTL = 30 * 60 * 1000;
-const GEOCODING_TTL = 30 * 24 * 60 * 60 * 1000;
 /** Open-Meteo pubblica previsioni orarie fino a 16 giorni: oltre non c'e nulla da mostrare. */
 const FORECAST_HORIZON_DAYS = 16;
 const STORAGE_PREFIX = 'bvh:weather:';
@@ -29,36 +28,13 @@ interface ForecastResponse {
 @Injectable({ providedIn: 'root' })
 export class WeatherService {
   private readonly memory = new Map<string, CacheEntry<unknown>>();
+  private readonly places = inject(PlacesService);
 
-  /** Citta suggerite mentre si scrive: nessuna cache, la query cambia a ogni tasto. */
-  async searchCity(query: string, signal?: AbortSignal): Promise<readonly GeoPlace[]> {
-    const term = query.trim();
-    if (term.length < 2) return [];
-    const url = `${GEOCODING_URL}?name=${encodeURIComponent(term)}&count=6&language=it&format=json`;
-    const data = await this.request<{ results?: readonly Record<string, unknown>[] }>(url, signal);
-    return (data?.results ?? []).map(item => ({
-      id: Number(item['id']),
-      name: String(item['name']),
-      admin1: (item['admin1'] as string | undefined) ?? null,
-      country: (item['country'] as string | undefined) ?? null,
-      countryCode: (item['country_code'] as string | undefined) ?? null,
-      latitude: Number(item['latitude']),
-      longitude: Number(item['longitude']),
-    }));
-  }
-
-  /** Coordinate di una sede: quelle salvate se ci sono, altrimenti geocodifica la citta. */
+  /** Coordinate di una sede: quelle salvate se ci sono, altrimenti il comune risolto. */
   async coordinatesForCity(city: string | null | undefined, saved?: Coordinates | null): Promise<Coordinates | null> {
     if (saved && Number.isFinite(saved.latitude) && Number.isFinite(saved.longitude)) return roundCoordinates(saved);
-    const term = (city ?? '').trim();
-    if (term.length < 2) return null;
-    const key = `geo:${term.toLocaleLowerCase('it')}`;
-    const cached = this.read<Coordinates | null>(key, GEOCODING_TTL);
-    if (cached !== undefined) return cached;
-    const [place] = await this.searchCity(term);
-    const value = place ? roundCoordinates(place) : null;
-    this.write(key, value);
-    return value;
+    const place = await this.places.resolve(city);
+    return place ? roundCoordinates(place) : null;
   }
 
   /** Condizioni attuali e tramonto: quello che serve alla testata della home. */

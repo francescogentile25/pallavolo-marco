@@ -17,6 +17,8 @@ export interface Venue {
   city: string;
   latitude: number | null;
   longitude: number | null;
+  /** Comune dell'anagrafica condivisa: rende confrontabili le sedi fra utenti. */
+  place_id?: number | null;
 }
 
 export interface Court {
@@ -107,6 +109,9 @@ export interface CreateCourtRequest {
   venueName: string;
   address: string;
   city: string;
+  placeId: number | null;
+  latitude: number | null;
+  longitude: number | null;
   courtName: string;
   indoor: boolean;
 }

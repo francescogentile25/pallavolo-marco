@@ -38,6 +38,9 @@ export class CourtsService {
       p_city: input.city,
       p_court_name: input.courtName,
       p_indoor: input.indoor,
+      p_place_id: input.placeId,
+      p_latitude: input.latitude,
+      p_longitude: input.longitude,
     });
     if (error) throw error;
     return (data as { id: string }).id;
@@ -51,6 +54,9 @@ export class CourtsService {
       p_venue_name: input.venueName,
       p_address: input.address,
       p_city: input.city,
+      p_place_id: input.placeId,
+      p_latitude: input.latitude,
+      p_longitude: input.longitude,
     });
     if (error) throw error;
   }

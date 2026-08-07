@@ -17,7 +17,7 @@ const MATCH_SELECT = `
   *,
   court:courts!matches_court_id_fkey(
     id, venue_id, name, surface, indoor,
-    venue:venues!courts_venue_id_fkey(id, name, address, city, latitude, longitude)
+    venue:venues!courts_venue_id_fkey(id, name, address, city, latitude, longitude, place_id)
   ),
   participants:match_participants(profile_id, joined_at)
 `;
@@ -96,6 +96,9 @@ export class MatchesService {
       p_city: request.city,
       p_court_name: request.courtName,
       p_indoor: request.indoor,
+      p_place_id: request.placeId,
+      p_latitude: request.latitude,
+      p_longitude: request.longitude,
     });
     if (error) throw error;
     const court = data as Omit<Court, 'venue'>;
