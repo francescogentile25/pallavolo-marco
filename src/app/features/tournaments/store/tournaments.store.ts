@@ -41,6 +41,9 @@ export const TournamentsStore = signalStore(
       pairSingleTeams: (id: string, first: string, second: string) => act(id, () => service.pairSingleTeams(id, first, second), 'Coppia formata', 'I due iscritti singoli ora giocano insieme.'),
       removeTeam: (id: string, teamId: string) => act(id, () => service.removeTeam(id, teamId), 'Iscrizione rimossa', 'La coppia non fa più parte del torneo.'),
       splitTeam: (id: string, teamId: string) => act(id, () => service.splitTeam(id, teamId), 'Coppia smembrata', 'I due giocatori sono ora iscritti singoli, pronti per nuovi compagni.'),
+      async uploadLogo(file: File): Promise<string | null> {
+        try { return await service.uploadLogo(file); } catch (error) { fail(error); return null; }
+      },
       setGameCourt: (id: string, gameId: string, courtId: string | null) => act(id, () => service.setGameCourt(gameId, courtId), 'Campo aggiornato', courtId ? 'Il campo dell’incontro è stato assegnato.' : 'Il campo dell’incontro è stato rimosso.'),
       closeGroups: (id: string) => act(id, () => service.closeGroups(id), 'Gironi chiusi', 'Ora puoi registrare i risultati del tabellone.'),
       reopenGroups: (id: string) => act(id, () => service.reopenGroups(id), 'Gironi riaperti', 'I risultati del tabellone restano bloccati.'),

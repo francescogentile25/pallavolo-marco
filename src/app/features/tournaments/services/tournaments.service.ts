@@ -51,7 +51,9 @@ export class TournamentsService {
       p_ends_at: request.endsAt, p_cost_cents: request.costCents, p_city: request.city,
     });
     if (error) throw error;
-    return this.getTournament((data as { id: string }).id);
+    const created = (data as { id: string }).id;
+    if (request.logoUrl) await this.rpc('set_tournament_logo', { p_tournament_id: created, p_logo_url: request.logoUrl });
+    return this.getTournament(created);
   }
 
   async publish(id: string): Promise<void> { await this.rpc('publish_tournament', { p_tournament_id: id }); }
@@ -93,6 +95,16 @@ export class TournamentsService {
   async splitTeam(tournamentId: string, teamId: string): Promise<void> {
     await this.rpc('organizer_split_tournament_team', { p_tournament_id: tournamentId, p_team_id: teamId });
   }
+  /** Carica il logo nel bucket pubblico e restituisce l'indirizzo definitivo. */
+  async uploadLogo(file: File): Promise<string> {
+    const extension = (file.name.split('.').pop() || 'png').toLowerCase();
+    const path = `${crypto.randomUUID()}.${extension}`;
+    const { error } = await this.supabase.client.storage.from('tournament-logos')
+      .upload(path, file, { cacheControl: '3600', contentType: file.type || 'image/png' });
+    if (error) throw error;
+    return this.supabase.client.storage.from('tournament-logos').getPublicUrl(path).data.publicUrl;
+  }
+
   async setGameCourt(gameId: string, courtId: string | null): Promise<void> {
     await this.rpc('set_tournament_game_court', { p_game_id: gameId, p_court_id: courtId });
   }
