@@ -74,7 +74,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     </section>
 
     <div class="bracket-layout">
-      @if (qualified().length) {
+      @if (qualified().length || canManage() || podiumFilled()) {
         <div class="bracket-side">
           @if (qualified().length) {
             <aside class="side-panel" cdkDropList id="bracket-pool" [cdkDropListConnectedTo]="slotIds()" [cdkDropListSortingDisabled]="true">
@@ -94,16 +94,13 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
             </aside>
           }
 
-        </div>
-      }
-
-      @if (canManage() || podiumFilled()) {
+          @if (canManage() || podiumFilled()) {
         <section class="podium-card">
           <header><i class="pi pi-trophy" aria-hidden="true"></i><div><h4>Podio del torneo</h4><small>Serve a registrare chi ha vinto nelle statistiche dei giocatori.</small></div></header>
           <div class="podium-slots">
             @for (place of podiumPlaces; track place.position) {
               <label class="podium-slot" [class]="'place-' + place.position">
-                <span><i class="pi pi-trophy" aria-hidden="true"></i>{{ place.label }}</span>
+                <span><b class="medal" aria-hidden="true">{{ place.position }}</b>{{ place.label }}<i class="pi pi-trophy" aria-hidden="true"></i></span>
                 @if (canManage()) {
                   <p-select [ngModel]="podiumDraft()[place.position - 1]" (ngModelChange)="setPodiumPlace(place.position, $event)" [options]="teamOptions()" optionLabel="label" optionValue="value" placeholder="Scegli la coppia" [showClear]="true" appendTo="body" fluid />
                 } @else {
@@ -118,6 +115,8 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
             </footer>
           }
         </section>
+          }
+        </div>
       }
 
       <div class="bracket-tree">
@@ -244,15 +243,24 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .podium-card h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
     .podium-card small{color:#5b6a72;font-size:.62rem;line-height:1.35}
     .podium-slots{display:grid;gap:10px}
-    .podium-slot{display:grid;gap:6px;padding:11px;border:1px solid #d9cdb4;border-radius:var(--radius);background:#faf7f0}
-    .podium-slot>span{display:inline-flex;align-items:center;gap:7px;font-size:.68rem;font-weight:850}
-    .podium-slot>strong{font-size:.75rem}
-    .podium-slot.place-1{border-color:#ffc72c;background:#fffaf0}
-    .podium-slot.place-1>span{color:#8a6a12}
-    .podium-slot.place-2{border-color:#d9cdb4;background:#faf7f0}
-    .podium-slot.place-2>span{color:#5b6a72}
-    .podium-slot.place-3{border-color:#ffd98a;background:#fffaf0}
-    .podium-slot.place-3>span{color:#8a6a12}
+    .podium-slot{display:grid;gap:8px;padding:12px;border:1px solid #d9cdb4;border-left-width:5px;border-radius:var(--radius);background:#faf7f0}
+    .podium-slot>span{display:inline-flex;align-items:center;gap:9px;font-size:.7rem;font-weight:850;letter-spacing:.02em}
+    .podium-slot>span>i{margin-left:auto;font-size:.95rem}
+    .podium-slot>strong{font-size:.78rem}
+    .medal{display:grid;width:26px;height:26px;flex:0 0 26px;place-items:center;border-radius:50%;color:#fff;font:800 .78rem/1 var(--display-font)}
+    /* oro, argento e bronzo: il primo posto pesa piu degli altri due */
+    .podium-slot.place-1{border-color:#e0a72e;border-left-color:#e0a72e;background:#fdf4e0;box-shadow:0 3px 12px rgb(224 167 46 / .22)}
+    .podium-slot.place-1>span{color:#7d5a10}
+    .podium-slot.place-1 .medal{background:linear-gradient(145deg,#f3c65a,#d1901f)}
+    .podium-slot.place-1>span>i{color:#d1901f}
+    .podium-slot.place-2{border-color:#adb5bd;border-left-color:#adb5bd;background:#f4f5f7}
+    .podium-slot.place-2>span{color:#54606a}
+    .podium-slot.place-2 .medal{background:linear-gradient(145deg,#cdd3d9,#8d99a4)}
+    .podium-slot.place-2>span>i{color:#8d99a4}
+    .podium-slot.place-3{border-color:#c08445;border-left-color:#c08445;background:#f8ede1}
+    .podium-slot.place-3>span{color:#7a4f1d}
+    .podium-slot.place-3 .medal{background:linear-gradient(145deg,#d79b62,#a8712a)}
+    .podium-slot.place-3>span>i{color:#a8712a}
     .podium-card footer{display:flex;justify-content:flex-end}
     .bracket-tree{display:flex;align-items:stretch;gap:18px;overflow-x:auto;padding-bottom:10px;scroll-snap-type:x proximity}
     .round-col{display:flex;min-width:min(86vw,290px);flex-direction:column;gap:14px;scroll-snap-align:start}
@@ -288,7 +296,6 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
       .bracket-layout{grid-template-columns:300px minmax(0,1fr);gap:22px;align-items:start}
       /* colonna sinistra: pannelli e podio; a destra il tabellone su tutte le righe */
       .bracket-side{grid-column:1;position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow-y:auto}
-      .podium-card{grid-column:1}
       .bracket-tree{grid-column:2;grid-row:1/-1}
       .podium-slots{grid-template-columns:1fr}
       .round-col{min-width:300px}
