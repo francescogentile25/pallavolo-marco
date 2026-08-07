@@ -13,6 +13,7 @@ import localeIt from '@angular/common/locales/it';
 import { provideAnimationsAsync } from "@angular/platform-browser/animations/async";
 import { providePrimeNG } from "primeng/config";
 import { BeachVolleyLight } from '../assets/themes/beach-volley-light';
+import { PRIMENG_IT } from './core/i18n/primeng-it';
 import { MessageService } from "primeng/api";
 import { ToastModule } from "primeng/toast";
 
@@ -30,6 +31,7 @@ export const appConfig: ApplicationConfig = {
     ),
     provideAnimationsAsync(),
     providePrimeNG({
+      translation: PRIMENG_IT,
       theme: {
         preset: BeachVolleyLight,
         options: {

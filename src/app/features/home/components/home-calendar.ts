@@ -1,7 +1,9 @@
 import { DatePipe } from '@angular/common';
 import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, ElementRef, input, signal, untracked, viewChild } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { gsap } from 'gsap';
 import { RouterLink } from '@angular/router';
+import { DatePicker, DatePickerMonthChangeEvent } from 'primeng/datepicker';
 import { motionAllowed } from '../../../shared/motion/reveal.directive';
 
 export type CalendarEventKind = 'match' | 'tournament';
@@ -15,17 +17,22 @@ export interface CalendarEvent {
   link: readonly string[];
 }
 
-interface CalendarCell {
+interface AgendaDay {
   key: string;
   date: Date;
-  dayNumber: number;
-  weekdayLabel: string;
-  today: boolean;
-  outside: boolean;
   events: readonly CalendarEvent[];
 }
 
-const WEEKDAYS = ['LUN', 'MAR', 'MER', 'GIO', 'VEN', 'SAB', 'DOM'];
+/** Metadati della cella giorno passati dal datepicker PrimeNG. */
+interface DayMeta {
+  day: number;
+  month: number;
+  year: number;
+  otherMonth?: boolean;
+  today?: boolean;
+  selectable?: boolean;
+}
+
 const MONTHS = ['gennaio', 'febbraio', 'marzo', 'aprile', 'maggio', 'giugno', 'luglio', 'agosto', 'settembre', 'ottobre', 'novembre', 'dicembre'];
 
 function startOfDay(value: Date): Date {
@@ -37,8 +44,7 @@ function startOfDay(value: Date): Date {
 /** La settimana comincia di lunedi, come nel calendario italiano. */
 function startOfWeek(value: Date): Date {
   const date = startOfDay(value);
-  const shift = (date.getDay() + 6) % 7;
-  date.setDate(date.getDate() - shift);
+  date.setDate(date.getDate() - ((date.getDay() + 6) % 7));
   return date;
 }
 
@@ -48,18 +54,21 @@ function addDays(value: Date, days: number): Date {
   return date;
 }
 
-function dayKey(value: Date): string {
-  return `${value.getFullYear()}-${value.getMonth()}-${value.getDate()}`;
+function dayKey(year: number, month: number, day: number): string {
+  return `${year}-${month}-${day}`;
 }
 
 /**
- * Programma personale su due scale: la settimana per decidere cosa fare adesso,
- * il mese per vedere quanto si gioca. Le due viste condividono lo stesso cursore,
- * cosi passando da una all'altra non si perde il periodo che si stava guardando.
+ * Programma personale costruito sul datepicker di PrimeNG, che porta con se la
+ * griglia italiana da lunedi a domenica e la navigazione dei mesi. Le celle
+ * segnano con un punto i giorni impegnati; l'elenco sotto racconta gli impegni
+ * del periodo scelto, settimana o mese. Sul telefono e l'elenco a fare il
+ * lavoro: le celle restano piccole e leggibili invece di ospitare etichette
+ * schiacciate.
  */
 @Component({
   selector: 'app-home-calendar',
-  imports: [DatePipe, RouterLink],
+  imports: [DatePipe, FormsModule, RouterLink, DatePicker],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <article class="panel">
@@ -83,33 +92,52 @@ function dayKey(value: Date): string {
         </div>
       </div>
 
-      @if (view() === 'month') {
-        <ol class="weekday-row" aria-hidden="true">
-          @for (name of weekdays; track name) { <li>{{ name }}</li> }
-        </ol>
-      }
+      <div class="picker" #picker>
+        <p-datepicker
+          [inline]="true"
+          [ngModel]="cursor()"
+          (ngModelChange)="pick($event)"
+          [firstDayOfWeek]="1"
+          [showOtherMonths]="true"
+          [selectOtherMonths]="true"
+          (onMonthChange)="jumpToMonth($event)"
+          styleClass="calendar-picker">
+          <ng-template #date let-day>
+            <span class="cell" [class.in-range]="inRange(day)">
+              <span class="cell-day">{{ day.day }}</span>
+              <span class="dots" aria-hidden="true">
+                @if (hasKind(day, 'match')) { <i class="dot match"></i> }
+                @if (hasKind(day, 'tournament')) { <i class="dot tournament"></i> }
+              </span>
+            </span>
+          </ng-template>
+        </p-datepicker>
+      </div>
 
-      <div class="grid" [class.month]="view() === 'month'" #grid>
-        @for (cell of cells(); track cell.key) {
-          <div class="day" [class.today]="cell.today" [class.outside]="cell.outside">
-            @if (view() === 'week') { <span class="day-name">{{ cell.weekdayLabel }}</span> }
-            <strong class="day-number">{{ cell.dayNumber }}</strong>
-
-            @for (event of cell.events; track event.id) {
-              <a class="event" [class.tournament]="event.kind === 'tournament'" [routerLink]="event.link"
-                 [attr.aria-label]="event.label + ' · ' + (event.startsAt | date: 'EEEE d MMMM, HH:mm':'':'it')">
-                <time [attr.datetime]="event.startsAt">{{ event.startsAt | date: 'HH:mm' }}</time>
-                <span>{{ event.label }}</span>
-              </a>
-            }
+      <div class="agenda">
+        <p class="agenda-head">{{ view() === 'week' ? 'Impegni della settimana' : 'Impegni del mese' }}</p>
+        @for (day of agenda(); track day.key) {
+          <div class="agenda-day">
+            <span class="agenda-date"><b>{{ day.date | date: 'dd' }}</b>{{ day.date | date: 'MMM':'':'it' }}</span>
+            <ul>
+              @for (event of day.events; track event.id) {
+                <li>
+                  <a [routerLink]="event.link" [class.tournament]="event.kind === 'tournament'">
+                    <time [attr.datetime]="event.startsAt">{{ event.startsAt | date: 'HH:mm' }}</time>
+                    <span>{{ event.label }}</span>
+                  </a>
+                </li>
+              }
+            </ul>
           </div>
+        } @empty {
+          <p class="agenda-empty">Nessun impegno in questo periodo.</p>
         }
       </div>
 
       <div class="legend">
         <span><i class="dot match" aria-hidden="true"></i> Le mie partite</span>
         <span><i class="dot tournament" aria-hidden="true"></i> I miei tornei</span>
-        @if (!events().length) { <span class="empty">Nessun impegno in programma.</span> }
       </div>
     </article>
   `,
@@ -125,117 +153,134 @@ function dayKey(value: Date): string {
     .switch button{min-height:38px;padding:0 14px;color:var(--color-ink-muted);border:0;border-radius:var(--radius-pill);background:none;font:inherit;font-size:.72rem;font-weight:850;cursor:pointer}
     .switch button.on{color:white;background:var(--color-brand)}
     .switch button:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
-
     .nav{display:flex;align-items:center;gap:10px;color:var(--color-ink-muted);font-size:.74rem;font-weight:800}
     .range{min-width:118px;text-align:center}
     .step{display:grid;width:38px;height:38px;place-items:center;color:var(--color-brand);border:1px solid var(--color-border);border-radius:50%;background:white;font-size:1.25rem;line-height:1;cursor:pointer}
     .step:hover{background:var(--color-brand-soft)}
     .step:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
 
-    .weekday-row{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:0;padding:0;margin:18px 0 6px;list-style:none}
-    .weekday-row li{color:var(--color-ink-muted);font-size:.56rem;font-weight:900;letter-spacing:.09em;text-align:center}
-
-    .grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));margin-top:20px;overflow:hidden;border:1px solid var(--color-border);border-radius:16px}
-    .grid.month{margin-top:0}
-    .day{min-height:155px;padding:13px 8px;border-right:1px solid var(--color-border);background:white;text-align:center}
-    .day:nth-child(7n){border-right:0}
-    .grid.month .day{min-height:96px;border-bottom:1px solid var(--color-border)}
-    .grid.month .day:nth-last-child(-n+7){border-bottom:0}
-    .day.today{background:linear-gradient(180deg,#f0f9fd,#e8f6fb);box-shadow:inset 0 3px 0 var(--color-brand)}
-    .day.outside{background:var(--color-surface-muted)}
-    .day.outside .day-number{color:var(--color-ink-muted);opacity:.55}
-
-    .day-name{display:block;color:var(--color-ink-muted);font-size:.56rem;font-weight:900;letter-spacing:.09em}
-    .day-number{display:block;margin-top:6px;font-family:var(--font-numeric);font-size:1.05rem;font-weight:900}
-
-    .event{display:flex;flex-direction:column;align-items:flex-start;gap:2px;margin-top:9px;padding:8px 7px;color:#086391;border-left:3px solid var(--color-brand);border-radius:9px;background:#dff4fd;font-size:.56rem;font-weight:850;line-height:1.25;text-align:left;text-decoration:none}
-    .event span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
-    .event time{opacity:.75;font-family:var(--font-numeric)}
-    .event.tournament{color:#755400;border-left-color:var(--color-tournament);background:#fff1c6}
-    .event:hover{filter:brightness(.97)}
-    .event:focus-visible{outline:2px solid var(--color-focus);outline-offset:1px}
-
-    .legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:17px;color:var(--color-ink-muted);font-size:.7rem}
-    .legend span{display:inline-flex;align-items:center;gap:7px}
-    .dot{width:9px;height:9px;border-radius:50%;background:var(--color-brand)}
+    .picker{margin-top:18px}
+    .cell{display:grid;width:100%;justify-items:center;gap:3px}
+    .cell-day{font-family:var(--font-numeric);font-size:.82rem;font-weight:800}
+    .dots{display:flex;gap:3px;height:6px}
+    .dot{width:6px;height:6px;border-radius:50%;background:var(--color-brand)}
     .dot.tournament{background:var(--color-tournament)}
-    .empty{font-style:italic}
 
-    /* Sul touch le pastiglie del calendario devono restare toccabili. */
+    .agenda{margin-top:18px}
+    .agenda-head{margin:0 0 10px;color:var(--color-ink-muted);font-size:.6rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase}
+    .agenda-day{display:grid;grid-template-columns:52px minmax(0,1fr);gap:12px;padding:9px 0;border-top:1px solid var(--color-border)}
+    .agenda-date{display:grid;align-content:start;justify-items:center;padding:6px 0;color:var(--color-ink-muted);border-radius:var(--radius-sm);background:var(--color-surface-muted);font-size:.56rem;font-weight:850;text-transform:uppercase}
+    .agenda-date b{color:var(--color-ink);font-family:var(--font-numeric);font-size:1rem}
+    .agenda-day ul{display:grid;gap:6px;padding:0;margin:0;list-style:none}
+    .agenda-day a{display:flex;min-height:44px;align-items:center;gap:10px;padding:8px 12px;color:#086391;border-left:3px solid var(--color-brand);border-radius:9px;background:#dff4fd;font-size:.74rem;font-weight:800;text-decoration:none}
+    .agenda-day a.tournament{color:#755400;border-left-color:var(--color-tournament);background:#fff1c6}
+    .agenda-day a:hover{filter:brightness(.97)}
+    .agenda-day a:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
+    .agenda-day time{flex:0 0 auto;opacity:.8;font-family:var(--font-numeric)}
+    .agenda-day a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .agenda-empty{margin:0;padding-top:10px;border-top:1px solid var(--color-border);color:var(--color-ink-muted);font-size:.74rem;font-style:italic}
+
+    .legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px;color:var(--color-ink-muted);font-size:.7rem}
+    .legend span{display:inline-flex;align-items:center;gap:7px}
+
+    /* Il datepicker inline deve occupare la card, non la sua larghezza naturale. */
+    :host ::ng-deep .calendar-picker{width:100%}
+    :host ::ng-deep .calendar-picker .p-datepicker-panel{width:100%;max-width:none;border:1px solid var(--color-border);border-radius:16px}
+    :host ::ng-deep .calendar-picker table{width:100%;table-layout:fixed}
+    :host ::ng-deep .calendar-picker td{padding:2px}
+    :host ::ng-deep .calendar-picker td>span{width:100%;min-height:40px;height:auto;border-radius:10px}
+    :host ::ng-deep .calendar-picker .p-datepicker-weekday{font-size:.58rem;font-weight:900;letter-spacing:.06em;text-transform:uppercase}
+    :host ::ng-deep .calendar-picker td>span:has(.in-range){background:var(--color-brand-soft)}
+    :host ::ng-deep .calendar-picker td>span.p-datepicker-day-selected:has(.in-range){color:white;background:var(--color-brand)}
+    :host ::ng-deep .calendar-picker td>span.p-datepicker-day-selected .dot{background:white}
+
     @media(pointer:coarse){
-      .event{min-height:44px;justify-content:center}
       .step{width:44px;height:44px}
       .switch button{min-height:44px}
+      :host ::ng-deep .calendar-picker td>span{min-height:44px}
     }
 
-    @media(max-width:840px){
+    @media(max-width:560px){
       .panel{padding:18px}
-      .grid{overflow-x:auto;grid-template-columns:repeat(7,100px)}
-      .grid.month{grid-template-columns:repeat(7,minmax(0,1fr))}
-      .grid.month .day{min-height:74px;padding:8px 4px}
-      .grid.month .event{padding:5px 4px;font-size:.5rem}
-      .grid.month .event time{display:none}
-      .weekday-row{grid-template-columns:repeat(7,minmax(0,1fr))}
+      .head{align-items:center}
       .range{min-width:0}
+      .cell-day{font-size:.76rem}
+      .agenda-day{grid-template-columns:44px minmax(0,1fr);gap:9px}
+      :host ::ng-deep .calendar-picker .p-datepicker-panel{padding:8px}
+      :host ::ng-deep .calendar-picker td{padding:1px}
     }
   `,
 })
 export class HomeCalendar {
   readonly events = input<readonly CalendarEvent[]>([]);
 
-  private readonly grid = viewChild<ElementRef<HTMLElement>>('grid');
-  private lastPeriod = '';
-
-  protected readonly weekdays = WEEKDAYS;
   protected readonly view = signal<'week' | 'month'>('week');
   /** Giorno di riferimento: la vista ci costruisce sopra settimana o mese. */
   protected readonly cursor = signal(startOfDay(new Date()));
+
+  private readonly picker = viewChild<ElementRef<HTMLElement>>('picker');
+  private lastPeriod = '';
 
   protected readonly rangeLabel = computed(() => {
     const cursor = this.cursor();
     if (this.view() === 'month') return `${MONTHS[cursor.getMonth()]} ${cursor.getFullYear()}`;
     const first = startOfWeek(cursor);
     const last = addDays(first, 6);
-    const sameMonth = first.getMonth() === last.getMonth();
-    return sameMonth
+    return first.getMonth() === last.getMonth()
       ? `${first.getDate()} — ${last.getDate()} ${MONTHS[last.getMonth()].slice(0, 3)}`
       : `${first.getDate()} ${MONTHS[first.getMonth()].slice(0, 3)} — ${last.getDate()} ${MONTHS[last.getMonth()].slice(0, 3)}`;
   });
 
-  protected readonly cells = computed<readonly CalendarCell[]>(() => {
-    const today = startOfDay(new Date());
-    const grouped = this.eventsByDay();
+  /** Estremi del periodo attivo: li usano sia le celle sia l'elenco. */
+  private readonly bounds = computed(() => {
     const cursor = this.cursor();
-    const month = cursor.getMonth();
-    const first = this.view() === 'week' ? startOfWeek(cursor) : startOfWeek(new Date(cursor.getFullYear(), month, 1));
-    const length = this.view() === 'week' ? 7 : this.monthCellCount(cursor);
+    if (this.view() === 'week') {
+      const from = startOfWeek(cursor);
+      return { from, to: addDays(from, 7) };
+    }
+    return {
+      from: new Date(cursor.getFullYear(), cursor.getMonth(), 1),
+      to: new Date(cursor.getFullYear(), cursor.getMonth() + 1, 1),
+    };
+  });
 
-    return Array.from({ length }, (_, index) => {
-      const date = addDays(first, index);
-      const key = dayKey(date);
-      return {
-        key,
-        date,
-        dayNumber: date.getDate(),
-        weekdayLabel: WEEKDAYS[(date.getDay() + 6) % 7],
-        today: key === dayKey(today),
-        outside: this.view() === 'month' && date.getMonth() !== month,
-        events: grouped.get(key) ?? [],
-      };
-    });
+  private readonly byDay = computed(() => {
+    const map = new Map<string, CalendarEvent[]>();
+    for (const event of this.events()) {
+      const date = new Date(event.startsAt);
+      if (Number.isNaN(date.getTime())) continue;
+      const key = dayKey(date.getFullYear(), date.getMonth(), date.getDate());
+      const list = map.get(key) ?? [];
+      list.push(event);
+      map.set(key, list);
+    }
+    for (const list of map.values()) list.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
+    return map;
+  });
+
+  protected readonly agenda = computed<readonly AgendaDay[]>(() => {
+    const { from, to } = this.bounds();
+    const days: AgendaDay[] = [];
+    for (const [key, events] of this.byDay()) {
+      const day = startOfDay(new Date(events[0].startsAt));
+      if (day < from || day >= to) continue;
+      days.push({ key, date: day, events });
+    }
+    return days.sort((first, second) => first.date.getTime() - second.date.getTime());
   });
 
   constructor() {
     // Cambio di periodo o di scala: la griglia si ricompone, cosi il salto e leggibile.
     afterRenderEffect(() => {
       const period = `${this.view()}:${this.cursor().getTime()}`;
-      const host = this.grid()?.nativeElement;
+      const host = this.picker()?.nativeElement;
       if (!host || period === this.lastPeriod) return;
       const first = !this.lastPeriod;
       this.lastPeriod = period;
       if (first || !motionAllowed()) return;
       untracked(() => {
-        gsap.from(host.children, { opacity: 0, y: 8, duration: 0.32, ease: 'power2.out', stagger: 0.012, overwrite: true });
+        const cells = host.querySelectorAll('td');
+        if (cells.length) gsap.from(cells, { opacity: 0, y: 6, duration: 0.28, ease: 'power2.out', stagger: 0.008, overwrite: true });
       });
     });
   }
@@ -245,32 +290,32 @@ export class HomeCalendar {
   }
 
   protected shift(direction: number): void {
-    this.cursor.update(current => {
-      if (this.view() === 'week') return addDays(current, direction * 7);
-      const next = new Date(current.getFullYear(), current.getMonth() + direction, 1);
-      return startOfDay(next);
-    });
+    this.cursor.update(current => this.view() === 'week'
+      ? addDays(current, direction * 7)
+      : startOfDay(new Date(current.getFullYear(), current.getMonth() + direction, 1)));
   }
 
-  private eventsByDay(): Map<string, CalendarEvent[]> {
-    const map = new Map<string, CalendarEvent[]>();
-    for (const event of this.events()) {
-      const date = new Date(event.startsAt);
-      if (Number.isNaN(date.getTime())) continue;
-      const key = dayKey(date);
-      const list = map.get(key) ?? [];
-      list.push(event);
-      map.set(key, list);
-    }
-    for (const list of map.values()) list.sort((a, b) => Date.parse(a.startsAt) - Date.parse(b.startsAt));
-    return map;
+  /** Clic su una cella: sposta il periodo attivo su quel giorno. */
+  protected pick(value: Date | null): void {
+    if (value instanceof Date && !Number.isNaN(value.getTime())) this.cursor.set(startOfDay(value));
   }
 
-  /** Griglia sempre chiusa a settimane intere: cinque o sei righe secondo il mese. */
-  private monthCellCount(cursor: Date): number {
-    const first = new Date(cursor.getFullYear(), cursor.getMonth(), 1);
-    const daysInMonth = new Date(cursor.getFullYear(), cursor.getMonth() + 1, 0).getDate();
-    const offset = (first.getDay() + 6) % 7;
-    return Math.ceil((offset + daysInMonth) / 7) * 7;
+  /** Frecce del datepicker: tengono il periodo allineato al mese mostrato. */
+  protected jumpToMonth(event: DatePickerMonthChangeEvent): void {
+    if (event.month === undefined || event.year === undefined) return;
+    const month = event.month - 1;
+    const current = this.cursor();
+    if (current.getMonth() === month && current.getFullYear() === event.year) return;
+    this.cursor.set(startOfDay(new Date(event.year, month, 1)));
+  }
+
+  protected hasKind(day: DayMeta, kind: CalendarEventKind): boolean {
+    return (this.byDay().get(dayKey(day.year, day.month, day.day)) ?? []).some(event => event.kind === kind);
+  }
+
+  protected inRange(day: DayMeta): boolean {
+    const date = new Date(day.year, day.month, day.day);
+    const { from, to } = this.bounds();
+    return date >= from && date < to;
   }
 }
