@@ -126,18 +126,19 @@ const DAY = 24 * 60 * 60 * 1000;
             <a class="section-link" routerLink="/tornei">Vedi tutti <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
           </div>
 
-          <div class="cards">
+          <div class="cards cards-tournaments">
             @for (tournament of openTournaments(); track tournament.id) {
               <a class="tournament-card" [routerLink]="['/tornei', tournament.id]">
-                <span class="date-card"><strong>{{ tournament.starts_at | date: 'dd' }}</strong><span>{{ tournament.starts_at | date: 'MMM':'':'it' }}</span></span>
-                <span class="tournament-body">
+                <span class="tournament-head">
+                  <span class="date-card"><strong>{{ tournament.starts_at | date: 'dd' }}</strong><span>{{ tournament.starts_at | date: 'MMM':'':'it' }}</span></span>
                   <span class="kicker">Iscrizioni aperte</span>
-                  <h3>{{ tournament.title }}</h3>
-                  <p>{{ tournament.city || tournament.venue.city }} · {{ tournament.starts_at | date: 'EEEE, HH:mm':'':'it' }}</p>
-                  <span class="card-footer">
-                    <span class="team-count"><i class="pi pi-users" aria-hidden="true"></i> {{ confirmedTeams(tournament) }} squadre</span>
-                    <span class="details-link">Dettagli <i class="pi pi-arrow-right" aria-hidden="true"></i></span>
-                  </span>
+                </span>
+                <h3>{{ tournament.title }}</h3>
+                <p class="meta"><i class="pi pi-map-marker" aria-hidden="true"></i> {{ tournament.city || tournament.venue.city }}</p>
+                <p class="meta"><i class="pi pi-calendar" aria-hidden="true"></i> {{ tournament.starts_at | date: 'EEE d MMM, HH:mm':'':'it' }}</p>
+                <span class="card-footer">
+                  <span class="team-count"><i class="pi pi-users" aria-hidden="true"></i> {{ confirmedTeams(tournament) }} squadre</span>
+                  <span class="details-link">Dettagli <i class="pi pi-arrow-right" aria-hidden="true"></i></span>
                 </span>
               </a>
             } @empty {
@@ -196,7 +197,7 @@ const DAY = 24 * 60 * 60 * 1000;
 
     /* ---- griglie ---- */
     .top-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,.95fr);gap:22px;margin-top:24px}
-    .bottom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:22px;margin-top:24px}
+    .bottom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:22px;margin-top:24px}
     .panel{border:1px solid var(--color-border);border-radius:var(--radius-lg);background:rgb(255 255 255/.94);box-shadow:0 18px 50px rgb(7 54 79/.08)}
     .list-panel{padding:22px}
 
@@ -205,8 +206,11 @@ const DAY = 24 * 60 * 60 * 1000;
     .section-link{display:inline-flex;align-items:center;gap:6px;color:var(--color-brand);font-size:.78rem;font-weight:850;white-space:nowrap;text-decoration:none}
     .section-link:hover{text-decoration:underline;text-underline-offset:3px}
 
-    .cards{display:flex;flex-direction:column;gap:11px;margin-top:15px}
-    .empty{margin:15px 0 0;color:var(--color-ink-muted);font-size:.8rem}
+    .cards{display:grid;gap:11px;margin-top:15px}
+    /* Le schede dei tornei portano poco testo: due per riga riempiono il blocco
+       invece di allungarsi in strisce sottili con il vuoto sotto. */
+    .cards-tournaments{grid-template-columns:repeat(auto-fill,minmax(210px,1fr));align-content:start}
+    .empty{grid-column:1/-1;margin:15px 0 0;color:var(--color-ink-muted);font-size:.8rem}
     .match-card,.tournament-card{color:inherit;border:1px solid var(--color-border);border-radius:17px;background:white;text-decoration:none;transition:transform 160ms ease,box-shadow 160ms ease}
     .match-card:hover,.tournament-card:hover{box-shadow:0 14px 36px rgb(8 43 61/.08);transform:translateY(-2px)}
     .match-card:focus-visible,.tournament-card:focus-visible{outline:3px solid var(--color-focus);outline-offset:2px}
@@ -227,16 +231,15 @@ const DAY = 24 * 60 * 60 * 1000;
     .player.more{color:white;background:var(--color-brand);font-family:var(--font-numeric)}
     .text-action{display:inline-flex;align-items:center;gap:5px;color:var(--color-brand);font-size:.68rem;font-weight:900}
 
-    /* tornei aperti */
-    .tournament-card{display:grid;grid-template-columns:72px 1fr;gap:16px;padding:15px;border-left:3px solid var(--color-tournament)}
-    .date-card{display:flex;width:68px;height:68px;flex-direction:column;align-items:center;justify-content:center;color:white;border-radius:12px;background:#062f46}
-    .date-card strong{font-family:var(--font-numeric);font-size:1.7rem;line-height:1}
-    .date-card>span{margin-top:5px;color:var(--court-yellow);font-size:.5rem;font-weight:950;letter-spacing:.14em;text-transform:uppercase}
-    .tournament-body{display:block;min-width:0}
-    .kicker{color:var(--color-brand);font-size:.54rem;font-weight:900;letter-spacing:.07em;text-transform:uppercase}
-    .tournament-card h3{margin:5px 0;font-size:1.05rem}
-    .tournament-card p{margin:0;color:var(--color-ink-muted);font-size:.72rem}
-    .tournament-card .card-footer{margin-top:13px;font-size:.68rem}
+    /* tornei aperti: schede compatte, quasi quadrate, affiancate quando c'e spazio */
+    .tournament-card{display:flex;flex-direction:column;gap:7px;padding:15px;border-top:3px solid var(--color-tournament)}
+    .tournament-head{display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .date-card{display:flex;width:52px;height:52px;flex:0 0 52px;flex-direction:column;align-items:center;justify-content:center;color:white;border-radius:12px;background:#062f46}
+    .date-card strong{font-family:var(--font-numeric);font-size:1.3rem;line-height:1}
+    .date-card>span{margin-top:3px;color:var(--court-yellow);font-size:.48rem;font-weight:950;letter-spacing:.14em;text-transform:uppercase}
+    .kicker{color:var(--color-brand);font-size:.54rem;font-weight:900;letter-spacing:.07em;text-align:right;text-transform:uppercase}
+    .tournament-card h3{display:-webkit-box;overflow:hidden;margin:2px 0 0;font-size:.95rem;line-height:1.25;-webkit-box-orient:vertical;-webkit-line-clamp:2}
+    .tournament-card .card-footer{margin-top:auto;padding-top:9px;border-top:1px solid var(--color-border);font-size:.66rem}
     .team-count{display:inline-flex;align-items:center;gap:6px;color:#4c6878}
     .details-link{display:inline-flex;align-items:center;gap:5px;color:var(--color-brand);font-weight:900}
 
@@ -260,8 +263,7 @@ const DAY = 24 * 60 * 60 * 1000;
       .btn{width:100%}
       .list-panel{padding:18px}
       .section-head{align-items:center}
-      .tournament-card{grid-template-columns:64px 1fr;gap:12px}
-      .date-card{width:60px;height:64px}
+      .date-card{width:46px;height:46px;flex-basis:46px}
     }
   `,
 })

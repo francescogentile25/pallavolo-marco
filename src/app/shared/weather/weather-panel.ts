@@ -62,7 +62,8 @@ import { playability, weatherDescription, WeatherSnapshot } from './weather.mode
     .weather{position:relative;display:flex;height:100%;flex-direction:column;overflow:hidden;padding:24px;color:white;border-radius:var(--radius-lg);
       background:linear-gradient(145deg,#056cad 0%,#0477bd 52%,#084866 100%);box-shadow:0 18px 50px rgb(7 54 79/.12);text-shadow:0 1px 12px rgb(4 30 48/.35)}
     .weather>*{position:relative;z-index:2}
-    app-weather-scene{z-index:0}
+    /* Deve battere la regola sui figli: in flusso normale il cielo si schiaccia a zero. */
+    .weather>app-weather-scene{position:absolute;inset:0;z-index:0}
 
     .top{display:flex;justify-content:space-between;gap:16px}
     .eyebrow{display:inline-flex;color:#b5def0;font-size:.62rem;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
