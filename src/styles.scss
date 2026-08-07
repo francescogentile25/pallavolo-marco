@@ -344,3 +344,14 @@ a.my-matches-button.p-button:hover {
     transition-duration: 0.01ms !important;
   }
 }
+
+/* Su dispositivi touch nessun comando scende sotto i 44px richiesti:
+   i controlli "small" di PrimeNG e i riepiloghi dei pannelli si adeguano. */
+@media (pointer: coarse) {
+  .p-button,
+  .p-button-sm,
+  summary,
+  button:not(.p-button-icon-only):not([class*='p-']) {
+    min-height: 44px;
+  }
+}

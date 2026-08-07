@@ -233,7 +233,7 @@ interface OpenMatchPreview {
     }
     .serve:hover { transform: translateX(4px); }
 
-    .receive { color: rgb(255 255 255 / .82); font-size: .9rem; text-decoration: underline; text-underline-offset: 4px; }
+    .receive { display: inline-flex; min-height: 44px; align-items: center; color: rgb(255 255 255 / .82); font-size: .9rem; text-decoration: underline; text-underline-offset: 4px; }
 
     /* ---- blocchi ---- */
     .mosaic { display: grid; gap: 22px; margin-top: 30px; }

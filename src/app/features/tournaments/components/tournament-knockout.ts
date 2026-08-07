@@ -270,7 +270,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .tie-winner{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;cursor:grab}
     .tie-slot.is-open{border-style:dashed;border-color:#8d7f66;color:#8d7f66;cursor:pointer}
     .tie-slot.cdk-drop-list-receiving{border-color:#1b4fd8;background:#e3e8ff}
-    .tie-clear{display:grid;place-items:center;width:26px;height:26px;color:#8d7f66;border:0;border-radius:var(--radius-sm);background:none;cursor:pointer}
+    .tie-clear{display:grid;place-items:center;width:44px;height:44px;margin:-8px -8px -8px 0;color:#8d7f66;border:0;border-radius:var(--radius-sm);background:none;cursor:pointer}
     .tie-edit{display:grid;gap:8px;padding-top:8px;border-top:1px solid #e7decb}
     .tie-edit label{display:grid;gap:4px}
     .tie-edit label>span{color:#5b6a72;font-size:.58rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}

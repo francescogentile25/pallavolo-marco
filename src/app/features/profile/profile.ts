@@ -234,7 +234,7 @@ import { Reveal } from '../../shared/motion/reveal.directive';
     .field .err { color: var(--color-danger); }
     .wide { grid-column: 1 / -1; }
     .lock-note { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px; padding: 12px 14px; color: var(--color-ink-muted); border-radius: var(--radius); background: var(--color-surface-muted); font-size: .76rem; }
-    .link-btn { color: var(--color-brand-strong); border: 0; background: none; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
+    .link-btn { display: inline-flex; min-height: 44px; align-items: center; color: var(--color-brand-strong); border: 0; background: none; font: inherit; font-weight: 800; text-decoration: underline; cursor: pointer; }
     .save-hint { margin: 16px 0 0; color: var(--color-ink-muted); font-size: .76rem; }
     .sr-only { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
     .file-input { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; }

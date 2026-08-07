@@ -221,7 +221,7 @@ interface SlotTarget { gameId: string; slot: number; }
     .chips.cdk-drop-list-receiving{border-color:#1b4fd8;background:#e3e8ff}
     .chip{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:8px 12px;color:#fff;border-radius:999px;background:#1b4fd8;font-size:.72rem;font-weight:800;cursor:grab}
     .chip.is-held{outline:2px solid #0b1e25;outline-offset:2px}
-    .chip button{display:grid;place-items:center;color:inherit;border:0;background:none;font-size:.68rem;cursor:pointer}
+    .chip button{display:grid;place-items:center;width:32px;height:32px;margin:-6px -8px -6px 0;color:inherit;border:0;background:none;font-size:.68rem;cursor:pointer}
     .matches-head{display:flex;align-items:center;gap:8px;padding-top:14px;margin:18px 0 8px;border-top:1px solid #e7decb}
     .matches-head span{margin-right:auto;color:#5b6a72;font-size:.68rem;font-weight:900;letter-spacing:.08em;text-transform:uppercase}
     .match-row{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:8px;padding:10px;margin-top:8px;border-radius:var(--radius);background:#faf7f0;font-size:.72rem}
@@ -232,7 +232,7 @@ interface SlotTarget { gameId: string; slot: number; }
     .match-slot.is-open{border-style:dashed;border-color:#8d7f66;color:#8d7f66}
     .match-slot.is-target{border-color:#1b4fd8;background:#eef2ff;cursor:pointer}
     .match-slot.cdk-drop-list-receiving{border-color:#1b4fd8;background:#e3e8ff}
-    .match-slot button{display:grid;place-items:center;color:#8d7f66;border:0;background:none;font-size:.68rem;cursor:pointer}
+    .match-slot button{display:grid;place-items:center;width:44px;height:44px;margin:-8px -8px -8px 0;color:#8d7f66;border:0;background:none;font-size:.68rem;cursor:pointer}
     .score-note{display:flex;align-items:center;gap:7px;margin:16px 0 0;color:#8d7f66;font-size:.68rem}
     .empty-copy{margin:6px 0 0;color:#8d7f66;font-size:.72rem}
     .groups-empty{display:grid;min-height:220px;place-content:center;justify-items:center;gap:6px;padding:26px;color:#8d7f66;text-align:center;border:1px dashed #d9cdb4;border-radius:var(--radius-lg)}
