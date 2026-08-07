@@ -1,5 +1,5 @@
 import { DatePipe, DecimalPipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal, untracked } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal, untracked } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { WeatherService } from '../../core/services/weather.service';
 import { WeatherGlyph } from './weather-glyph';
@@ -96,6 +96,8 @@ export class WeatherPanel {
   readonly latitude = input<number | null>(null);
   readonly longitude = input<number | null>(null);
   readonly place = input<string | null>(null);
+  /** La previsione caricata: la home la riusa per le prossime ore. */
+  readonly snapshotChange = output<WeatherSnapshot | null>();
   protected readonly hasPlace = computed(() => this.latitude() !== null && this.longitude() !== null);
 
   private readonly weather = inject(WeatherService);
@@ -122,9 +124,11 @@ export class WeatherPanel {
   protected describe(code: number): string { return weatherDescription(code); }
 
   private async load(latitude: number | null, longitude: number | null): Promise<void> {
-    if (latitude === null || longitude === null) { this.snapshot.set(null); return; }
+    if (latitude === null || longitude === null) { this.snapshot.set(null); this.snapshotChange.emit(null); return; }
     this.loading.set(true);
-    this.snapshot.set(await this.weather.snapshot({ latitude, longitude }));
+    const snapshot = await this.weather.snapshot({ latitude, longitude });
+    this.snapshot.set(snapshot);
+    this.snapshotChange.emit(snapshot);
     this.loading.set(false);
   }
 }

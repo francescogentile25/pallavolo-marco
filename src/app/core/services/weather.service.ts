@@ -5,6 +5,8 @@ import { PlacesService } from './places.service';
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const CURRENT_FIELDS = 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index';
 const HOURLY_FIELDS = 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,precipitation_probability,weather_code,wind_speed_10m,wind_gusts_10m,uv_index';
+/** Quante ore future tenere: bastano a coprire la colonna piu alta della home. */
+const HOURS_AHEAD = 14;
 const FORECAST_TTL = 30 * 60 * 1000;
 /** Open-Meteo pubblica previsioni orarie fino a 16 giorni: oltre non c'e nulla da mostrare. */
 const FORECAST_HORIZON_DAYS = 16;
@@ -44,15 +46,17 @@ export class WeatherService {
     const cached = this.read<WeatherSnapshot | null>(key, FORECAST_TTL);
     if (cached !== undefined) return cached;
 
-    const url = `${FORECAST_URL}?latitude=${latitude}&longitude=${longitude}&current=${CURRENT_FIELDS}&daily=sunrise,sunset&forecast_days=1&timezone=UTC`;
+    const url = `${FORECAST_URL}?latitude=${latitude}&longitude=${longitude}&current=${CURRENT_FIELDS}&hourly=${HOURLY_FIELDS}&daily=sunrise,sunset&forecast_days=2&timezone=UTC`;
     const data = await this.request<ForecastResponse>(url);
     const current = data?.current ? this.pointFromCurrent(data.current) : null;
     if (!current) { this.write(key, null); return null; }
 
     const sunrise = data?.daily?.['sunrise']?.[0] ?? null;
     const sunset = data?.daily?.['sunset']?.[0] ?? null;
+    const now = Date.now();
     const value: WeatherSnapshot = {
       current,
+      hours: this.pointsFromHourly(data?.hourly).filter(point => Date.parse(point.time) >= now).slice(0, HOURS_AHEAD),
       sunrise: sunrise ? this.toInstant(sunrise) : null,
       sunset: sunset ? this.toInstant(sunset) : null,
     };

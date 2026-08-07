@@ -20,6 +20,8 @@ export interface WeatherPoint {
 
 export interface WeatherSnapshot {
   current: WeatherPoint;
+  /** Prossime ore, gia tagliate a partire da adesso. */
+  hours: readonly WeatherPoint[];
   /** Alba e tramonto di oggi: dicono fino a quando si vede la palla, e se e notte. */
   sunrise: string | null;
   sunset: string | null;

@@ -8,6 +8,7 @@ import { PageActionsService } from '../../core/services/page-actions.service';
 import { NearbyPlaces } from '../../shared/places/nearby.service';
 import { motionAllowed, Reveal } from '../../shared/motion/reveal.directive';
 import { WeatherPanel } from '../../shared/weather/weather-panel';
+import { WeatherHours } from '../../shared/weather/weather-hours';
 import { AuthStore } from '../auth/store/auth.store';
 import { BeachMatch } from '../matches/models/match.model';
 import { availableSpots, levelLabel } from '../matches/matches.utils';
@@ -15,6 +16,7 @@ import { MatchesStore } from '../matches/store/matches.store';
 import { Tournament } from '../tournaments/models/tournament.model';
 import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { CalendarEvent, HomeCalendar } from './components/home-calendar';
+import { WeatherSnapshot } from '../../shared/weather/weather.model';
 import { matchVenuePoint as venuePoint, tournamentPoint } from '../../shared/places/place-points';
 
 const DAY = 24 * 60 * 60 * 1000;
@@ -26,7 +28,7 @@ const DAY = 24 * 60 * 60 * 1000;
  */
 @Component({
   selector: 'app-home',
-  imports: [DatePipe, RouterLink, Reveal, WeatherPanel, HomeCalendar],
+  imports: [DatePipe, RouterLink, Reveal, WeatherPanel, WeatherHours, HomeCalendar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page">
@@ -83,7 +85,12 @@ const DAY = 24 * 60 * 60 * 1000;
 
       <section class="top-grid" appReveal="stagger">
         <app-home-calendar [events]="calendarEvents()" />
-        <app-weather-panel [latitude]="cityLatitude()" [longitude]="cityLongitude()" [place]="cityName()" />
+        <div class="sky-column">
+          <app-weather-panel [latitude]="cityLatitude()" [longitude]="cityLongitude()" [place]="cityName()" (snapshotChange)="forecast.set($event)" />
+          @if (forecast(); as data) {
+            <app-weather-hours [hours]="data.hours" [sunrise]="data.sunrise" [sunset]="data.sunset" />
+          }
+        </div>
       </section>
 
       <section class="bottom-grid" appReveal="stagger">
@@ -197,6 +204,10 @@ const DAY = 24 * 60 * 60 * 1000;
 
     /* ---- griglie ---- */
     .top-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,.95fr);gap:22px;margin-top:24px}
+    /* Il meteo tiene un'altezza sua: se il calendario cresce, a riempire il resto
+       della colonna ci pensano le prossime ore, non un pannello stirato. */
+    .sky-column{display:grid;grid-template-rows:auto minmax(0,1fr);gap:14px;min-height:100%}
+    .sky-column app-weather-panel{height:340px}
     .bottom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:22px;margin-top:24px}
     .panel{border:1px solid var(--color-border);border-radius:var(--radius-lg);background:rgb(255 255 255/.94);box-shadow:0 18px 50px rgb(7 54 79/.08)}
     .list-panel{padding:22px}
@@ -247,6 +258,8 @@ const DAY = 24 * 60 * 60 * 1000;
 
     @media(max-width:1120px){
       .top-grid,.bottom-grid{grid-template-columns:minmax(0,1fr)}
+      .sky-column{grid-template-rows:auto auto}
+      .sky-column app-weather-panel{height:auto;min-height:320px}
     }
 
     @media(max-width:840px){
@@ -284,6 +297,7 @@ export class Home implements OnInit, OnDestroy {
   private readonly tournamentsStore = inject(TournamentsStore);
   protected readonly nearby = inject(NearbyPlaces);
 
+  protected readonly forecast = signal<WeatherSnapshot | null>(null);
   protected readonly cityName = computed(() => this.authStore.profile()?.city ?? null);
   protected readonly cityLatitude = computed(() => this.authStore.profile()?.city_latitude ?? null);
   protected readonly cityLongitude = computed(() => this.authStore.profile()?.city_longitude ?? null);
