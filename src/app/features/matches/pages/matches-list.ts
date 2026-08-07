@@ -104,6 +104,7 @@ import { MatchesStore } from '../store/matches.store';
     .results-heading h2 { margin: 0; font: 900 1.45rem/1 var(--display-font); }
     .results-heading span { color: var(--color-ink-muted); font-size: .72rem; }
     .match-grid { display: grid; gap: 12px; }
+    .match-grid .empty { grid-column: 1 / -1; }
     .state, .empty { display: grid; min-height: 280px; place-content: center; justify-items: center; gap: 10px; padding: 30px; color: var(--color-ink-muted); text-align: center; border: 1px dashed var(--color-border); border-radius: var(--radius-lg); }
     .empty i { color: var(--color-brand); font-size: 2rem; }.empty h2, .empty p { margin: 0; }
     .spinner { width: 20px; height: 20px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
