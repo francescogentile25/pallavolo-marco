@@ -12,7 +12,7 @@ import { calculateStandings, teamLabel } from '../tournaments.utils';
 
 interface QualifiedEntry { teamId: string; label: string; groupName: string; position: number; }
 interface SlotTarget { gameId: string; slot: number; }
-interface ScoreDraft { first: number; second: number; }
+interface ScoreDraft { first: number[]; second: number[]; }
 /** Le partite di un turno sono raggruppate a due a due: ogni coppia confluisce nel turno successivo. */
 interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]; }
 
@@ -49,10 +49,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
             </button>
           }
           @if (canManage()) {
-            <span class="bracket-new">
-              <input pInputText [ngModel]="newBracketName()" (ngModelChange)="newBracketName.set($event)" placeholder="Nome del nuovo tabellone" aria-label="Nome del nuovo tabellone" />
-              <p-button label="Aggiungi tabellone" icon="pi pi-plus" [text]="true" size="small" [loading]="store.saving()" (onClick)="addBracket()" />
-            </span>
+            <p-button label="Aggiungi tabellone" icon="pi pi-plus" [text]="true" size="small" [loading]="store.saving()" (onClick)="addBracket()" />
           }
         </nav>
       }
@@ -137,7 +134,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                         } @else {
                           <span>{{ teamNameById(game.team1_id) }}</span>
                         }
-                        <b>{{ game.team1_scores?.[0] ?? '–' }}</b>
+                        <b>{{ slotScore(game, 1) }}</b>
                         @if (canManage() && game.team1_id && game.status === 'scheduled') {
                           <button type="button" class="tie-clear" aria-label="Svuota slot" (click)="clearSlot(game, 1); $event.stopPropagation()"><i class="pi pi-times" aria-hidden="true"></i></button>
                         }
@@ -151,7 +148,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                         } @else {
                           <span>{{ teamNameById(game.team2_id) }}</span>
                         }
-                        <b>{{ game.team2_scores?.[0] ?? '–' }}</b>
+                        <b>{{ slotScore(game, 2) }}</b>
                         @if (canManage() && game.team2_id && game.status === 'scheduled') {
                           <button type="button" class="tie-clear" aria-label="Svuota slot" (click)="clearSlot(game, 2); $event.stopPropagation()"><i class="pi pi-times" aria-hidden="true"></i></button>
                         }
@@ -160,12 +157,16 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                       @if (canManage()) {
                         <div class="tie-edit">
                           <label>
-                            <span>Punteggio</span>
-                            <div class="tie-scores">
-                              <p-inputnumber [ngModel]="scoreOf(game).first" (ngModelChange)="setScore(game, 'first', $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '3.4rem', textAlign: 'center' }" />
-                              <em>vs</em>
-                              <p-inputnumber [ngModel]="scoreOf(game).second" (ngModelChange)="setScore(game, 'second', $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '3.4rem', textAlign: 'center' }" />
-                            </div>
+                            <span>{{ setsOf(game) > 1 ? 'Punteggi dei set' : 'Punteggio' }}</span>
+                            @for (setIndex of setIndexes(game); track setIndex) {
+                              <div class="tie-scores">
+                                @if (setsOf(game) > 1) { <b class="set-no">{{ setIndex + 1 }}°</b> }
+                                <p-inputnumber [ngModel]="scoreOf(game).first[setIndex]" (ngModelChange)="setScore(game, 'first', setIndex, $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '3.4rem', textAlign: 'center' }" />
+                                <em>vs</em>
+                                <p-inputnumber [ngModel]="scoreOf(game).second[setIndex]" (ngModelChange)="setScore(game, 'second', setIndex, $event ?? 0)" [min]="0" [max]="99" [disabled]="!canScore(game)" [inputStyle]="{ width: '3.4rem', textAlign: 'center' }" />
+                              </div>
+                            }
+                            @if (setsOf(game) > 1) { <small class="set-hint">Servono {{ setsToWin(game) }} set vinti. Lascia a 0 i set non giocati.</small> }
                           </label>
                           <label>
                             <span>Campo</span>
@@ -212,8 +213,6 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .bracket-tabs{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
     .bracket-tabs button{display:inline-flex;min-height:44px;align-items:center;gap:8px;padding:0 15px;color:#5b6a72;border:1px solid #d9cdb4;border-radius:999px;background:#fff;font:inherit;font-size:.74rem;font-weight:850;cursor:pointer}
     .bracket-tabs button.active{color:#fff;border-color:#1b4fd8;background:#1b4fd8}
-    .bracket-new{display:inline-flex;align-items:center;gap:6px}
-    .bracket-new input{min-width:190px}
     .bracket-rename{display:grid;gap:7px}
     .bracket-rename>span{color:#5b6a72;font-size:.66rem;font-weight:850;letter-spacing:.1em;text-transform:uppercase}
     .bracket-setup{display:grid;align-items:center;gap:12px}
@@ -282,7 +281,9 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .tie-edit{display:grid;gap:8px;padding-top:8px;border-top:1px solid #e7decb}
     .tie-edit label{display:grid;gap:4px}
     .tie-edit label>span{color:#5b6a72;font-size:.58rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
-    .tie-scores{display:flex;align-items:center;justify-content:center;gap:10px}
+    .tie-scores{display:flex;align-items:center;justify-content:center;gap:10px;margin-top:6px}
+    .set-no{min-width:20px;color:#5b6a72;font-size:.66rem;font-weight:800}
+    .set-hint{display:block;margin-top:6px;color:#5b6a72;font-size:.62rem;line-height:1.35}
     .tie-scores em{color:#8d7f66;font-size:.6rem;font-style:normal;font-weight:900}
     .tie-edit footer{display:flex;align-items:center;justify-content:flex-end;gap:6px}
     .locked{margin-right:auto;color:#8d7f66;font-size:.62rem;font-weight:750}
@@ -311,7 +312,6 @@ export class TournamentKnockout {
   private readonly confirmation = inject(ConfirmationService);
 
   protected readonly heldTeamId = signal<string | null>(null);
-  protected readonly newBracketName = signal('');
   protected readonly podiumPlaces = [
     { position: 1, label: '1° posto' },
     { position: 2, label: '2° posto' },
@@ -458,13 +458,51 @@ export class TournamentKnockout {
     return `Turno ${round}`;
   }
 
-  protected scoreOf(game: TournamentGame): ScoreDraft {
-    return this.scoreDrafts()[game.id] ?? { first: game.team1_scores?.[0] ?? 0, second: game.team2_scores?.[0] ?? 0 };
+  /** Quanti set prevede la formula per la fase di questa partita. */
+  protected setsOf(game: TournamentGame): number {
+    const tournament = this.tournament();
+    return game.phase === 'group' ? tournament.group_best_of : tournament.knockout_best_of;
   }
 
-  protected setScore(game: TournamentGame, key: keyof ScoreDraft, value: number): void {
+  protected setsToWin(game: TournamentGame): number { return (this.setsOf(game) + 1) / 2; }
+  protected setIndexes(game: TournamentGame): number[] { return Array.from({ length: this.setsOf(game) }, (_, i) => i); }
+
+  protected scoreOf(game: TournamentGame): ScoreDraft {
+    const existing = this.scoreDrafts()[game.id];
+    if (existing) return existing;
+    const size = this.setsOf(game);
+    const pad = (values: readonly number[] | null | undefined) =>
+      Array.from({ length: size }, (_, i) => values?.[i] ?? 0);
+    return { first: pad(game.team1_scores), second: pad(game.team2_scores) };
+  }
+
+  protected setScore(game: TournamentGame, key: keyof ScoreDraft, setIndex: number, value: number): void {
     const current = this.scoreOf(game);
-    this.scoreDrafts.update((drafts) => ({ ...drafts, [game.id]: { ...current, [key]: value } }));
+    const next = [...current[key]];
+    next[setIndex] = value;
+    this.scoreDrafts.update((drafts) => ({ ...drafts, [game.id]: { ...current, [key]: next } }));
+  }
+
+  /** I set effettivamente giocati: si fermano al primo 0-0. */
+  private playedSets(game: TournamentGame): { first: number[]; second: number[] } {
+    const draft = this.scoreOf(game);
+    const first: number[] = [];
+    const second: number[] = [];
+    for (let i = 0; i < draft.first.length; i += 1) {
+      if (draft.first[i] === 0 && draft.second[i] === 0) break;
+      first.push(draft.first[i]);
+      second.push(draft.second[i]);
+    }
+    return { first, second };
+  }
+
+  /** Nello slot si legge il totale dei set vinti quando la formula ne prevede piu di uno. */
+  protected slotScore(game: TournamentGame, slot: 1 | 2): string {
+    const own = slot === 1 ? game.team1_scores : game.team2_scores;
+    const other = slot === 1 ? game.team2_scores : game.team1_scores;
+    if (!own?.length || !other?.length) return '–';
+    if (this.setsOf(game) === 1) return String(own[0]);
+    return String(own.filter((value, index) => value > (other[index] ?? 0)).length);
   }
 
   /** I risultati del tabellone restano bloccati finché i gironi non sono chiusi. */
@@ -472,15 +510,20 @@ export class TournamentKnockout {
     return this.canManage() && !!game.team1_id && !!game.team2_id && (this.groupsClosed() || !this.hasGroups());
   }
 
+  /** Serve un vincitore: nessun set pari e i set vinti pari a quelli richiesti. */
   protected validScore(game: TournamentGame): boolean {
-    const score = this.scoreOf(game);
-    return score.first !== score.second;
+    const { first, second } = this.playedSets(game);
+    if (!first.length) return false;
+    if (first.some((value, index) => value === second[index])) return false;
+    const won = first.filter((value, index) => value > second[index]).length;
+    const lost = first.length - won;
+    return Math.max(won, lost) === this.setsToWin(game);
   }
 
   protected async saveScore(game: TournamentGame): Promise<void> {
     if (!this.canScore(game) || !this.validScore(game)) return;
-    const score = this.scoreOf(game);
-    await this.store.submitResult(this.tournament().id, game.id, [score.first], [score.second]);
+    const { first, second } = this.playedSets(game);
+    await this.store.submitResult(this.tournament().id, game.id, first, second);
   }
 
   protected hold(teamId: string): void {
@@ -534,9 +577,6 @@ export class TournamentKnockout {
     const slots = Math.max(1, Math.ceil(this.qualified().length / 2));
     if (await this.store.addBracketRound(this.tournament().id, 1, slots, next)) {
       this.activeBracket.set(next);
-      const name = this.newBracketName().trim();
-      if (name) void this.store.setBracketName(this.tournament().id, next, name);
-      this.newBracketName.set('');
     }
   }
 

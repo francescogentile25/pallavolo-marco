@@ -82,7 +82,7 @@ import { MatchesStore } from '../store/matches.store';
   `,
   styles: `
     :host { display: block; }
-    .matches-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
+    .matches-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px); margin: 0 auto; }
     .page-hero { display: grid; gap: 12px; padding: 24px 20px; color: white; border-radius: var(--radius-lg); background: var(--color-ocean); }
     .eyebrow { margin: 0 0 5px; color: #ffc72c; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0; font: 900 clamp(2rem, 10vw, 4rem)/.95 var(--display-font); letter-spacing: -.05em; }

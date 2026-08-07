@@ -37,7 +37,7 @@ import { AuthStore } from '../auth/store/auth.store';
       min-height: calc(100dvh - var(--header-height) - var(--bottom-nav-height) - 44px);
       align-content: center;
       justify-items: start;
-      padding: 42px 6px calc(var(--bottom-nav-height) + 40px);
+      padding: 42px 6px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px);
       margin: 0 auto;
     }
     .feature-icon {

@@ -41,14 +41,22 @@ function applyGame(rows: Map<string, GroupStanding>, game: TournamentGame, tourn
 }
 
 export function tournamentErrorMessage(error: unknown): string {
-  const raw = error instanceof Error ? error.message : String(error ?? ''); const value = raw.toLocaleLowerCase('it');
+  const raw = rawErrorMessage(error);
+  const value = raw.toLocaleLowerCase('it');
+  // Poche riscritture, solo dove il messaggio del database non basterebbe a capire cosa fare.
   if (value.includes('permesso organizzatore')) return 'Questa azione è riservata a organizzatori e amministratori.';
   if (value.includes('già iscritto') || value.includes('già coinvolto')) return 'Uno dei giocatori è già coinvolto nel torneo.';
-  if (value.includes('livello')) return 'Il livello del giocatore non rientra nella fascia ammessa.';
-  if (value.includes('disputato una partita')) return 'Il giocatore ha gia disputato una partita: non puo essere spostato o rimosso.';
-  if (value.includes('contiene gia dei risultati')) return 'Ci sono gia dei risultati registrati: elimina prima quelli.';
-  if (value.includes('due coppie')) return 'Servono almeno due coppie confermate.';
-  if (value.includes('risultato') || value.includes('punteggio')) return 'Controlla i punteggi inseriti.';
-  if (value.includes('iscrizioni')) return 'Le iscrizioni non sono disponibili in questo momento.';
-  return 'Operazione non riuscita. Controlla i dati e riprova.';
+  if (value.includes('disputato una partita')) return 'Il giocatore ha già disputato una partita: non può essere spostato o rimosso.';
+  if (value.includes('contiene gia dei risultati')) return 'Ci sono già dei risultati registrati: elimina prima quelli.';
+  // Per tutto il resto vince il messaggio del server: dice esattamente cosa non va.
+  return raw || 'Operazione non riuscita. Controlla i dati e riprova.';
+}
+
+/** Gli errori di Supabase non sono istanze di Error: il messaggio va estratto a mano. */
+export function rawErrorMessage(error: unknown): string {
+  if (!error) return '';
+  if (typeof error === 'string') return error;
+  if (error instanceof Error) return error.message;
+  const source = error as { message?: unknown; error_description?: unknown; details?: unknown; hint?: unknown };
+  return String(source.message ?? source.error_description ?? source.details ?? source.hint ?? '').trim();
 }

@@ -132,7 +132,7 @@ interface OpenMatchPreview {
 
     .home {
       width: min(100%, 1080px);
-      padding: 16px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px);
+      padding: 16px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px);
       margin: 0 auto;
       font-family: var(--font-body);
       color: var(--court-ink);

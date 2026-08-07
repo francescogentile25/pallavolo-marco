@@ -74,7 +74,7 @@ const SIDE_LABELS: Record<string, string> = { sinistra: 'Sinistra', destra: 'Des
   `,
   styles: `
     :host { display: block; }
-    .fp-page { display: grid; width: min(100%, 840px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; gap: 14px; }
+    .fp-page { display: grid; width: min(100%, 840px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px); margin: 0 auto; gap: 14px; }
     .back { display: inline-flex; min-height: 44px; align-items: center; gap: 8px; color: var(--color-brand-strong); font-size: .78rem; font-weight: 850; text-decoration: none; }
     .fp-hero { display: flex; align-items: center; gap: 16px; padding: 22px; color: white; border-radius: 8px; background: radial-gradient(circle at 88% 0, rgb(25 199 181 / .5), transparent 45%), linear-gradient(145deg, #0f1b23, #1d2b33); box-shadow: 0 18px 38px rgb(7 29 38 / .18); }
     .fp-avatar { display: grid; width: 72px; height: 72px; place-items: center; overflow: hidden; border: 3px solid rgb(255 255 255 / .7); border-radius: var(--radius-lg); background: var(--color-tournament); font-size: 1.4rem; font-weight: 900; }

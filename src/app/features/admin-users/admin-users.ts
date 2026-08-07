@@ -184,7 +184,7 @@ import { AdminUsersStore } from './store/admin-users.store';
   `,
   styles: `
     :host { display: block; }
-    .admin-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
+    .admin-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px); margin: 0 auto; }
     .admin-hero { display: grid; gap: 20px; padding: 24px; color: white; border-radius: 8px; background: radial-gradient(circle at 90% 0, rgb(25 199 181 / .48), transparent 40%), linear-gradient(145deg, #0f1b23, #1d2b33); box-shadow: 0 18px 38px rgb(7 29 38 / .18); }
     .eyebrow { margin: 0 0 6px; color: var(--color-brand); font-size: .68rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     .admin-hero .eyebrow { color: #a3b3fb; }

@@ -97,7 +97,7 @@ import { FriendsService } from '../services/friends.service';
   `,
   styles: `
     :host { display: block; }
-    .friends-page { display: grid; width: min(100%, 920px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; gap: 14px; }
+    .friends-page { display: grid; width: min(100%, 920px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px); margin: 0 auto; gap: 14px; }
     .friends-hero { padding: 22px 4px 14px; }
     .eyebrow { margin: 0 0 8px; color: var(--color-brand-strong); font-size: .72rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0 0 8px; font: 900 clamp(2rem, 9vw, 3.4rem)/.95 var(--display-font); letter-spacing: -.045em; }

@@ -176,7 +176,7 @@ import { Reveal } from '../../shared/motion/reveal.directive';
   `,
   styles: `
     :host { display: block; background: var(--color-canvas); }
-    .profile-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
+    .profile-page { width: min(100%, 1120px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px); margin: 0 auto; }
 
     .hero { display: grid; gap: 16px; padding: 22px; color: white; border-radius: var(--radius-lg); background: var(--color-ocean); }
     .hero-avatar { position: relative; display: grid; width: 84px; height: 84px; place-items: center; overflow: hidden; color: var(--color-ocean); border-radius: 50%; background: var(--color-tournament); font: 900 1.6rem var(--display-font); cursor: pointer; }

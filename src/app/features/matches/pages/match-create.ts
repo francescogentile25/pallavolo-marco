@@ -142,7 +142,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; cou
   `,
   styles: `
     :host { display: block; }
-    .create-page { width: min(100%, 760px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 50px); margin: auto; }
+    .create-page { width: min(100%, 760px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px); margin: auto; }
     header { padding: 24px 20px; color: white; border-radius: var(--radius-sm) var(--radius-lg) 0 0; background: linear-gradient(145deg, #0f1b23, #1d2b33); }
     .hero-copy > p:first-child, .heading p { margin: 0 0 5px; color: #a3b3fb; font-size: .68rem; font-weight: 900; letter-spacing: .1em; text-transform: uppercase; }
     h1 { max-width: 12ch; margin: 0; font: 900 clamp(2rem, 10vw, 3.8rem)/.95 var(--display-font); letter-spacing: -.05em; }

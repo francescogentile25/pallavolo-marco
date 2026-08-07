@@ -97,7 +97,7 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', courtName: '',
   `,
   styles: `
     :host { display: block; }
-    .courts-page { width: min(100%, 860px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 48px); margin: 0 auto; }
+    .courts-page { width: min(100%, 860px); padding: 18px 16px calc(var(--bottom-nav-height) + var(--bottom-actions-height) + 56px); margin: 0 auto; }
     .courts-hero { display: grid; gap: 16px; padding: 22px 4px 18px; }
     .eyebrow { margin: 0 0 8px; color: var(--color-brand-strong); font-size: .72rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0 0 8px; font: 900 clamp(2rem, 9vw, 3.4rem)/.95 var(--display-font); letter-spacing: -.045em; }
