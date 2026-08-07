@@ -10,6 +10,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { Reveal } from '../../shared/motion/reveal.directive';
+import { WeatherPanel } from '../../shared/weather/weather-panel';
 import { AuthStore } from '../auth/store/auth.store';
 import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { Tournament } from '../tournaments/models/tournament.model';
@@ -32,7 +33,7 @@ interface OpenMatchPreview {
  */
 @Component({
   selector: 'app-home',
-  imports: [DatePipe, RouterLink, Reveal],
+  imports: [DatePipe, RouterLink, Reveal, WeatherPanel],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="home">
@@ -96,6 +97,8 @@ interface OpenMatchPreview {
           }
         </ul>
       </section>
+
+      <app-weather-panel class="block block-weather" [latitude]="cityLatitude()" [longitude]="cityLongitude()" [place]="cityName()" />
 
       <section class="block block-tournament" aria-labelledby="tournament-title">
         <header class="block-head">
@@ -340,8 +343,9 @@ interface OpenMatchPreview {
       .net-band { writing-mode: vertical-rl; padding: 18px 9px; }
       .net-band b { font-size: 1.5rem; }
 
-      /* mosaico: partite e torneo affiancati sotto il campo */
+      /* mosaico: le partite tengono la colonna larga, meteo e torneo si impilano accanto */
       .mosaic { grid-template-columns: minmax(0, 1.75fr) minmax(260px, 1fr); align-items: start; gap: 26px; }
+      .block-open { grid-row: span 2; }
       .rally { grid-template-columns: repeat(2, minmax(0, 1fr)); }
       .side { grid-template-columns: minmax(0, 1fr) auto; }
       .block-tournament .tournament { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 14px; }
@@ -359,6 +363,9 @@ export class Home implements OnInit, OnDestroy {
   private readonly authStore = inject(AuthStore);
   private readonly tournamentsStore = inject(TournamentsStore);
 
+  protected readonly cityName = computed(() => this.authStore.profile()?.city ?? null);
+  protected readonly cityLatitude = computed(() => this.authStore.profile()?.city_latitude ?? null);
+  protected readonly cityLongitude = computed(() => this.authStore.profile()?.city_longitude ?? null);
   protected readonly nextTournament = computed<Tournament | null>(() =>
     [...this.tournamentsStore.tournaments()]
       .filter(({ status, ends_at }) => !['draft', 'cancelled', 'archived'].includes(status) && new Date(ends_at).getTime() >= Date.now())

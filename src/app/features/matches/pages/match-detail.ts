@@ -7,6 +7,7 @@ import { Button, ButtonModule } from 'primeng/button';
 import { PageActionsService } from '../../../core/services/page-actions.service';
 import { AuthStore } from '../../auth/store/auth.store';
 import { ChatDialog } from '../../chat/components/chat-dialog';
+import { WeatherSlot } from '../../../shared/weather/weather-slot';
 import { MatchFeedbackCard } from '../components/match-feedback-card';
 import { availableSpots, isUserJoined, levelRangeLabel, MATCH_GENDER_LABELS, MATCH_STATUS_LABELS } from '../matches.utils';
 import { MatchesService } from '../services/matches.service';
@@ -14,7 +15,7 @@ import { MatchesStore } from '../store/matches.store';
 
 @Component({
   selector: 'app-match-detail',
-  imports: [Button, ButtonModule, DatePipe, RouterLink, MatchFeedbackCard, ChatDialog],
+  imports: [Button, ButtonModule, DatePipe, RouterLink, MatchFeedbackCard, ChatDialog, WeatherSlot],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="detail-page">
@@ -34,6 +35,13 @@ import { MatchesStore } from '../store/matches.store';
           <button type="button" class="chat-open" (click)="chatOpen.set(true)"><i class="pi pi-comments" aria-hidden="true"></i> Chat della partita</button>
           <app-chat-dialog [open]="chatOpen()" (openChange)="chatOpen.set($event)" resourceType="match" [resourceId]="match.id" [title]="'Chat · ' + match.court.venue.name" />
         }
+
+        <app-weather-slot
+          [city]="match.court.venue.city"
+          [latitude]="match.court.venue.latitude"
+          [longitude]="match.court.venue.longitude"
+          [startsAt]="match.starts_at"
+          [indoor]="match.court.indoor" />
 
         @if (match.visibility === 'public') {
           <div class="public-banner"><i class="pi pi-globe" aria-hidden="true"></i> <span>Partita <strong>pubblica</strong>: chiunque può iscriversi liberamente, senza approvazione.</span></div>

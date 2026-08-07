@@ -82,6 +82,18 @@ export class ProfileService {
     return this.supabase.client.storage.from('avatars').getPublicUrl(path).data.publicUrl;
   }
 
+  /** La citta si salva da sola alla scelta, come l'avatar: non passa dal modulo. */
+  async setCity(city: string | null, latitude: number | null, longitude: number | null): Promise<UserProfile> {
+    const { data, error } = await this.supabase.client.rpc('set_my_city', {
+      p_city: city,
+      p_latitude: latitude,
+      p_longitude: longitude,
+    });
+
+    if (error) throw error;
+    return data as UserProfile;
+  }
+
   async updateMyProfile(request: UpdatePlayerProfileRequest): Promise<UserProfile> {
     const { data, error } = await this.supabase.client.rpc('update_my_profile', {
       p_nome: request.nome,

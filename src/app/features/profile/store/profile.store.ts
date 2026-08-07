@@ -79,6 +79,24 @@ export const ProfileStore = signalStore(
         }
       },
 
+      async saveCity(city: string | null, latitude: number | null, longitude: number | null): Promise<boolean> {
+        try {
+          const profile = await profileService.setCity(city, latitude, longitude);
+          patchState(store, { profile });
+          authStore.updateProfileSnapshot(profile);
+          messageService.add({
+            severity: 'success',
+            summary: city ? 'Città salvata' : 'Città rimossa',
+            detail: city ? 'Il meteo in home segue questa città.' : 'Il meteo in home resta senza città.',
+          });
+          return true;
+        } catch (error) {
+          const message = error instanceof Error ? error.message : 'Salvataggio non riuscito.';
+          messageService.add({ severity: 'error', summary: 'Città non salvata', detail: message });
+          return false;
+        }
+      },
+
       async requestNameChange(nome: string, cognome: string): Promise<boolean> {
         try {
           await profileService.requestNameChange(nome, cognome);

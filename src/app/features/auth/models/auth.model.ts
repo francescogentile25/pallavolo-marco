@@ -16,6 +16,10 @@ export interface UserProfile {
   avatar_url: string | null;
   autovalutazione: number;
   in_app_notifications_enabled: boolean;
+  /** Citta di riferimento del giocatore e coordinate risolte alla scelta: alimentano il meteo. */
+  city: string | null;
+  city_latitude: number | null;
+  city_longitude: number | null;
   created_at: string;
   updated_at: string;
 }
