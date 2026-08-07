@@ -1,5 +1,5 @@
 import { afterNextRender, ChangeDetectionStrategy, Component, computed, ElementRef, inject, signal, viewChild } from '@angular/core';
-import { gsap } from 'gsap';
+import { loadMotion } from '../../../shared/motion/gsap-loader';
 import { motionAllowed } from '../../../shared/motion/reveal.directive';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '../../auth/store/auth.store';
@@ -87,18 +87,20 @@ export class Header {
   private readonly navEl = viewChild<ElementRef<HTMLElement>>('navEl');
 
   constructor() {
-    afterNextRender(() => this.trackNav());
+    afterNextRender(() => void this.trackNav());
   }
 
   /**
    * Un trattino scorre sotto la voce puntata e torna sull'attiva quando esci dal
    * menu: da qui si legge dove stai andando prima ancora di cliccare.
    */
-  private trackNav(): void {
+  private async trackNav(): Promise<void> {
     const nav = this.navEl()?.nativeElement;
     if (!nav || !motionAllowed()) return;
     const marker = nav.querySelector<HTMLElement>('.nav-marker');
     if (!marker) return;
+
+    const { gsap } = await loadMotion();
 
     const moveTo = (link: HTMLElement | null, immediate = false) => {
       if (!link) { gsap.to(marker, { opacity: 0, duration: 0.18 }); return; }

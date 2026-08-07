@@ -1,7 +1,7 @@
 import { DatePipe } from '@angular/common';
 import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, ElementRef, input, signal, untracked, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { gsap } from 'gsap';
+import { loadMotion } from '../../../shared/motion/gsap-loader';
 import { RouterLink } from '@angular/router';
 import { DatePicker, DatePickerMonthChangeEvent } from 'primeng/datepicker';
 import { motionAllowed } from '../../../shared/motion/reveal.directive';
@@ -278,11 +278,14 @@ export class HomeCalendar {
       const first = !this.lastPeriod;
       this.lastPeriod = period;
       if (first || !motionAllowed()) return;
-      untracked(() => {
-        const cells = host.querySelectorAll('td');
-        if (cells.length) gsap.from(cells, { opacity: 0, y: 6, duration: 0.28, ease: 'power2.out', stagger: 0.008, overwrite: true });
-      });
+      untracked(() => void this.animateCells(host));
     });
+  }
+
+  private async animateCells(host: HTMLElement): Promise<void> {
+    const { gsap } = await loadMotion();
+    const cells = host.querySelectorAll('td');
+    if (cells.length) gsap.from(cells, { opacity: 0, y: 6, duration: 0.28, ease: 'power2.out', stagger: 0.008, overwrite: true });
   }
 
   protected setView(view: 'week' | 'month'): void {

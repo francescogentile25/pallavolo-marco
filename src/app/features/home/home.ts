@@ -1,6 +1,7 @@
 import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect, ElementRef, inject, OnDestroy, OnInit, signal, untracked, viewChild } from '@angular/core';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import type { gsap } from 'gsap';
+import type { ScrollTrigger as ScrollTriggerType } from 'gsap/ScrollTrigger';
+import { loadMotion } from '../../shared/motion/gsap-loader';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
@@ -17,8 +18,6 @@ import { CalendarEvent, HomeCalendar } from './components/home-calendar';
 import { matchVenuePoint as venuePoint, tournamentPoint } from '../../shared/places/place-points';
 
 const DAY = 24 * 60 * 60 * 1000;
-
-gsap.registerPlugin(ScrollTrigger);
 
 /**
  * Home: la prossima partita occupa la testata, il programma personale e il meteo
@@ -270,7 +269,8 @@ export class Home implements OnInit, OnDestroy {
   private readonly spotsValue = viewChild<ElementRef<HTMLElement>>('spotsValue');
 
   private intro?: gsap.core.Timeline;
-  private parallax?: ScrollTrigger;
+  private parallax?: ScrollTriggerType;
+  private destroyed = false;
   private lastHadMatch: boolean | null = null;
   private countedNode: HTMLElement | null = null;
 
@@ -371,22 +371,25 @@ export class Home implements OnInit, OnDestroy {
       const hasMatch = !!this.nextMatch();
       if (this.lastHadMatch === hasMatch) return;
       this.lastHadMatch = hasMatch;
-      untracked(() => this.playIntro());
+      untracked(() => void this.playIntro());
     });
 
     afterRenderEffect(() => {
       const node = this.spotsValue()?.nativeElement ?? null;
       if (!node || node === this.countedNode) return;
       this.countedNode = node;
-      untracked(() => this.countSpots(node));
+      untracked(() => void this.countSpots(node));
     });
   }
 
   /** Ingresso orchestrato della testata, piu il parallasse della foto sullo scorrimento. */
-  private playIntro(): void {
+  private async playIntro(): Promise<void> {
     if (!motionAllowed()) return;
     const root = this.hero()?.nativeElement;
     if (!root) return;
+
+    const { gsap, ScrollTrigger } = await loadMotion();
+    if (this.destroyed) return;
 
     this.intro?.kill();
     const select = gsap.utils.selector(root);
@@ -412,10 +415,12 @@ export class Home implements OnInit, OnDestroy {
   }
 
   /** I posti liberi salgono da zero: e il numero che decide se scendi in campo. */
-  private countSpots(node: HTMLElement): void {
+  private async countSpots(node: HTMLElement): Promise<void> {
     if (!motionAllowed()) return;
     const target = Number(node.textContent?.trim() ?? '0');
     if (!Number.isFinite(target) || target <= 0) return;
+    const { gsap } = await loadMotion();
+    if (this.destroyed) return;
     const state = { value: 0 };
     node.textContent = '0';
     gsap.to(state, {
@@ -481,6 +486,7 @@ export class Home implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.pageActions.clear();
     this.intro?.kill();
     this.parallax?.kill();

@@ -1,8 +1,6 @@
 import { Directive, ElementRef, inject, input, OnDestroy, afterNextRender } from '@angular/core';
-import { gsap } from 'gsap';
-import { ScrollTrigger } from 'gsap/ScrollTrigger';
-
-gsap.registerPlugin(ScrollTrigger);
+import type { ScrollTrigger as ScrollTriggerType } from 'gsap/ScrollTrigger';
+import { loadMotion } from './gsap-loader';
 
 /** Vero solo se l'utente non ha chiesto di ridurre il movimento. */
 export function motionAllowed(): boolean {
@@ -14,8 +12,8 @@ export function motionAllowed(): boolean {
  *
  * Con `appReveal="stagger"` anima i figli diretti a cascata, che e il caso piu
  * frequente: una griglia di schede che si compone invece di comparire tutta insieme.
- * Se il movimento e disattivato non registra nulla e lascia il contenuto fermo e
- * visibile: nessun rischio di restare con opacita zero.
+ * Se il movimento e disattivato non carica nemmeno la libreria e lascia il contenuto
+ * fermo e visibile: nessun rischio di restare con opacita zero.
  */
 @Directive({ selector: '[appReveal]' })
 export class Reveal implements OnDestroy {
@@ -23,18 +21,23 @@ export class Reveal implements OnDestroy {
   readonly revealDelay = input(0);
 
   private readonly host = inject(ElementRef<HTMLElement>);
-  private trigger?: ScrollTrigger;
+  private trigger?: ScrollTriggerType;
+  private destroyed = false;
 
   constructor() {
-    afterNextRender(() => this.play());
+    afterNextRender(() => void this.play());
   }
 
-  private play(): void {
+  private async play(): Promise<void> {
     if (!motionAllowed()) return;
     const element = this.host.nativeElement as HTMLElement;
     const mode = this.appReveal();
     const targets = mode === 'stagger' ? Array.from(element.children) : [element];
     if (!targets.length) return;
+
+    const { gsap, ScrollTrigger } = await loadMotion();
+    // La libreria arriva dopo: nel frattempo la vista puo essere sparita.
+    if (this.destroyed) return;
 
     const animation = gsap.from(targets, {
       opacity: 0,
@@ -55,6 +58,7 @@ export class Reveal implements OnDestroy {
   }
 
   ngOnDestroy(): void {
+    this.destroyed = true;
     this.trigger?.kill();
   }
 }
