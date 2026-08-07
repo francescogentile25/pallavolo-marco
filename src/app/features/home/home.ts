@@ -4,8 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
-import { PlacesService } from '../../core/services/places.service';
-import { distanceKm, PlaceRef, sameCityName } from '../../shared/places/place.model';
+import { NearbyPlaces } from '../../shared/places/nearby.service';
 import { motionAllowed, Reveal } from '../../shared/motion/reveal.directive';
 import { WeatherPanel } from '../../shared/weather/weather-panel';
 import { AuthStore } from '../auth/store/auth.store';
@@ -15,17 +14,11 @@ import { MatchesStore } from '../matches/store/matches.store';
 import { Tournament } from '../tournaments/models/tournament.model';
 import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { CalendarEvent, HomeCalendar } from './components/home-calendar';
+import { matchVenuePoint as venuePoint, tournamentPoint } from '../../shared/places/place-points';
 
 const DAY = 24 * 60 * 60 * 1000;
-/** Quanto lontano si e disposti a spostarsi per giocare. */
-const NEARBY_KM = 50;
 
 gsap.registerPlugin(ScrollTrigger);
-
-/** Chiave stabile per confrontare e memorizzare i nomi dei comuni. */
-function cityKey(value: string | null | undefined): string {
-  return (value ?? '').trim().toLocaleLowerCase('it');
-}
 
 /**
  * Home: la prossima partita occupa la testata, il programma personale e il meteo
@@ -285,16 +278,9 @@ export class Home implements OnInit, OnDestroy {
   private readonly authStore = inject(AuthStore);
   private readonly matchesStore = inject(MatchesStore);
   private readonly tournamentsStore = inject(TournamentsStore);
-  private readonly places = inject(PlacesService);
+  protected readonly nearby = inject(NearbyPlaces);
 
   protected readonly cityName = computed(() => this.authStore.profile()?.city ?? null);
-  /** Punto di riferimento: null quando l'utente non ha ancora scelto il comune. */
-  private readonly homePlace = computed(() => {
-    const profile = this.authStore.profile();
-    if (!profile?.city_latitude || !profile.city_longitude) return null;
-    return { placeId: profile.city_place_id ?? null, latitude: profile.city_latitude, longitude: profile.city_longitude };
-  });
-  private readonly resolvedPlaces = signal<ReadonlyMap<string, PlaceRef | null>>(new Map());
   protected readonly cityLatitude = computed(() => this.authStore.profile()?.city_latitude ?? null);
   protected readonly cityLongitude = computed(() => this.authStore.profile()?.city_longitude ?? null);
 
@@ -303,10 +289,10 @@ export class Home implements OnInit, OnDestroy {
     this.myUpcomingMatches()[0] ?? null,
   );
 
-  protected readonly nearbyKm = NEARBY_KM;
+  protected readonly nearbyKm = this.nearby.radiusKm;
   protected readonly nearbyLabel = computed(() => {
     const city = this.cityName();
-    return city ? `Entro ${NEARBY_KM} km da ${city}` : 'Vicino a te';
+    return city ? `Entro ${this.nearby.radiusKm} km da ${city}` : 'Vicino a te';
   });
 
   protected readonly openMatches = computed<readonly BeachMatch[]>(() => {
@@ -317,7 +303,7 @@ export class Home implements OnInit, OnDestroy {
         && Date.parse(match.starts_at) >= Date.now()
         && availableSpots(match) > 0
         && !match.participants.some(participant => participant.profile_id === me)
-        && this.isNearby(match.court.venue.place_id ?? null, match.court.venue.latitude, match.court.venue.longitude, match.court.venue.city))
+        && this.nearby.isNearby(venuePoint(match.court.venue)))
       .slice(0, 3);
   });
 
@@ -326,35 +312,10 @@ export class Home implements OnInit, OnDestroy {
       .tournaments()
       .filter(tournament => tournament.status === 'published'
         && Date.parse(tournament.registration_deadline) >= Date.now()
-        && this.isNearby(
-          tournament.city_place_id ?? tournament.venue.place_id ?? null,
-          tournament.city_latitude ?? tournament.venue.latitude,
-          tournament.city_longitude ?? tournament.venue.longitude,
-          tournament.city || tournament.venue.city,
-        ))
+        && this.nearby.isNearby(tournamentPoint(tournament)))
       .sort((first, second) => Date.parse(first.starts_at) - Date.parse(second.starts_at))
       .slice(0, 3),
   );
-
-  /**
-   * Vicino significa: stesso comune dell'anagrafica, oppure entro il raggio.
-   * I luoghi salvati prima dell'anagrafica non hanno coordinate: per quelli si
-   * usa il comune risolto a posteriori, e in ultima istanza il nome.
-   */
-  private isNearby(placeId: number | null, latitude: number | null, longitude: number | null, city: string | null): boolean {
-    const home = this.homePlace();
-    if (!home) return true;
-    if (placeId !== null && home.placeId !== null && placeId === home.placeId) return true;
-
-    const resolved = latitude === null || longitude === null ? this.resolvedPlaces().get(cityKey(city)) ?? null : null;
-    const point = latitude !== null && longitude !== null
-      ? { latitude, longitude }
-      : resolved
-        ? { latitude: resolved.latitude, longitude: resolved.longitude }
-        : null;
-    if (point) return distanceKm(home, point) <= NEARBY_KM;
-    return sameCityName(city, this.cityName());
-  }
 
   /** Programma personale: le partite a cui sono iscritto e i tornei che gioco o organizzo. */
   protected readonly calendarEvents = computed<readonly CalendarEvent[]>(() => {
@@ -395,22 +356,13 @@ export class Home implements OnInit, OnDestroy {
   );
 
   constructor() {
-    // Sedi e tornei creati prima dell'anagrafica hanno solo il nome del comune:
-    // lo si risolve una volta sola, cosi il raggio vale anche per i dati storici.
+    // Sedi e tornei creati prima dell'anagrafica hanno solo il nome del comune.
     effect(() => {
-      const missing = new Set<string>();
-      for (const match of this.matchesStore.matches()) {
-        const venue = match.court.venue;
-        if (venue.latitude === null || venue.longitude === null) missing.add(cityKey(venue.city));
-      }
-      for (const tournament of this.tournamentsStore.tournaments()) {
-        const latitude = tournament.city_latitude ?? tournament.venue.latitude;
-        if (latitude === null) missing.add(cityKey(tournament.city || tournament.venue.city));
-      }
-      const known = this.resolvedPlaces();
-      const pending = [...missing].filter(name => name.length > 1 && !known.has(name));
-      if (!pending.length) return;
-      untracked(() => void this.resolvePlaces(pending));
+      const points = [
+        ...this.matchesStore.matches().map(match => venuePoint(match.court.venue)),
+        ...this.tournamentsStore.tournaments().map(tournamentPoint),
+      ];
+      untracked(() => this.nearby.resolveMissing(points));
     });
 
     // La testata cambia quando arrivano le partite: l'ingresso va suonato sul
@@ -427,15 +379,6 @@ export class Home implements OnInit, OnDestroy {
       if (!node || node === this.countedNode) return;
       this.countedNode = node;
       untracked(() => this.countSpots(node));
-    });
-  }
-
-  private async resolvePlaces(names: readonly string[]): Promise<void> {
-    const found = await Promise.all(names.map(name => this.places.resolve(name)));
-    this.resolvedPlaces.update(current => {
-      const next = new Map(current);
-      names.forEach((name, index) => next.set(name, found[index]));
-      return next;
     });
   }
 

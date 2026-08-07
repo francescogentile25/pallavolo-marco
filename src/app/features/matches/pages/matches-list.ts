@@ -1,6 +1,6 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, OnDestroy, OnInit, signal, untracked } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { ConfirmationService } from 'primeng/api';
 import { Button } from 'primeng/button';
@@ -15,10 +15,12 @@ import { BeachMatch, MatchFilters, MatchGender, MatchVisibility } from '../model
 import { filterMatches } from '../matches.utils';
 import { MatchesService } from '../services/matches.service';
 import { MatchesStore } from '../store/matches.store';
+import { NearbyPlaces } from '../../../shared/places/nearby.service';
+import { matchVenuePoint } from '../../../shared/places/place-points';
 
 @Component({
   selector: 'app-matches-list',
-  imports: [FormsModule, Button, Checkbox, InputText, Select, MatchCard, MatchActionSheet],
+  imports: [FormsModule, Button, Checkbox, InputText, RouterLink, Select, MatchCard, MatchActionSheet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="matches-page">
@@ -57,6 +59,14 @@ import { MatchesStore } from '../store/matches.store';
           <p-checkbox inputId="only-available" [ngModel]="onlyAvailable()" (ngModelChange)="onlyAvailable.set($event)" [binary]="true" />
           <label for="only-available">Solo con posti liberi</label>
         </div>
+        <div class="availability-toggle">
+          <p-checkbox inputId="only-nearby" [ngModel]="onlyNearby()" (ngModelChange)="onlyNearby.set($event)" [binary]="true" [disabled]="!nearby.hasHome()" />
+          <label for="only-nearby">
+            @if (nearby.hasHome()) { Entro {{ nearby.radiusKm }} km da {{ nearby.cityName() }} }
+            @else { Vicino a me }
+          </label>
+        </div>
+        @if (!nearby.hasHome()) { <p class="filter-hint"><a routerLink="/profilo">Scegli il tuo comune</a> per filtrare le partite vicine.</p> }
       </section>
 
       <section aria-live="polite">
@@ -98,6 +108,8 @@ import { MatchesStore } from '../store/matches.store';
     .filter-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
     .filter-field { display: grid; gap: 5px; min-width: 0; }
     .filter-field label { color: var(--color-ink-muted); font-size: .65rem; font-weight: 800; }
+    .filter-hint { margin: 0; color: var(--color-ink-muted); font-size: .68rem; }
+    .filter-hint a { color: var(--color-brand-strong); font-weight: 800; }
     .availability-toggle { display: flex; min-height: 44px; align-items: center; gap: 10px; font-size: .76rem; font-weight: 800; }
     .availability-toggle label { cursor: pointer; }
     .results-heading { display: flex; align-items: end; justify-content: space-between; margin-bottom: 12px; }
@@ -127,6 +139,13 @@ export class MatchesList implements OnInit, OnDestroy {
   protected readonly gender = signal<MatchGender | 'all'>('all');
   protected readonly level = signal<number | null>(null);
   protected readonly onlyAvailable = signal(true);
+  protected readonly nearby = inject(NearbyPlaces);
+  protected readonly onlyNearby = signal(false);
+  /** I comuni delle sedi senza coordinate vanno risolti per il filtro di vicinanza. */
+  private readonly resolveNearby = effect(() => {
+    const points = this.store.matches().map(match => matchVenuePoint(match.court.venue));
+    untracked(() => this.nearby.resolveMissing(points));
+  });
   protected readonly dateFilter = signal<MatchFilters['date']>('all');
   protected readonly visibility = signal<MatchVisibility | 'all'>('all');
   protected readonly visibilityOptions: { label: string; value: MatchVisibility | 'all' }[] = [
@@ -152,9 +171,13 @@ export class MatchesList implements OnInit, OnDestroy {
   ];
   protected readonly selectedMatch = signal<BeachMatch | null>(null);
   protected readonly sheetOpen = signal(false);
-  protected readonly filteredMatches = computed(() => filterMatches(this.store.matches(), {
-    query: this.query(), gender: this.gender(), level: this.level(), onlyAvailable: this.onlyAvailable(), date: this.dateFilter(), visibility: this.visibility(),
-  }));
+  protected readonly filteredMatches = computed(() => {
+    const matches = filterMatches(this.store.matches(), {
+      query: this.query(), gender: this.gender(), level: this.level(), onlyAvailable: this.onlyAvailable(), date: this.dateFilter(), visibility: this.visibility(),
+    });
+    if (!this.onlyNearby()) return matches;
+    return matches.filter(match => this.nearby.isNearby(matchVenuePoint(match.court.venue)));
+  });
   private channel?: RealtimeChannel;
   private refreshTimer?: ReturnType<typeof setTimeout>;
 
@@ -168,7 +191,7 @@ export class MatchesList implements OnInit, OnDestroy {
   }
   ngOnDestroy(): void { this.actions.clear(); if (this.channel) this.service.removeChannel(this.channel); if (this.refreshTimer) clearTimeout(this.refreshTimer); }
   protected openActions(match: BeachMatch): void { this.selectedMatch.set(match); this.sheetOpen.set(true); }
-  protected resetFilters(): void { this.query.set(''); this.gender.set('all'); this.level.set(null); this.onlyAvailable.set(false); this.dateFilter.set('all'); this.visibility.set('all'); }
+  protected resetFilters(): void { this.query.set(''); this.gender.set('all'); this.level.set(null); this.onlyAvailable.set(false); this.onlyNearby.set(false); this.dateFilter.set('all'); this.visibility.set('all'); }
   protected async join(id: string): Promise<void> { if (await this.store.join(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
   protected async withdraw(id: string): Promise<void> { if (await this.store.withdraw(id)) { this.sheetOpen.set(false); await this.store.loadMatches(true); } }
   protected cancel(id: string): void { this.confirmationService.confirm({ header: 'Annulla partita?', message: 'La partita verrà annullata per tutti i partecipanti. Questa azione non può essere annullata.', icon: 'pi pi-exclamation-triangle', acceptLabel: 'Annulla partita', rejectLabel: 'Mantieni partita', acceptButtonProps: { severity: 'danger' }, rejectButtonProps: { severity: 'secondary', variant: 'text' }, accept: () => void this.cancelConfirmed(id) }); }
