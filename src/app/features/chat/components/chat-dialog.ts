@@ -226,7 +226,7 @@ const MAX_MENTION_MATCHES = 6;
     .chat-banner button { display: grid; place-items: center; color: inherit; border: 0; background: none; cursor: pointer; }
     .chat-compose-row { display: flex; align-items: end; gap: 8px; }
     .chat-compose-field { position: relative; flex: 1; display: flex; }
-    .chat-textarea { flex: 1; min-height: 42px; max-height: 120px; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); font: inherit; font-size: .86rem; resize: none; }
+    .chat-textarea { flex: 1; min-height: 42px; max-height: 120px; overflow-y: hidden; padding: 10px 14px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); background: var(--color-surface); font: inherit; font-size: .86rem; resize: none; }
     .chat-textarea:focus-visible { outline: 0; border-color: var(--color-brand); box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-brand) 15%, transparent); }
     .chat-mention-pop { position: absolute; bottom: calc(100% + 6px); left: 0; right: 0; z-index: 6; max-height: 220px; overflow-y: auto; padding: 4px; border: 1px solid var(--color-border); border-radius: var(--radius); background: var(--color-surface); box-shadow: 0 12px 28px rgb(20 24 26 / .18); animation: chat-pop .16s ease-out; }
     .chat-mention-pop button { display: flex; width: 100%; min-height: 44px; align-items: center; padding: 8px 10px; border: 0; border-radius: var(--radius); background: none; font: inherit; font-size: .8rem; text-align: left; cursor: pointer; }
@@ -390,6 +390,7 @@ export class ChatDialog {
   protected onComposeInput(event: Event): void {
     const area = event.target as HTMLTextAreaElement;
     this.draft.set(area.value);
+    this.autoGrow(area);
     const uptoCaret = area.value.slice(0, area.selectionStart ?? area.value.length);
     const match = MENTION_TOKEN.exec(uptoCaret);
     this.mentionQuery.set(match ? match[1].toLocaleLowerCase('it') : null);
@@ -457,6 +458,18 @@ export class ChatDialog {
     try { this.mentionable.set(await this.service.getMentionable(this.resourceType(), id)); } catch { /* ignore */ }
   }
 
+  /**
+   * La casella si adatta al testo invece di mostrare una barra: cresce fino al
+   * massimo previsto, e solo oltre quello lascia scorrere.
+   */
+  private autoGrow(area: HTMLTextAreaElement | undefined): void {
+    if (!area) return;
+    area.style.height = 'auto';
+    const max = parseFloat(getComputedStyle(area).maxHeight) || 120;
+    area.style.height = `${Math.min(area.scrollHeight, max)}px`;
+    area.style.overflowY = area.scrollHeight > max ? 'auto' : 'hidden';
+  }
+
   protected startReply(m: ChatMessage): void { this.editing.set(null); this.replyTo.set(m); this.pickerId.set(null); }
   protected cancelReply(): void { this.replyTo.set(null); }
 
@@ -465,6 +478,7 @@ export class ChatDialog {
     this.editing.set(m);
     this.draft.set(m.body);
     this.draftMentions.set(m.mentions.map((mention) => ({ user_id: mention.user_id, name: mention.user_name })));
+    queueMicrotask(() => this.autoGrow(this.composerEl()?.nativeElement));
     this.pickerId.set(null);
   }
 
@@ -493,6 +507,7 @@ export class ChatDialog {
 
   private resetCompose(): void {
     this.draft.set('');
+    queueMicrotask(() => this.autoGrow(this.composerEl()?.nativeElement));
     this.replyTo.set(null);
     this.editing.set(null);
     this.pickerId.set(null);

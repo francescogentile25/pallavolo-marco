@@ -227,7 +227,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .side-panel header i{display:grid;width:40px;height:40px;place-items:center;color:#1b4fd8;border-radius:var(--radius);background:#e3e8ff}
     .side-panel h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
     .side-panel small{color:#5b6a72;font-size:.64rem}
-    .side-scroll{display:grid;gap:7px;max-height:min(42vh,320px);overflow-y:auto}
+    .side-scroll{display:grid;gap:7px}
     .side-row{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:9px;min-height:52px;padding:8px 9px;border-radius:var(--radius);background:#faf7f0;cursor:grab}
     .side-row.is-placed{opacity:.55}
     .side-row.is-held{outline:2px solid var(--color-brand);background:#e3e8ff}
@@ -295,7 +295,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
       .bracket-setup{grid-template-columns:auto auto auto 1fr}
       .bracket-layout{grid-template-columns:300px minmax(0,1fr);gap:22px;align-items:start}
       /* colonna sinistra: pannelli e podio; a destra il tabellone su tutte le righe */
-      .bracket-side{grid-column:1;position:sticky;top:16px;max-height:calc(100dvh - 32px);overflow-y:auto}
+      .bracket-side{grid-column:1}
       .bracket-tree{grid-column:2;grid-row:1/-1}
       .podium-slots{grid-template-columns:1fr}
       .round-col{min-width:300px}
