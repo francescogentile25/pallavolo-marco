@@ -109,6 +109,9 @@ export interface Tournament {
   city_longitude: number | null;
   /** Logo della societa organizzante, mostrato nella testata del torneo. */
   organizer_logo_url: string | null;
+  /** Recapiti della societa: compaiono accanto al logo per chi guarda il torneo. */
+  organizer_email: string | null;
+  organizer_phone: string | null;
   champion_team_id: string | null;
   runner_up_team_id: string | null;
   third_place_team_id: string | null;

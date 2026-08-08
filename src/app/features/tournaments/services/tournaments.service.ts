@@ -118,6 +118,10 @@ export class TournamentsService {
     await this.rpc('set_tournament_logo', { p_tournament_id: tournamentId, p_logo_url: logoUrl });
   }
 
+  async setContacts(tournamentId: string, email: string | null, phone: string | null): Promise<void> {
+    await this.rpc('set_tournament_contacts', { p_tournament_id: tournamentId, p_email: email, p_phone: phone });
+  }
+
   async setGameCourt(gameId: string, courtId: string | null): Promise<void> {
     await this.rpc('set_tournament_game_court', { p_game_id: gameId, p_court_id: courtId });
   }
