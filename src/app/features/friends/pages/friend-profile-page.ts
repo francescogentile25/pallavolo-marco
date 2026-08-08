@@ -33,15 +33,12 @@ const SIDE_LABELS: Record<string, string> = { sinistra: 'Sinistra', destra: 'Des
 
         <section class="performance" aria-labelledby="performance-title">
           <div class="section-head"><div><p class="eyebrow">In campo</p><h2 id="performance-title">Rendimento</h2></div><span class="performance-rate"><strong>{{ winRate(p) }}%</strong><small>vittorie torneo</small></span></div>
+          <!-- La percentuale sta solo qui: in fondo alla scheda ripeteva lo stesso numero. -->
           <div class="achievement-grid">
             <article><i class="pi pi-calendar" aria-hidden="true"></i><span>Partite giocate</span><strong>{{ p.matches_played }}</strong></article>
             <article><i class="pi pi-sitemap" aria-hidden="true"></i><span>Tornei disputati</span><strong>{{ p.tournaments_played }}</strong></article>
             <article><i class="pi pi-trophy" aria-hidden="true"></i><span>Tornei vinti</span><strong>{{ p.tournaments_won }}</strong></article>
             <article><i class="pi pi-flag" aria-hidden="true"></i><span>Incontri vinti</span><strong>{{ p.tournament_games_won }}<small>/{{ p.tournament_games_played }}</small></strong></article>
-          </div>
-          <div class="records">
-            <article><span class="record-icon"><i class="pi pi-bolt" aria-hidden="true"></i></span><div><small>Record personale</small><strong>{{ p.best_set_score }} punti</strong><p>Miglior punteggio in un set di torneo.</p></div></article>
-            <article><span class="record-icon ocean"><i class="pi pi-chart-line" aria-hidden="true"></i></span><div><small>Percentuale vittorie</small><strong>{{ winRate(p) }}%</strong><p>{{ p.tournament_games_won }} vittorie su {{ p.tournament_games_played }} incontri conclusi.</p></div></article>
           </div>
         </section>
 
@@ -106,17 +103,13 @@ const SIDE_LABELS: Record<string, string> = { sinistra: 'Sinistra', destra: 'Des
     .achievement-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .achievement-grid article { display: grid; gap: 5px; padding: 14px; border-radius: var(--radius-lg); background: var(--color-surface-muted); }
     .achievement-grid i { color: var(--color-brand-strong); font-size: 1rem; }.achievement-grid span { color: var(--color-ink-muted); font-size: .65rem; font-weight: 750; }.achievement-grid strong { font-size: 1.45rem; line-height: 1; }.achievement-grid strong small { color: var(--color-ink-muted); font-size: .75rem; }
-    .records { display: grid; gap: 8px; margin-top: 12px; }
-    .records article { display: flex; align-items: center; gap: 12px; padding: 13px; border: 1px solid var(--color-border); border-radius: var(--radius-lg); }
-    .record-icon { display: grid; width: 42px; height: 42px; flex: 0 0 42px; place-items: center; color: #a75c20; border-radius: var(--radius); background: #fff0df; }.record-icon.ocean { color: var(--color-brand-strong); background: var(--color-brand-soft); }
-    .records small { display: block; color: var(--color-ink-muted); font-size: .65rem; font-weight: 750; }.records strong { display: block; margin: 2px 0; font-size: 1rem; }.records p { margin: 0; color: var(--color-ink-muted); font-size: .68rem; line-height: 1.4; }
     .state { display: grid; min-height: 220px; place-content: center; justify-items: center; gap: 10px; color: var(--color-ink-muted); text-align: center; }
     .state.empty { border: 1px dashed var(--color-border); border-radius: var(--radius-lg); }
     .state.empty i { font-size: 2rem; }
     .state.empty h3, .state.empty p { margin: 0; }
     .spinner { width: 18px; height: 18px; border: 2px solid currentColor; border-right-color: transparent; border-radius: 50%; animation: spin .7s linear infinite; }
     @keyframes spin { to { transform: rotate(360deg); } }
-    @media (min-width: 560px) { .fp-page { padding: 34px 28px 120px; gap: 16px; }.fp-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }.achievement-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }.records { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+    @media (min-width: 560px) { .fp-page { padding: 34px 28px 120px; gap: 16px; }.fp-metrics { grid-template-columns: repeat(3, minmax(0, 1fr)); }.achievement-grid { grid-template-columns: repeat(4, minmax(0, 1fr)); }}
   `,
 })
 export class FriendProfilePage implements OnInit {
