@@ -60,7 +60,9 @@ import { NotificationBell } from '../../notifications/components/notification-be
     nav a:hover, nav a.is-active { color: var(--color-ink); }
     nav a.is-active { border-bottom-color: transparent; }
     .brand img { transition: transform var(--duration-fast) var(--ease-out); }
-    .brand:hover img { transform: rotate(-2deg) scale(1.03); }
+    /* Col dito il :hover resta attaccato dopo il tocco e il logo rimaneva
+       storto: l'inclinazione vale solo dove c'e un puntatore vero. */
+    @media (hover: hover) and (pointer: fine) { .brand:hover img { transform: rotate(-2deg) scale(1.03); } }
     .account-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; }
     .user-name { display: none; max-width: 15ch; overflow: hidden; color: var(--color-ink); font-size: .74rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .user-name small { display: block; color: var(--color-ink-muted); font-size: .62rem; font-weight: 650; text-align: right; }
