@@ -48,10 +48,31 @@ describe('HomeCalendar', () => {
     fixture.detectChanges();
   });
 
-  it('monta il datepicker PrimeNG con la settimana che parte da lunedi', () => {
-    const weekdays = fixture.debugElement.queryAll(By.css('.p-datepicker-weekday'));
+  function cells(): HTMLButtonElement[] {
+    return fixture.debugElement.queryAll(By.css('.grid .cell')).map(item => item.nativeElement as HTMLButtonElement);
+  }
+
+  it('disegna la settimana a partire da lunedi', () => {
+    const weekdays = fixture.debugElement.queryAll(By.css('.weekdays span'));
     expect(weekdays.length).toBe(7);
-    expect((weekdays[0].nativeElement as HTMLElement).textContent?.trim()).toBe('lu');
+    expect((weekdays[0].nativeElement as HTMLElement).textContent?.trim()).toBe('Lun');
+    expect(cells().length).toBe(7);
+  });
+
+  it('seleziona il giorno toccato e ci porta dietro il periodo', () => {
+    const before = text('.range');
+    const last = cells()[6];
+    last.click();
+    fixture.detectChanges();
+
+    expect(cells()[6].getAttribute('aria-pressed')).toBe('true');
+    expect(text('.range')).toBe(before);
+
+    // La freccia continua a muovere la settimana, non il singolo giorno.
+    const steps = fixture.debugElement.queryAll(By.css('.step'));
+    (steps[1].nativeElement as HTMLElement).click();
+    fixture.detectChanges();
+    expect(text('.range')).not.toBe(before);
   });
 
   it('apre sulla settimana e passa al mese', () => {
@@ -77,19 +98,17 @@ describe('HomeCalendar', () => {
     expect(text('h2')).toBe('Questa settimana');
   });
 
-  it('porta la griglia sul mese del periodo, anche saltando da una settimana all’altra', async () => {
-    const steps = fixture.debugElement.queryAll(By.css('.step'));
-    // Sei settimane indietro superano di sicuro il confine del mese.
-    for (let click = 0; click < 6; click += 1) {
-      (steps[0].nativeElement as HTMLElement).click();
-      fixture.detectChanges();
-    }
-    // ngModel scrive nel datepicker in una microtask: la griglia si aggiorna dopo.
-    await fixture.whenStable();
-    fixture.detectChanges();
+  it('in vista mese riempie righe intere e segna i giorni degli altri mesi', () => {
+    clickButton('Mese');
 
-    const shown = text('.p-datepicker-select-month').toLocaleLowerCase('it');
-    expect(text('.range').toLocaleLowerCase('it')).toContain(shown.slice(0, 3));
+    const grid = cells();
+    expect(grid.length % 7).toBe(0);
+    expect(grid.length).toBeGreaterThanOrEqual(28);
+
+    const inside = grid.filter(cell => !cell.classList.contains('outside'));
+    const days = inside.map(cell => Number(cell.querySelector('.cell-day')?.textContent));
+    expect(days[0]).toBe(1);
+    expect(days.length).toBe(new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0).getDate());
   });
 
   it('elenca solo gli impegni del periodo attivo, in ordine di orario', () => {
