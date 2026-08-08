@@ -105,8 +105,12 @@ import { matchVenuePoint } from '../../../shared/places/place-points';
     .search-field { position: relative; }
     .search-field i { position: absolute; top: 50%; left: 14px; color: var(--color-ink-muted); transform: translateY(-50%); }
     .search-field input { width: 100%; min-height: 48px; padding-left: 42px; }
-    .filter-row { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; }
+    /* Tre colonne sul telefono spezzavano i campi: "Livello" restava tagliato e
+       "Quando" usciva dalla scheda. Due colonne, e il valore scelto si tronca. */
+    .filter-row { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
     .filter-field { display: grid; gap: 5px; min-width: 0; }
+    .filter-field ::ng-deep .p-select { max-width: 100%; }
+    .filter-field ::ng-deep .p-select-label { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
     .filter-field label { color: var(--color-ink-muted); font-size: .65rem; font-weight: 800; }
     .filter-hint { margin: 0; color: var(--color-ink-muted); font-size: .68rem; }
     .filter-hint a { color: var(--color-brand-strong); font-weight: 800; }
