@@ -246,11 +246,15 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .podium-card header>i{display:grid;width:40px;height:40px;place-items:center;color:#f59e0b;border-radius:var(--radius);background:#fff4d6;font-size:1.05rem}
     .podium-card h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
     .podium-card small{color:#5b6a72;font-size:.62rem;line-height:1.35}
-    .podium-slots{display:grid;gap:10px}
-    .podium-slot{display:grid;gap:8px;padding:12px;border:1px solid #d9cdb4;border-left-width:5px;border-radius:var(--radius);background:#faf7f0}
-    .podium-slot>span{display:inline-flex;align-items:center;gap:9px;font-size:.7rem;font-weight:850;letter-spacing:.02em}
+    .podium-slots{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+    .podium-slot{display:grid;min-width:0;gap:8px;padding:12px;border:1px solid #d9cdb4;border-left-width:5px;border-radius:var(--radius);background:#faf7f0}
+    .podium-slot>span{display:inline-flex;min-width:0;align-items:center;gap:9px;font-size:.7rem;font-weight:850;letter-spacing:.02em}
     .podium-slot>span>i{margin-left:auto;font-size:.95rem}
-    .podium-slot>strong{font-size:.78rem}
+    .podium-slot>strong{font-size:.78rem;overflow-wrap:anywhere}
+    /* Una coppia dal nome lungo allargava la scheda oltre la colonna: ora il
+       nome si tronca dentro il suo spazio invece di spingere il bordo. */
+    .podium-slot ::ng-deep .p-select{max-width:100%}
+    .podium-slot ::ng-deep .p-select-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .medal{display:grid;width:26px;height:26px;flex:0 0 26px;place-items:center;border-radius:50%;color:#fff;font:800 .78rem/1 var(--display-font)}
     /* oro, argento e bronzo: il primo posto pesa piu degli altri due */
     .podium-slot.place-1{border-color:#e0a72e;border-left-color:#e0a72e;background:#fdf4e0;box-shadow:0 3px 12px rgb(224 167 46 / .22)}
@@ -304,7 +308,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
       /* colonna sinistra: pannelli e podio; a destra il tabellone su tutte le righe */
       .bracket-side{grid-column:1}
       .bracket-tree{grid-column:2;grid-row:1/-1}
-      .podium-slots{grid-template-columns:1fr}
+      .podium-slots{grid-template-columns:minmax(0,1fr)}
       .round-col{min-width:300px}
     }
     @media(prefers-reduced-motion:reduce){.cdk-drag-animating{transition:none!important}}
