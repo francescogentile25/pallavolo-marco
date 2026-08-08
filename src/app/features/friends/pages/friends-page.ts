@@ -21,27 +21,28 @@ import { FriendsService } from '../services/friends.service';
         <p>Aggiungi giocatori, accetta le richieste e ritrovali velocemente quando crei una partita.</p>
       </header>
 
+      @if (service.requests().length) {
+        <section class="requests" aria-label="Richieste ricevute">
+          <h2>Richieste ricevute <span>{{ service.requests().length }}</span></h2>
+          @for (r of service.requests(); track r.request_id) {
+            <article class="row">
+              <span class="avatar">{{ initials(r.nome, r.cognome) }}</span>
+              <div class="row-body"><strong>{{ r.nome }} {{ r.cognome }}</strong><small>Livello {{ r.livello }}</small></div>
+              <div class="row-actions">
+                <p-button size="small" label="Accetta" icon="pi pi-check" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, true)" />
+                <p-button size="small" severity="secondary" [outlined]="true" label="Rifiuta" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, false)" />
+              </div>
+            </article>
+          }
+        </section>
+      }
+
       <p-accordion value="friends">
         <p-accordion-panel value="friends">
           <p-accordion-header>
             <span class="accordion-title"><i class="pi pi-users" aria-hidden="true"></i><span>I tuoi amici</span><small>{{ service.friends().length }}</small></span>
           </p-accordion-header>
           <p-accordion-content>
-            @if (service.requests().length) {
-              <section class="requests" aria-label="Richieste ricevute">
-                <h2>Richieste ricevute <span>{{ service.requests().length }}</span></h2>
-                @for (r of service.requests(); track r.request_id) {
-                  <article class="row">
-                    <span class="avatar">{{ initials(r.nome, r.cognome) }}</span>
-                    <div class="row-body"><strong>{{ r.nome }} {{ r.cognome }}</strong><small>Livello {{ r.livello }}</small></div>
-                    <div class="row-actions">
-                      <p-button size="small" label="Accetta" icon="pi pi-check" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, true)" />
-                      <p-button size="small" severity="secondary" [outlined]="true" label="Rifiuta" [loading]="busy() === r.id" (onClick)="respond(r.request_id, r.id, false)" />
-                    </div>
-                  </article>
-                }
-              </section>
-            }
             <section aria-label="I tuoi amici">
               @for (f of service.friends(); track f.id) {
                 <article class="row friend-row">
@@ -102,7 +103,9 @@ import { FriendsService } from '../services/friends.service';
     .eyebrow { margin: 0 0 8px; color: var(--color-brand-strong); font-size: .72rem; font-weight: 850; letter-spacing: .1em; text-transform: uppercase; }
     h1 { margin: 0 0 8px; font: 900 clamp(2rem, 9vw, 3.4rem)/.95 var(--display-font); letter-spacing: -.045em; }
     .friends-hero p:last-of-type { max-width: 44rem; margin: 0; color: var(--color-ink-muted); line-height: 1.5; }
-    .requests { padding: 0 0 14px; margin-bottom: 14px; border-bottom: 1px solid var(--color-border); }
+    /* Le richieste ricevute stanno in cima e fuori dai pannelli: chi apre la
+       pagina deve trovarle senza aprire nulla. */
+    .requests { padding: 16px; border: 1px solid var(--color-brand); border-radius: var(--radius-lg); background: var(--color-brand-soft); }
     .requests h2 { display: flex; align-items: center; gap: 8px; margin: 0 0 10px; font: 900 1.05rem/1 var(--display-font); }
     .requests h2 span, .accordion-title small { display: inline-grid; min-width: 24px; height: 24px; place-items: center; padding: 0 7px; border-radius: 99px; background: var(--color-brand-soft); color: var(--color-brand-strong); font: 800 .68rem/1 var(--base-font-family); }
     .accordion-title { display: flex; width: 100%; align-items: center; gap: 10px; }
