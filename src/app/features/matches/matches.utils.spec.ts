@@ -1,5 +1,5 @@
 import { BeachMatch, MatchFilters } from './models/match.model';
-import { availableSpots, filterMatches, isUserJoined, levelRangeLabel, matchErrorMessage } from './matches.utils';
+import { availableSpots, filterMatches, isUserJoined, levelRangeLabel, levelRangeShort, matchErrorMessage } from './matches.utils';
 
 const match = {
   id: 'm1', status: 'open', gender: 'mixed', min_level: 3, max_level: 5,
@@ -23,6 +23,10 @@ describe('match utilities', () => {
     expect(filterMatches([{ ...match, status: 'cancelled' }], filters)).toEqual([]);
   });
   it('formats ranges', () => expect(levelRangeLabel(match)).toBe('Livello 3–5'));
+  it('formats short ranges without the prefix', () => {
+    expect(levelRangeShort(match)).toBe('3–5');
+    expect(levelRangeShort({ min_level: 6, max_level: 6 })).toBe('Avanzato');
+  });
   it('maps invitation validation errors', () => {
     expect(matchErrorMessage(new Error('Gli invitati superano i posti disponibili'))).toBe('Riduci il numero di giocatori invitati.');
     expect(matchErrorMessage(new Error('Uno o piu invitati hanno gia una partita in questa fascia oraria'))).toBe('Uno o più invitati hanno già una partita in questa fascia oraria.');

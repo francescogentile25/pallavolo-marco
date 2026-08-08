@@ -7,11 +7,12 @@ import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { NearbyPlaces } from '../../shared/places/nearby.service';
 import { motionAllowed, Reveal } from '../../shared/motion/reveal.directive';
+import { Tooltip } from 'primeng/tooltip';
 import { WeatherPanel } from '../../shared/weather/weather-panel';
 import { WeatherHours } from '../../shared/weather/weather-hours';
 import { AuthStore } from '../auth/store/auth.store';
 import { BeachMatch } from '../matches/models/match.model';
-import { availableSpots, levelLabel } from '../matches/matches.utils';
+import { availableSpots, levelRangeLabel, levelRangeShort } from '../matches/matches.utils';
 import { MatchesStore } from '../matches/store/matches.store';
 import { Tournament } from '../tournaments/models/tournament.model';
 import { TournamentsStore } from '../tournaments/store/tournaments.store';
@@ -28,7 +29,7 @@ const DAY = 24 * 60 * 60 * 1000;
  */
 @Component({
   selector: 'app-home',
-  imports: [DatePipe, RouterLink, Reveal, WeatherPanel, WeatherHours, HomeCalendar],
+  imports: [DatePipe, RouterLink, Reveal, Tooltip, WeatherPanel, WeatherHours, HomeCalendar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page">
@@ -96,7 +97,16 @@ const DAY = 24 * 60 * 60 * 1000;
       <section class="bottom-grid" appReveal="stagger">
         <article class="panel list-panel" aria-labelledby="open-matches-title">
           <div class="section-head">
-            <div><span class="eyebrow">{{ nearbyLabel() }}</span><h2 id="open-matches-title">Partite aperte</h2></div>
+            <div>
+              <span class="eyebrow">{{ nearbyLabel() }}</span>
+              <div class="title-row">
+                <h2 id="open-matches-title">Partite aperte</h2>
+                <button type="button" class="info-btn" [pTooltip]="matchesHint()" tooltipEvent="both"
+                        tooltipPosition="top" [attr.aria-label]="matchesHint()">
+                  <i class="pi pi-info-circle" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
             <a class="section-link" routerLink="/partite">Vedi tutte <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
           </div>
 
@@ -104,7 +114,7 @@ const DAY = 24 * 60 * 60 * 1000;
             @for (match of openMatches(); track match.id) {
               <a class="match-card" [routerLink]="['/partite', match.id]">
                 <div class="card-head">
-                  <span class="pill">{{ levelText(match) }}</span>
+                  <span class="pill">{{ levelRange(match) }}</span>
                   <span class="pill places-pill"><strong>{{ spots(match) }}</strong> {{ spots(match) === 1 ? 'posto' : 'posti' }}</span>
                 </div>
                 <h3>{{ match.court.venue.name }}</h3>
@@ -129,7 +139,16 @@ const DAY = 24 * 60 * 60 * 1000;
 
         <article class="panel list-panel" aria-labelledby="open-tournaments-title">
           <div class="section-head">
-            <div><span class="eyebrow">{{ nearbyLabel() }}</span><h2 id="open-tournaments-title">Tornei aperti</h2></div>
+            <div>
+              <span class="eyebrow">{{ nearbyLabel() }}</span>
+              <div class="title-row">
+                <h2 id="open-tournaments-title">Tornei aperti</h2>
+                <button type="button" class="info-btn" [pTooltip]="tournamentsHint()" tooltipEvent="both"
+                        tooltipPosition="top" [attr.aria-label]="tournamentsHint()">
+                  <i class="pi pi-info-circle" aria-hidden="true"></i>
+                </button>
+              </div>
+            </div>
             <a class="section-link" routerLink="/tornei">Vedi tutti <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
           </div>
 
@@ -214,6 +233,13 @@ const DAY = 24 * 60 * 60 * 1000;
 
     .section-head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;padding:0 1px 16px;border-bottom:2px solid rgb(8 43 61/.12)}
     .section-head h2{margin:5px 0 0;font-family:var(--display-font);font-size:1.65rem;line-height:1.08;letter-spacing:-.035em}
+    /* Il bottino informativo sta nella riga del titolo senza allargarla: l'area
+       toccabile da 44px sborda con i margini negativi. */
+    .title-row{display:flex;align-items:center;gap:2px}
+    .info-btn{display:grid;width:44px;height:44px;flex:0 0 44px;margin:-10px 0 -10px -4px;padding:0;place-items:center;color:var(--color-ink-muted);border:0;border-radius:50%;background:none;cursor:pointer}
+    .info-btn i{font-size:.95rem}
+    .info-btn:hover{color:var(--color-brand)}
+    .info-btn:focus-visible{outline:3px solid var(--color-focus);outline-offset:-8px}
     .section-link{display:inline-flex;align-items:center;gap:6px;color:var(--color-brand);font-size:.78rem;font-weight:850;white-space:nowrap;text-decoration:none}
     .section-link:hover{text-decoration:underline;text-underline-offset:3px}
 
@@ -312,6 +338,17 @@ export class Home implements OnInit, OnDestroy {
     const city = this.cityName();
     return city ? `Entro ${this.nearby.radiusKm} km da ${city}` : 'Vicino a te';
   });
+
+  protected readonly matchesHint = computed(() => this.nearbyHint('le partite aperte'));
+  protected readonly tournamentsHint = computed(() => this.nearbyHint('i tornei con le iscrizioni aperte'));
+
+  /** Spiega perche l'elenco e corto: e filtrato sulla citta scelta nel profilo. */
+  private nearbyHint(subject: string): string {
+    const city = this.cityName();
+    return city
+      ? `Qui vedi ${subject} entro ${this.nearby.radiusKm} km da ${city}, la città del tuo profilo. Cambiala dal profilo per guardare un'altra zona.`
+      : `Imposta la tua città dal profilo: qui compaiono ${subject} che si giocano vicino a te.`;
+  }
 
   protected readonly openMatches = computed<readonly BeachMatch[]>(() => {
     const me = this.authStore.authUser()?.id;
@@ -453,7 +490,8 @@ export class Home implements OnInit, OnDestroy {
   }
 
   protected spots(match: BeachMatch): number { return availableSpots(match); }
-  protected levelText(match: BeachMatch): string { return levelLabel(match.max_level); }
+  protected levelText(match: BeachMatch): string { return levelRangeShort(match); }
+  protected levelRange(match: BeachMatch): string { return levelRangeLabel(match); }
   protected confirmedTeams(tournament: Tournament): number {
     return tournament.teams.filter(team => team.status === 'confirmed').length;
   }

@@ -32,6 +32,12 @@ export function levelRangeLabel(match: Pick<BeachMatch, 'min_level' | 'max_level
   return `Livello ${match.min_level}–${match.max_level}`;
 }
 
+/** Intervallo senza prefisso, per i riquadri che hanno gia "Livello" scritto accanto. */
+export function levelRangeShort(match: Pick<BeachMatch, 'min_level' | 'max_level'>): string {
+  if (match.min_level === match.max_level) return levelLabel(match.min_level);
+  return `${match.min_level}–${match.max_level}`;
+}
+
 export function isUserJoined(match: BeachMatch, userId: string | null | undefined): boolean {
   return !!userId && match.participants.some((participant) => participant.profile_id === userId);
 }
