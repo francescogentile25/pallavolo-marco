@@ -8,6 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Tournament, TournamentGame } from '../models/tournament.model';
 import { TournamentsStore } from '../store/tournaments.store';
+import { CoarsePointer } from '../../../shared/pointer/coarse-pointer';
 import { calculateStandings, setsForGame, teamLabel } from '../tournaments.utils';
 
 interface QualifiedEntry { teamId: string; label: string; groupName: string; position: number; }
@@ -66,6 +67,9 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
             <p-button label="Elimina tabellone" icon="pi pi-trash" [text]="true" severity="danger" [loading]="store.saving()" (onClick)="confirmDeleteBracket()" />
           }
           <p>Usa i <strong>BYE</strong> o aggiungi partite/turni extra per far giocare di più.</p>
+          @if (touchOnly()) {
+            <p>Tocca un qualificato per prenderlo, poi tocca lo slot dove metterlo.</p>
+          }
         </div>
       }
     </section>
@@ -79,7 +83,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
               <div class="side-scroll">
                 @for (entry of qualified(); track entry.teamId) {
                   <div class="side-row" [class.is-placed]="placedTeamIds().has(entry.teamId)" [class.is-held]="heldTeamId() === entry.teamId"
-                    cdkDrag [cdkDragData]="entry.teamId" [cdkDragDisabled]="!canManage()">
+                    cdkDrag [cdkDragData]="entry.teamId" [cdkDragDisabled]="!canManage() || touchOnly()">
                     <div><strong>{{ entry.label }}</strong><small>{{ entry.groupName }}-{{ entry.position }} posizione</small></div>
                     @if (canManage()) {
                       <p-button [icon]="heldTeamId() === entry.teamId ? 'pi pi-times' : 'pi pi-arrow-right'" [text]="true" size="small" [ariaLabel]="heldTeamId() === entry.teamId ? 'Annulla selezione' : 'Seleziona per posizionare'" (onClick)="hold(entry.teamId)" />
@@ -130,7 +134,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                         (cdkDropListDropped)="dropTeam($event)" [class.is-open]="canManage() && !game.team1_id"
                         [class.is-winner]="game.winner_team_id && game.winner_team_id === game.team1_id" (click)="placeHeld(game, 1)">
                         @if (canManage() && game.winner_team_id === game.team1_id) {
-                          <span cdkDrag [cdkDragData]="game.team1_id" class="tie-winner" title="Trascina nel turno successivo">{{ teamNameById(game.team1_id) }}<div class="drag-preview" *cdkDragPreview>{{ teamNameById(game.team1_id) }}</div></span>
+                          <span cdkDrag [cdkDragData]="game.team1_id" [cdkDragDisabled]="touchOnly()" class="tie-winner" [title]="touchOnly() ? 'Tocca per selezionare' : 'Trascina nel turno successivo'" (click)="hold(game.team1_id!)">{{ teamNameById(game.team1_id) }}<div class="drag-preview" *cdkDragPreview>{{ teamNameById(game.team1_id) }}</div></span>
                         } @else {
                           <span>{{ teamNameById(game.team1_id) }}</span>
                         }
@@ -144,7 +148,7 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
                         (cdkDropListDropped)="dropTeam($event)" [class.is-open]="canManage() && !game.team2_id"
                         [class.is-winner]="game.winner_team_id && game.winner_team_id === game.team2_id" (click)="placeHeld(game, 2)">
                         @if (canManage() && game.winner_team_id === game.team2_id) {
-                          <span cdkDrag [cdkDragData]="game.team2_id" class="tie-winner" title="Trascina nel turno successivo">{{ teamNameById(game.team2_id) }}<div class="drag-preview" *cdkDragPreview>{{ teamNameById(game.team2_id) }}</div></span>
+                          <span cdkDrag [cdkDragData]="game.team2_id" [cdkDragDisabled]="touchOnly()" class="tie-winner" [title]="touchOnly() ? 'Tocca per selezionare' : 'Trascina nel turno successivo'" (click)="hold(game.team2_id!)">{{ teamNameById(game.team2_id) }}<div class="drag-preview" *cdkDragPreview>{{ teamNameById(game.team2_id) }}</div></span>
                         } @else {
                           <span>{{ teamNameById(game.team2_id) }}</span>
                         }
@@ -319,6 +323,8 @@ export class TournamentKnockout {
   readonly canManage = input<boolean>(false);
 
   protected readonly store = inject(TournamentsStore);
+  /** Col dito il trascinamento ruba lo scorrimento: resta il tocco. */
+  protected readonly touchOnly = inject(CoarsePointer).isCoarse;
   private readonly confirmation = inject(ConfirmationService);
 
   protected readonly heldTeamId = signal<string | null>(null);

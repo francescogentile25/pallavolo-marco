@@ -7,6 +7,7 @@ import { InputNumber } from 'primeng/inputnumber';
 import { InputText } from 'primeng/inputtext';
 import { Tournament, TournamentGame, TournamentGroup, TournamentTeam } from '../models/tournament.model';
 import { TournamentsStore } from '../store/tournaments.store';
+import { CoarsePointer } from '../../../shared/pointer/coarse-pointer';
 import { teamLabel } from '../tournaments.utils';
 
 interface SlotTarget { gameId: string; slot: number; }
@@ -35,7 +36,7 @@ interface SlotTarget { gameId: string; slot: number; }
               [class.is-held]="heldTeamId() === entry.team.id"
               cdkDrag
               [cdkDragData]="entry.team.id"
-              [cdkDragDisabled]="!canManage()"
+              [cdkDragDisabled]="!canManage() || touchOnly()"
             >
               <span class="avatar">{{ entry.initials }}</span>
               <div>
@@ -56,7 +57,11 @@ interface SlotTarget { gameId: string; slot: number; }
         </div>
 
         @if (canManage()) {
-          <p class="panel-hint">Trascina un partecipante dentro un girone, poi dal girone dentro una partita. Puoi anche spostarlo in un altro girone o riportarlo qui. In alternativa selezionalo e tocca la destinazione.</p>
+          @if (touchOnly()) {
+            <p class="panel-hint">Tocca un partecipante per prenderlo, poi tocca il girone o la partita dove metterlo. Toccalo di nuovo per lasciarlo.</p>
+          } @else {
+            <p class="panel-hint">Trascina un partecipante dentro un girone, poi dal girone dentro una partita. Puoi anche spostarlo in un altro girone o riportarlo qui. In alternativa selezionalo e tocca la destinazione.</p>
+          }
         }
       </aside>
 
@@ -106,7 +111,7 @@ interface SlotTarget { gameId: string; slot: number; }
                     [class.is-held]="heldTeamId() === team.id"
                     cdkDrag
                     [cdkDragData]="team.id"
-                    [cdkDragDisabled]="!canManage()"
+                    [cdkDragDisabled]="!canManage() || touchOnly()"
                     (click)="hold(team.id); $event.stopPropagation()"
                   >
                     <span>{{ teamName(team) }}</span>
@@ -253,6 +258,8 @@ export class TournamentGroups {
   readonly canManage = input<boolean>(false);
 
   protected readonly store = inject(TournamentsStore);
+  /** Col dito il trascinamento ruba lo scorrimento: resta il tocco. */
+  protected readonly touchOnly = inject(CoarsePointer).isCoarse;
   private readonly confirmation = inject(ConfirmationService);
 
   protected readonly groupName = signal('');
