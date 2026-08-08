@@ -286,6 +286,12 @@ const DAY = 24 * 60 * 60 * 1000;
       .top-grid,.bottom-grid{grid-template-columns:minmax(0,1fr)}
       .sky-column{grid-template-rows:auto auto}
       .sky-column app-weather-panel{height:auto;min-height:320px}
+      /* In colonna singola partite e tornei finivano sotto a calendario e
+         meteo, fuori da ogni schermata: qui salgono subito dopo la testata. */
+      .page{display:flex;flex-direction:column}
+      .hero{order:0}
+      .bottom-grid{order:1}
+      .top-grid{order:2}
     }
 
     @media(max-width:840px){
