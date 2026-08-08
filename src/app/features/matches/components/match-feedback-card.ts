@@ -14,7 +14,7 @@ import { MatchParticipant } from '../models/match.model';
     <div class="identity"><span class="avatar" aria-hidden="true">{{ initials() }}</span><div><strong>{{ participant().nome }} {{ participant().cognome }}</strong><small>@if (participant().attendance_status === 'no_show') { Assente · no-show } @else { Livello {{ participant().livello }} }</small></div></div>
     @if (participant().attendance_status !== 'no_show') {
       @if (participant().my_rating; as rating) { <p class="rated"><i class="pi pi-check-circle" aria-hidden="true"></i> Valutazione inviata: <strong>{{ rating }}/7</strong></p> }
-      @else { <fieldset [disabled]="busy() || locked()"><legend>{{ locked() ? 'Voti aperti a partita conclusa' : 'Valuta il livello da 1 a 7' }}</legend><div class="scores">@for (score of scores; track score) { <button type="button" [attr.aria-label]="'Valuta ' + score + ' su 7'" (click)="rating.emit(score)">{{ score }}</button> }</div></fieldset> }
+      @else { <fieldset [disabled]="busy()"><legend>Valuta il livello da 1 a 7</legend><div class="scores">@for (score of scores; track score) { <button type="button" [attr.aria-label]="'Valuta ' + score + ' su 7'" (click)="rating.emit(score)">{{ score }}</button> }</div></fieldset> }
       @if (canReportNoShow()) { <p-button severity="danger" variant="text" size="small" label="Segnala no-show" icon="pi pi-user-minus" [loading]="busy()" (onClick)="requestNoShow()" /> }
     }
     <p-dialog header="Segnala no-show" styleClass="app-form-dialog" [visible]="noShowDialogOpen()" (visibleChange)="noShowDialogOpen.set($event)" [modal]="true" [draggable]="false" [resizable]="false" [dismissableMask]="true" appendTo="body">
@@ -33,8 +33,6 @@ import { MatchParticipant } from '../models/match.model';
 })
 export class MatchFeedbackCard {
   participant = input.required<MatchParticipant>(); canReportNoShow = input(false); busy = input(false);
-  /** Partita ancora in corso: le schede si vedono ma i voti restano chiusi. */
-  locked = input(false);
   rating = output<number>(); noShow = output<string>(); protected readonly scores = [1, 2, 3, 4, 5, 6, 7];
   protected readonly noShowDialogOpen = signal(false);
   protected readonly noShowReason = signal('Assenza non comunicata');

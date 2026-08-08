@@ -95,7 +95,9 @@ export function matchErrorMessage(error: unknown): string {
   if (normalized.includes('campo non validi')) return 'Controlla i dati del nuovo campo.';
   if (normalized.includes('dati partita')) return 'Controlla i dati della partita.';
   if (normalized.includes('gia valutato')) return 'Hai già valutato questo giocatore.';
+  if (normalized.includes('non e ancora cominciata')) return 'Si può votare da quando la partita comincia.';
   if (normalized.includes('finestra di valutazione')) return 'La finestra di 7 giorni per votare è terminata.';
+  if (normalized.includes('no-show non possono')) return 'Chi è segnalato come assente non può inviare o ricevere valutazioni.';
   if (normalized.includes('no-show gia')) return 'Il no-show è già stato registrato.';
   if (normalized.includes('finestra per il no-show')) return 'La finestra di 48 ore per il no-show è terminata.';
   if (normalized.includes('non puo ancora essere chiusa')) return 'La partita può essere chiusa solo dopo l’orario di fine.';
