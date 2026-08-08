@@ -10,6 +10,23 @@ export function teamLabel(team: TournamentTeam | undefined): string {
   return names.length ? names.join(' / ') : 'Coppia proposta';
 }
 
+/**
+ * La finale e l'ultima partita del suo tabellone: nessun altro incontro la
+ * segue. Solo li vale la formula lunga; il resto del torneo, gironi compresi,
+ * gioca con la formula base.
+ */
+export function isFinalGame(game: Pick<TournamentGame, 'phase' | 'next_game_id'>): boolean {
+  return game.phase === 'knockout' && !game.next_game_id;
+}
+
+/** Quanti set prevede la formula per questa partita. */
+export function setsForGame(
+  tournament: Pick<Tournament, 'group_best_of' | 'knockout_best_of'>,
+  game: Pick<TournamentGame, 'phase' | 'next_game_id'>,
+): number {
+  return isFinalGame(game) ? tournament.knockout_best_of : tournament.group_best_of;
+}
+
 export function tournamentSummary(rules: TournamentRules): string {
   const registration = REGISTRATION_MODE_LABELS[rules.registrationMode];
   const format = FORMAT_LABELS[rules.format];

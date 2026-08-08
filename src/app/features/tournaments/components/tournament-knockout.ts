@@ -8,7 +8,7 @@ import { InputText } from 'primeng/inputtext';
 import { Select } from 'primeng/select';
 import { Tournament, TournamentGame } from '../models/tournament.model';
 import { TournamentsStore } from '../store/tournaments.store';
-import { calculateStandings, teamLabel } from '../tournaments.utils';
+import { calculateStandings, setsForGame, teamLabel } from '../tournaments.utils';
 
 interface QualifiedEntry { teamId: string; label: string; groupName: string; position: number; }
 interface SlotTarget { gameId: string; slot: number; }
@@ -468,10 +468,9 @@ export class TournamentKnockout {
     return `Turno ${round}`;
   }
 
-  /** Quanti set prevede la formula per la fase di questa partita. */
+  /** Quanti set prevede la formula per questa partita. */
   protected setsOf(game: TournamentGame): number {
-    const tournament = this.tournament();
-    return game.phase === 'group' ? tournament.group_best_of : tournament.knockout_best_of;
+    return setsForGame(this.tournament(), game);
   }
 
   protected setsToWin(game: TournamentGame): number { return (this.setsOf(game) + 1) / 2; }

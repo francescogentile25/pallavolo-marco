@@ -1,11 +1,28 @@
 import { Tournament, TournamentRules } from './models/tournament.model';
-import { calculateStandings, teamLabel, tournamentErrorMessage, tournamentSummary } from './tournaments.utils';
+import { calculateStandings, isFinalGame, setsForGame, teamLabel, tournamentErrorMessage, tournamentSummary } from './tournaments.utils';
 
 describe('tournaments utilities', () => {
   it('keeps registration mode independent from tournament format', () => {
     const rules: TournamentRules = { registrationMode: 'individual', format: 'mixed', maxTeams: 12, guaranteedMatches: 0, groupSize: 4, qualifiersPerGroup: 2, groupBestOf: 1, groupSetPoints: 21, knockoutBestOf: 3, knockoutSetPoints: 21, tiebreakPoints: 15, winByTwo: true, thirdPlace: false, standingsWinPoints: 2, standingsLossPoints: 0, minimumRestMinutes: 0, resultConfirmationRequired: false };
     expect(tournamentSummary(rules)).toContain('Solo individuale');
     expect(tournamentSummary(rules)).toContain('Gironi + eliminazione');
+  });
+
+  it('riserva la formula lunga all’ultima partita del tabellone', () => {
+    const rules = { group_best_of: 1, knockout_best_of: 3 } as const;
+    const final = { phase: 'knockout' as const, next_game_id: null };
+    const semifinal = { phase: 'knockout' as const, next_game_id: 'game-finale' };
+    const groupGame = { phase: 'group' as const, next_game_id: null };
+    const thirdPlace = { phase: 'third_place' as const, next_game_id: null };
+
+    expect(isFinalGame(final)).toBeTrue();
+    expect(isFinalGame(semifinal)).toBeFalse();
+    expect(isFinalGame(groupGame)).toBeFalse();
+
+    expect(setsForGame(rules, final)).toBe(3);
+    expect(setsForGame(rules, semifinal)).toBe(1);
+    expect(setsForGame(rules, groupGame)).toBe(1);
+    expect(setsForGame(rules, thirdPlace)).toBe(1);
   });
 
   it('renders accepted team members only', () => {

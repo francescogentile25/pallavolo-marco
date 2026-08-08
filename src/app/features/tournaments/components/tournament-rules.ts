@@ -14,13 +14,13 @@ import { TournamentsStore } from '../store/tournaments.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rule-card">
-      <div class="toolbar"><div><strong>Regole attive</strong><span>Puoi cambiarle anche a torneo iniziato; non riscrivono risultati passati.</span></div></div>
+      <div class="toolbar"><div><strong>Regole attive</strong><span>La formula lunga vale solo per l’ultima partita di ogni tabellone; tutte le altre seguono i set delle partite. Puoi cambiarle anche a torneo iniziato: non riscrivono risultati passati.</span></div></div>
       <div class="rule-grid">
         <label>Coppie massime<p-inputnumber [ngModel]="rules().maxTeams" (ngModelChange)="updateRule('maxTeams', $event ?? 2)" [min]="2" [max]="64" [showButtons]="true" fluid /></label>
-        <label>Set nei gironi<p-select [ngModel]="rules().groupBestOf" (ngModelChange)="updateRule('groupBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
-        <label>Set nella fase finale<p-select [ngModel]="rules().knockoutBestOf" (ngModelChange)="updateRule('knockoutBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
-        <label>Punti set gironi<p-inputnumber [ngModel]="rules().groupSetPoints" (ngModelChange)="updateRule('groupSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
-        <label>Punti set finali<p-inputnumber [ngModel]="rules().knockoutSetPoints" (ngModelChange)="updateRule('knockoutSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
+        <label>Set nelle partite<p-select [ngModel]="rules().groupBestOf" (ngModelChange)="updateRule('groupBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
+        <label>Set nella finale<p-select [ngModel]="rules().knockoutBestOf" (ngModelChange)="updateRule('knockoutBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
+        <label>Punti set partite<p-inputnumber [ngModel]="rules().groupSetPoints" (ngModelChange)="updateRule('groupSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
+        <label>Punti set finale<p-inputnumber [ngModel]="rules().knockoutSetPoints" (ngModelChange)="updateRule('knockoutSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
       </div>
       <div class="phases">
         <p class="phases-title">Fasi previste</p>
@@ -48,8 +48,13 @@ import { TournamentsStore } from '../store/tournaments.store';
     .toolbar>div{display:grid;gap:3px}
     .toolbar strong{font-size:.9rem}
     .toolbar span{color:var(--color-ink-muted);font-size:.68rem}
-    .rule-grid{display:grid;gap:12px}
-    .rule-grid label{display:grid;gap:7px;color:var(--color-ink);font-size:.68rem;font-weight:850}
+    .rule-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:12px}
+    .rule-grid label{display:grid;min-width:0;gap:7px;color:var(--color-ink);font-size:.68rem;font-weight:850}
+    /* "Al meglio di 3" allargava il campo oltre la colonna e copriva quello
+       accanto: il testo scelto ora si tronca dentro il suo spazio. */
+    .rule-grid ::ng-deep .p-select,.rule-grid ::ng-deep .p-inputnumber{max-width:100%}
+    .rule-grid ::ng-deep .p-select-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .rule-grid ::ng-deep .p-inputnumber-input{min-width:0}
     .phases{padding:14px;margin-top:14px;border:1px solid #d9cdb4;border-radius:var(--radius);background:#fff}
     .phases-title{margin:0 0 10px;color:#5b6a72;font-size:.62rem;font-weight:850;letter-spacing:.09em;text-transform:uppercase}
     .phases-checks{display:grid;grid-template-columns:auto 1fr;align-items:start;gap:10px}
