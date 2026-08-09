@@ -37,4 +37,7 @@ begin
 end;
 $$;
 
+-- PUBLIC va tolto esplicitamente: senza revoke la funzione resterebbe
+-- chiamabile anche dal ruolo anonimo, come le altre del progetto non sono.
+revoke execute on function public.set_tournament_contacts(uuid, text, text) from public, anon;
 grant execute on function public.set_tournament_contacts(uuid, text, text) to authenticated;
