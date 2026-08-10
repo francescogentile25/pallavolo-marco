@@ -322,6 +322,7 @@ export class Home implements OnInit, OnDestroy {
   private destroyed = false;
   private lastHadMatch: boolean | null = null;
   private countedNode: HTMLElement | null = null;
+  private loadedCalendarForUserId: string | null = null;
 
   private readonly pageActions = inject(PageActionsService);
   private readonly authStore = inject(AuthStore);
@@ -417,6 +418,20 @@ export class Home implements OnInit, OnDestroy {
   );
 
   constructor() {
+    // All'ingresso dalla login la shell puo creare la Home un istante prima che
+    // AuthStore esponga l'utente. Il vecchio caricamento one-shot veniva quindi
+    // saltato e il calendario restava con i soli tornei pubblici. L'effetto
+    // riparte appena arriva l'id e una sola volta per ciascuna sessione.
+    effect(() => {
+      const userId = this.authStore.authUser()?.id ?? null;
+      if (!userId || userId === this.loadedCalendarForUserId) return;
+      this.loadedCalendarForUserId = userId;
+      untracked(() => {
+        void this.matchesStore.loadMyMatches(true);
+        void this.tournamentsStore.loadList(true);
+      });
+    });
+
     // Sedi e tornei creati prima dell'anagrafica hanno solo il nome del comune.
     effect(() => {
       const points = [
@@ -532,8 +547,6 @@ export class Home implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     void this.matchesStore.loadMatches(true);
-    void this.matchesStore.loadMyMatches(true);
-    void this.tournamentsStore.loadList(true);
     this.pageActions.set([
       ...(this.authStore.canOrganizeTournaments() ? [{ id: 'organize-tournament', label: 'Organizza un torneo', shortLabel: 'Torneo', icon: 'pi-trophy', routerLink: '/tornei/organizza' }] : []),
       {

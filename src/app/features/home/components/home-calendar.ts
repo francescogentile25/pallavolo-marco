@@ -190,6 +190,7 @@ function keyOf(date: Date): string {
     .cell.outside{color:var(--color-ink-muted);opacity:.55}
     .cell.today .cell-day{color:var(--color-brand)}
     .cell.selected{color:white;background:var(--color-brand)}
+    .cell.selected .cell-day{color:white}
     .cell.selected .dot{background:white}
     .cell-day{font-family:var(--font-numeric);font-size:.82rem;font-weight:800}
     .dots{display:flex;gap:3px;height:6px}

@@ -66,6 +66,13 @@ describe('HomeCalendar', () => {
     expect(cells().length).toBe(7);
   });
 
+  it('mantiene leggibile il numero del giorno corrente selezionato', () => {
+    const selected = cells().find(cell => cell.classList.contains('today') && cell.classList.contains('selected'))!;
+    const day = selected.querySelector('.cell-day') as HTMLElement;
+
+    expect(getComputedStyle(day).color).toBe('rgb(255, 255, 255)');
+  });
+
   it('seleziona il giorno toccato e ci porta dietro il periodo', () => {
     const before = text('.range');
     const last = cells()[6];
