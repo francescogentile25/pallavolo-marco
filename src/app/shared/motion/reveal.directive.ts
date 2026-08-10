@@ -47,6 +47,9 @@ export class Reveal implements OnDestroy {
       delay: this.revealDelay(),
       stagger: mode === 'stagger' ? 0.07 : 0,
       paused: true,
+      // Evita un layer composito permanente: su Safari iOS puo falsare
+      // l'hit-testing dei pulsanti dentro una griglia animata.
+      onComplete: () => gsap.set(targets, { clearProps: 'transform,opacity' }),
     });
 
     this.trigger = ScrollTrigger.create({

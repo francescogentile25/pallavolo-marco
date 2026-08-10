@@ -52,6 +52,13 @@ describe('HomeCalendar', () => {
     return fixture.debugElement.queryAll(By.css('.grid .cell')).map(item => item.nativeElement as HTMLButtonElement);
   }
 
+  function touch(element: HTMLElement): void {
+    element.dispatchEvent(new PointerEvent('pointerup', { bubbles: true, pointerType: 'touch' }));
+    // Safari invia anche questo click sintetico: non deve ripetere l'azione.
+    element.click();
+    fixture.detectChanges();
+  }
+
   it('disegna la settimana a partire da lunedi', () => {
     const weekdays = fixture.debugElement.queryAll(By.css('.weekdays span'));
     expect(weekdays.length).toBe(7);
@@ -96,6 +103,26 @@ describe('HomeCalendar', () => {
     fixture.detectChanges();
     expect(text('.range')).toBe(before);
     expect(text('h2')).toBe('Questa settimana');
+  });
+
+  it('gestisce il tocco iOS senza eseguire anche il click sintetico', () => {
+    const component = fixture.componentInstance as unknown as { shift: (direction: number) => void };
+    const shift = spyOn(component, 'shift').and.callThrough();
+    const next = fixture.debugElement.queryAll(By.css('.step'))[1].nativeElement as HTMLElement;
+
+    touch(next);
+
+    expect(shift).toHaveBeenCalledOnceWith(1);
+  });
+
+  it('cambia vista e seleziona un giorno con pointer touch', () => {
+    const month = fixture.debugElement.queryAll(By.css('.switch button'))[1].nativeElement as HTMLElement;
+    touch(month);
+    expect(text('h2')).toBe('Questo mese');
+
+    const target = cells().find(cell => !cell.classList.contains('selected') && !cell.classList.contains('outside'))!;
+    touch(target);
+    expect(target.getAttribute('aria-pressed')).toBe('true');
   });
 
   it('in vista mese riempie righe intere e segna i giorni degli altri mesi', () => {

@@ -96,14 +96,16 @@ function keyOf(date: Date): string {
 
         <div class="controls">
           <div class="switch" role="group" aria-label="Scala del calendario">
-            <button type="button" [class.on]="view() === 'week'" [attr.aria-pressed]="view() === 'week'" (click)="setView('week')">Settimana</button>
-            <button type="button" [class.on]="view() === 'month'" [attr.aria-pressed]="view() === 'month'" (click)="setView('month')">Mese</button>
+            <button type="button" [class.on]="view() === 'week'" [attr.aria-pressed]="view() === 'week'"
+                    (pointerup)="setViewFromPointer($event, 'week')" (click)="setViewFromClick('week')">Settimana</button>
+            <button type="button" [class.on]="view() === 'month'" [attr.aria-pressed]="view() === 'month'"
+                    (pointerup)="setViewFromPointer($event, 'month')" (click)="setViewFromClick('month')">Mese</button>
           </div>
 
           <div class="nav">
-            <button type="button" class="step" (click)="shift(-1)" [attr.aria-label]="view() === 'week' ? 'Settimana precedente' : 'Mese precedente'">‹</button>
+            <button type="button" class="step" (pointerup)="shiftFromPointer($event, -1)" (click)="shiftFromClick(-1)" [attr.aria-label]="view() === 'week' ? 'Settimana precedente' : 'Mese precedente'">‹</button>
             <span class="range">{{ rangeLabel() }}</span>
-            <button type="button" class="step" (click)="shift(1)" [attr.aria-label]="view() === 'week' ? 'Settimana successiva' : 'Mese successivo'">›</button>
+            <button type="button" class="step" (pointerup)="shiftFromPointer($event, 1)" (click)="shiftFromClick(1)" [attr.aria-label]="view() === 'week' ? 'Settimana successiva' : 'Mese successivo'">›</button>
           </div>
         </div>
       </div>
@@ -120,7 +122,8 @@ function keyOf(date: Date): string {
                     [class.selected]="cell.selected"
                     [attr.aria-pressed]="cell.selected"
                     [attr.aria-label]="cell.label"
-                    (click)="pick(cell.date)">
+                    (pointerup)="pickFromPointer($event, cell.date)"
+                    (click)="pickFromClick(cell.date)">
               <span class="cell-day">{{ cell.day }}</span>
               <span class="dots" aria-hidden="true">
                 @if (cell.hasMatch) { <i class="dot match"></i> }
@@ -159,20 +162,20 @@ function keyOf(date: Date): string {
     </article>
   `,
   styles: `
-    :host{display:block}
+    :host{position:relative;z-index:0;display:block;isolation:isolate}
     .panel{padding:24px;border:1px solid var(--color-border);border-radius:var(--radius-lg);background:rgb(255 255 255/.94);box-shadow:0 18px 50px rgb(7 54 79/.08)}
     .head{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:16px}
     .eyebrow{display:inline-flex;color:var(--color-brand);font-size:.62rem;font-weight:900;letter-spacing:.18em;text-transform:uppercase}
     h2{margin:5px 0 0;font-family:var(--display-font);font-size:1.65rem;line-height:1.08;letter-spacing:-.035em}
 
-    .controls{display:flex;flex-wrap:wrap;align-items:center;gap:10px}
+    .controls{position:relative;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:10px;pointer-events:auto}
     .switch{display:inline-flex;padding:3px;border:1px solid var(--color-border);border-radius:var(--radius-pill);background:var(--color-surface-muted)}
-    .switch button{min-height:38px;padding:0 14px;color:var(--color-ink-muted);border:0;border-radius:var(--radius-pill);background:none;font:inherit;font-size:.72rem;font-weight:850;cursor:pointer;touch-action:manipulation}
+    .switch button{min-height:38px;padding:0 14px;color:var(--color-ink-muted);border:0;border-radius:var(--radius-pill);background:none;font:inherit;font-size:.72rem;font-weight:850;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
     .switch button.on{color:white;background:var(--color-brand)}
     .switch button:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
     .nav{display:flex;align-items:center;gap:10px;color:var(--color-ink-muted);font-size:.74rem;font-weight:800}
     .range{min-width:118px;text-align:center}
-    .step{display:grid;width:38px;height:38px;place-items:center;color:var(--color-brand);border:1px solid var(--color-border);border-radius:50%;background:white;font-size:1.25rem;line-height:1;cursor:pointer;touch-action:manipulation}
+    .step{display:grid;width:38px;height:38px;place-items:center;color:var(--color-brand);border:1px solid var(--color-border);border-radius:50%;background:white;font-size:1.25rem;line-height:1;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
     .step:hover{background:var(--color-brand-soft)}
     .step:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
 
@@ -181,7 +184,7 @@ function keyOf(date: Date): string {
     .picker{margin-top:18px;padding:10px;border:1px solid var(--color-border);border-radius:16px}
     .weekdays,.grid{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:3px}
     .weekdays{margin-bottom:5px;color:var(--color-ink-muted);font-size:.58rem;font-weight:900;letter-spacing:.06em;text-align:center;text-transform:uppercase}
-    .cell{display:grid;width:100%;min-height:44px;align-content:center;justify-items:center;gap:3px;padding:4px 0;color:inherit;border:0;border-radius:10px;background:none;font:inherit;cursor:pointer;touch-action:manipulation}
+    .cell{display:grid;width:100%;min-height:44px;align-content:center;justify-items:center;gap:3px;padding:4px 0;color:inherit;border:0;border-radius:10px;background:none;font:inherit;cursor:pointer;touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none;-webkit-user-select:none}
     .cell:hover{background:var(--color-surface-muted)}
     .cell:focus-visible{outline:2px solid var(--color-focus);outline-offset:-2px}
     .cell.outside{color:var(--color-ink-muted);opacity:.55}
@@ -239,6 +242,8 @@ export class HomeCalendar {
 
   private readonly picker = viewChild<ElementRef<HTMLElement>>('picker');
   private lastPeriod = '';
+  /** Il click sintetico di Safari segue pointerup: va ignorato una sola volta. */
+  private lastTouchActivation = 0;
 
   protected readonly rangeLabel = computed(() => {
     const cursor = this.cursor();
@@ -352,14 +357,53 @@ export class HomeCalendar {
     this.view.set(view);
   }
 
+  protected setViewFromPointer(event: PointerEvent, view: 'week' | 'month'): void {
+    if (!this.handleDirectTouch(event)) return;
+    this.setView(view);
+  }
+
+  protected setViewFromClick(view: 'week' | 'month'): void {
+    if (!this.isFollowUpClick()) this.setView(view);
+  }
+
   protected shift(direction: number): void {
     this.cursor.update(current => this.view() === 'week'
       ? addDays(current, direction * 7)
       : startOfDay(new Date(current.getFullYear(), current.getMonth() + direction, 1)));
   }
 
+  protected shiftFromPointer(event: PointerEvent, direction: number): void {
+    if (!this.handleDirectTouch(event)) return;
+    this.shift(direction);
+  }
+
+  protected shiftFromClick(direction: number): void {
+    if (!this.isFollowUpClick()) this.shift(direction);
+  }
+
   /** Tocco su una casella: sposta il giorno scelto, e con lui il periodo. */
   protected pick(value: Date): void {
     this.cursor.set(startOfDay(value));
+  }
+
+  protected pickFromPointer(event: PointerEvent, value: Date): void {
+    if (!this.handleDirectTouch(event)) return;
+    this.pick(value);
+  }
+
+  protected pickFromClick(value: Date): void {
+    if (!this.isFollowUpClick()) this.pick(value);
+  }
+
+  /** Touch e pen usano pointerup; mouse e tastiera continuano a usare click. */
+  private handleDirectTouch(event: PointerEvent): boolean {
+    if (event.pointerType !== 'touch' && event.pointerType !== 'pen') return false;
+    event.preventDefault();
+    this.lastTouchActivation = Date.now();
+    return true;
+  }
+
+  private isFollowUpClick(): boolean {
+    return Date.now() - this.lastTouchActivation < 800;
   }
 }
