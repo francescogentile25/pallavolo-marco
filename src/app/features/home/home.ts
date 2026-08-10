@@ -12,7 +12,7 @@ import { WeatherPanel } from '../../shared/weather/weather-panel';
 import { WeatherHours } from '../../shared/weather/weather-hours';
 import { AuthStore } from '../auth/store/auth.store';
 import { BeachMatch } from '../matches/models/match.model';
-import { availableSpots, levelRangeLabel, levelRangeShort } from '../matches/matches.utils';
+import { availableSpots, hasCompleteMatchRelations, levelRangeLabel, levelRangeShort } from '../matches/matches.utils';
 import { MatchesStore } from '../matches/store/matches.store';
 import { Tournament } from '../tournaments/models/tournament.model';
 import { TournamentsStore } from '../tournaments/store/tournaments.store';
@@ -366,6 +366,7 @@ export class Home implements OnInit, OnDestroy {
     const me = this.authStore.authUser()?.id;
     return this.matchesStore
       .matches()
+      .filter(hasCompleteMatchRelations)
       .filter(match => match.status === 'open'
         && Date.parse(match.starts_at) >= Date.now()
         && availableSpots(match) > 0
@@ -389,6 +390,7 @@ export class Home implements OnInit, OnDestroy {
     const me = this.authStore.authUser()?.id;
     const matches = this.matchesStore
       .myMatches()
+      .filter(hasCompleteMatchRelations)
       .filter(match => match.status !== 'cancelled')
       .map<CalendarEvent>(match => ({
         id: `match-${match.id}`,
@@ -418,6 +420,7 @@ export class Home implements OnInit, OnDestroy {
   private readonly myUpcomingMatches = computed<readonly BeachMatch[]>(() =>
     this.matchesStore
       .myMatches()
+      .filter(hasCompleteMatchRelations)
       .filter(match => match.status !== 'cancelled' && Date.parse(match.starts_at) >= Date.now())
       .sort((first, second) => Date.parse(first.starts_at) - Date.parse(second.starts_at)),
   );
@@ -440,7 +443,7 @@ export class Home implements OnInit, OnDestroy {
     // Sedi e tornei creati prima dell'anagrafica hanno solo il nome del comune.
     effect(() => {
       const points = [
-        ...this.matchesStore.matches().map(match => venuePoint(match.court.venue)),
+        ...this.matchesStore.matches().filter(hasCompleteMatchRelations).map(match => venuePoint(match.court.venue)),
         ...this.tournamentsStore.tournaments().map(tournamentPoint),
       ];
       untracked(() => this.nearby.resolveMissing(points));

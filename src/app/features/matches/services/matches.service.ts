@@ -12,6 +12,7 @@ import {
   MatchVisibility,
   UpdateMatchRequest,
 } from '../models/match.model';
+import { hasCompleteMatchRelations } from '../matches.utils';
 
 const MATCH_SELECT = `
   *,
@@ -36,7 +37,7 @@ export class MatchesService {
       .gte('starts_at', new Date(Date.now() - 6 * 60 * 60 * 1000).toISOString())
       .order('starts_at', { ascending: true });
     if (error) throw error;
-    return (data ?? []) as unknown as BeachMatch[];
+    return (data ?? []).filter(hasCompleteMatchRelations);
   }
 
   async getMyMatches(userId: string): Promise<readonly BeachMatch[]> {
@@ -55,7 +56,7 @@ export class MatchesService {
       .in('id', ids)
       .order('starts_at', { ascending: false });
     if (error) throw error;
-    return (data ?? []) as unknown as BeachMatch[];
+    return (data ?? []).filter(hasCompleteMatchRelations);
   }
 
   async getMatch(matchId: string): Promise<MatchDetails> {
@@ -65,7 +66,10 @@ export class MatchesService {
       this.getParticipants(matchId),
     ]);
     if (error) throw error;
-    return { ...(data as unknown as BeachMatch), participantDetails: participants };
+    if (!hasCompleteMatchRelations(data)) {
+      throw new Error('La partita non ha piu un campo valido.');
+    }
+    return { ...data, participantDetails: participants };
   }
 
   async getCourts(): Promise<readonly Court[]> {

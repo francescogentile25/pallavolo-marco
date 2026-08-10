@@ -1,5 +1,5 @@
 import { BeachMatch, MatchFilters } from './models/match.model';
-import { availableSpots, filterMatches, isUserJoined, levelRangeLabel, levelRangeShort, matchErrorMessage } from './matches.utils';
+import { availableSpots, filterMatches, hasCompleteMatchRelations, isUserJoined, levelRangeLabel, levelRangeShort, matchErrorMessage } from './matches.utils';
 
 const match = {
   id: 'm1', status: 'open', gender: 'mixed', min_level: 3, max_level: 5,
@@ -10,6 +10,12 @@ const match = {
 const filters: MatchFilters = { query: '', gender: 'all', level: null, onlyAvailable: false, date: 'all', visibility: 'all' };
 
 describe('match utilities', () => {
+  it('scarta i record storici senza campo, sede o partecipanti', () => {
+    expect(hasCompleteMatchRelations(match)).toBeTrue();
+    expect(hasCompleteMatchRelations({ ...match, court: null })).toBeFalse();
+    expect(hasCompleteMatchRelations({ ...match, court: { ...match.court, venue: null } })).toBeFalse();
+    expect(hasCompleteMatchRelations({ ...match, participants: null })).toBeFalse();
+  });
   it('calculates availability and membership', () => {
     expect(availableSpots(match)).toBe(2);
     expect(isUserJoined(match, 'u2')).toBeTrue();

@@ -1,5 +1,19 @@
 import { BeachMatch, MatchFilters, MatchGender, MatchStatus } from './models/match.model';
 
+/**
+ * Supabase puo restituire `court: null` quando una vecchia partita punta a un
+ * campo non piu disponibile. Il tipo generato descrive il caso normale, ma al
+ * confine HTTP dobbiamo comunque difenderci dai record storici incompleti.
+ */
+export function hasCompleteMatchRelations(value: unknown): value is BeachMatch {
+  const match = value as {
+    court?: { venue?: unknown } | null;
+    participants?: unknown;
+  } | null;
+
+  return !!match?.court?.venue && Array.isArray(match.participants);
+}
+
 export const MATCH_STATUS_LABELS: Record<MatchStatus, string> = {
   draft: 'Bozza',
   open: 'Aperta',
