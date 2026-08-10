@@ -177,6 +177,7 @@ describe('HomeCalendar', () => {
     ]);
     fixture.detectChanges();
     expect(agendaLinks().length).toBe(0);
-    expect(text('.agenda-empty')).toBe('Nessun impegno in questo periodo.');
+    expect(text('.agenda-empty')).toContain('Nessun match o torneo');
+    expect(text('.agenda-empty')).toContain('Usa le frecce');
   });
 });

@@ -6,7 +6,7 @@ import { DatePipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { NearbyPlaces } from '../../shared/places/nearby.service';
-import { motionAllowed, Reveal } from '../../shared/motion/reveal.directive';
+import { motionAllowed } from '../../shared/motion/reveal.directive';
 import { Tooltip } from 'primeng/tooltip';
 import { WeatherPanel } from '../../shared/weather/weather-panel';
 import { WeatherHours } from '../../shared/weather/weather-hours';
@@ -29,7 +29,7 @@ const DAY = 24 * 60 * 60 * 1000;
  */
 @Component({
   selector: 'app-home',
-  imports: [DatePipe, RouterLink, Reveal, Tooltip, WeatherPanel, WeatherHours, HomeCalendar],
+  imports: [DatePipe, RouterLink, Tooltip, WeatherPanel, WeatherHours, HomeCalendar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page">
@@ -84,18 +84,11 @@ const DAY = 24 * 60 * 60 * 1000;
         </div>
       </section>
 
-      <section class="top-grid" appReveal="stagger">
-        <app-home-calendar [events]="calendarEvents()" />
-        <div class="sky-column">
-          <app-weather-panel [latitude]="cityLatitude()" [longitude]="cityLongitude()" [place]="cityName()" (snapshotChange)="forecast.set($event)" />
-          @if (forecast(); as data) {
-            <app-weather-hours [hours]="data.hours" [sunrise]="data.sunrise" [sunset]="data.sunset" />
-          }
-        </div>
-      </section>
+      <section class="dashboard">
+        <div class="dashboard-column left-column">
+          <app-home-calendar [events]="calendarEvents()" />
 
-      <section class="bottom-grid" appReveal="stagger">
-        <article class="panel list-panel" aria-labelledby="open-matches-title">
+        <article class="panel list-panel matches-panel" aria-labelledby="open-matches-title">
           <div class="section-head">
             <div>
               <span class="eyebrow">{{ nearbyLabel() }}</span>
@@ -137,7 +130,17 @@ const DAY = 24 * 60 * 60 * 1000;
           </div>
         </article>
 
-        <article class="panel list-panel" aria-labelledby="open-tournaments-title">
+        </div>
+
+        <div class="dashboard-column right-column">
+          <div class="sky-column">
+            <app-weather-panel [latitude]="cityLatitude()" [longitude]="cityLongitude()" [place]="cityName()" (snapshotChange)="forecast.set($event)" />
+            @if (forecast(); as data) {
+              <app-weather-hours [hours]="data.hours" [sunrise]="data.sunrise" [sunset]="data.sunset" />
+            }
+          </div>
+
+        <article class="panel list-panel tournaments-panel" aria-labelledby="open-tournaments-title">
           <div class="section-head">
             <div>
               <span class="eyebrow">{{ nearbyLabel() }}</span>
@@ -176,6 +179,7 @@ const DAY = 24 * 60 * 60 * 1000;
             }
           </div>
         </article>
+        </div>
       </section>
     </main>
   `,
@@ -222,12 +226,12 @@ const DAY = 24 * 60 * 60 * 1000;
     .places span{display:block;max-width:82px;margin-top:10px;font-size:.76rem;font-weight:900;line-height:1.4;text-transform:uppercase}
 
     /* ---- griglie ---- */
-    .top-grid{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,.95fr);gap:22px;margin-top:24px}
+    .dashboard{display:grid;grid-template-columns:minmax(0,1.65fr) minmax(0,.95fr);align-items:start;gap:22px;margin-top:24px}
+    .dashboard-column{display:grid;min-width:0;align-content:start;gap:22px}
     /* Il meteo tiene un'altezza sua: se il calendario cresce, a riempire il resto
        della colonna ci pensano le prossime ore, non un pannello stirato. */
     .sky-column{display:grid;grid-template-rows:auto minmax(0,1fr);gap:14px;min-height:100%}
     .sky-column app-weather-panel{height:340px}
-    .bottom-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));align-items:start;gap:22px;margin-top:24px}
     .panel{border:1px solid var(--color-border);border-radius:var(--radius-lg);background:rgb(255 255 255/.94);box-shadow:0 18px 50px rgb(7 54 79/.08)}
     .list-panel{padding:22px}
 
@@ -283,15 +287,16 @@ const DAY = 24 * 60 * 60 * 1000;
     @media(min-width:760px){.page{padding-left:24px;padding-right:24px}.hero-content{padding:56px 24px 52px 48px}}
 
     @media(max-width:1120px){
-      .top-grid,.bottom-grid{grid-template-columns:minmax(0,1fr)}
+      .dashboard{display:flex;flex-direction:column}
+      .dashboard-column{display:contents}
       .sky-column{grid-template-rows:auto auto}
       .sky-column app-weather-panel{height:auto;min-height:320px}
-      /* In colonna singola partite e tornei finivano sotto a calendario e
-         meteo, fuori da ogni schermata: qui salgono subito dopo la testata. */
-      .page{display:flex;flex-direction:column}
-      .hero{order:0}
-      .bottom-grid{order:1}
-      .top-grid{order:2}
+      /* In colonna singola le azioni utili restano prima dei pannelli
+         informativi, senza cambiare il flusso desktop a colonne indipendenti. */
+      .matches-panel{order:0}
+      .tournaments-panel{order:1}
+      app-home-calendar{order:2}
+      .sky-column{order:3}
     }
 
     @media(max-width:840px){

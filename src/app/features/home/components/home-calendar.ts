@@ -151,7 +151,10 @@ function keyOf(date: Date): string {
             </ul>
           </div>
         } @empty {
-          <p class="agenda-empty">Nessun impegno in questo periodo.</p>
+          <div class="agenda-empty" role="status">
+            <i class="pi pi-calendar-times" aria-hidden="true"></i>
+            <div><strong>Nessun match o torneo</strong><span>Non ci sono appuntamenti in {{ rangeLabel() }}. Usa le frecce per esplorare altri periodi.</span></div>
+          </div>
         }
       </div>
 
@@ -211,7 +214,11 @@ function keyOf(date: Date): string {
     .agenda-day a:focus-visible{outline:2px solid var(--color-focus);outline-offset:2px}
     .agenda-day time{flex:0 0 auto;opacity:.8;font-family:var(--font-numeric)}
     .agenda-day a span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-    .agenda-empty{margin:0;padding-top:10px;border-top:1px solid var(--color-border);color:var(--color-ink-muted);font-size:.74rem;font-style:italic}
+    .agenda-empty{display:flex;min-height:88px;align-items:center;gap:13px;padding:15px;margin:0;border:1px dashed var(--color-border);border-radius:var(--radius);color:var(--color-ink-muted);background:var(--color-surface-muted)}
+    .agenda-empty>i{display:grid;width:40px;height:40px;flex:0 0 40px;place-items:center;color:var(--color-brand);border-radius:50%;background:white;font-size:1rem}
+    .agenda-empty div{display:grid;gap:4px}
+    .agenda-empty strong{color:var(--color-ink);font-size:.78rem}
+    .agenda-empty span{font-size:.68rem;line-height:1.45}
 
     .legend{display:flex;flex-wrap:wrap;gap:22px;margin-top:16px;color:var(--color-ink-muted);font-size:.7rem}
     .legend span{display:inline-flex;align-items:center;gap:7px}
