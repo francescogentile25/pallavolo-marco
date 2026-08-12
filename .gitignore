@@ -47,3 +47,7 @@ Thumbs.db
 
 # sorgenti multimediali non compresse, fuori dalla build e dal repo
 /media-source
+
+# Local developer tools and machine-specific assistant settings
+/.tools/
+/.claude/settings.local.json
