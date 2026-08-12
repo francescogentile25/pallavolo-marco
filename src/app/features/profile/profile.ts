@@ -396,7 +396,7 @@ export class Profile implements OnInit, OnDestroy {
   protected selfRatingLabel(value: number): string {
     const labels: Record<number, string> = {
       1: 'Principiante iniziale', 2: 'Principiante', 3: 'Intermedio iniziale', 4: 'Intermedio',
-      5: 'Intermedio avanzato', 6: 'Avanzato', 7: 'Pro player',
+      5: 'Intermedio avanzato', 6: 'Avanzato', 7: 'Agonista',
     };
     return labels[value] ?? 'Non definito';
   }

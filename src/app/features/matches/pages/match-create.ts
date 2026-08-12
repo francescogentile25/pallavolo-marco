@@ -7,6 +7,7 @@ import { Checkbox } from 'primeng/checkbox';
 import { InputText } from 'primeng/inputtext';
 import { MultiSelect } from 'primeng/multiselect';
 import { Select } from 'primeng/select';
+import { Tooltip } from 'primeng/tooltip';
 import { PageActionsService } from '../../../core/services/page-actions.service';
 import { AuthStore } from '../../auth/store/auth.store';
 import { FriendsService } from '../../friends/services/friends.service';
@@ -23,7 +24,7 @@ interface CourtFormModel { venueName: string; address: string; city: string; pla
 
 @Component({
   selector: 'app-match-create',
-  imports: [Button, Checkbox, FormField, FormsModule, InputText, MultiSelect, PlaceSelect, Select],
+  imports: [Button, Checkbox, FormField, FormsModule, InputText, MultiSelect, PlaceSelect, Select, Tooltip],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="create-page">
@@ -53,7 +54,15 @@ interface CourtFormModel { venueName: string; address: string; city: string; pla
             <div class="heading"><div><p>Passo 1 di 3</p><h2>Dove giochiamo?</h2></div><i class="pi pi-map-marker"></i></div>
             @if (store.courts().length) {
               <div class="field">
-                <label for="court">Campo <span aria-hidden="true">*</span></label>
+                <div class="field-label">
+                  <label for="court">Campo <span aria-hidden="true">*</span></label>
+                  <button type="button" class="info-button"
+                    pTooltip="Non deve essere per forza un campo specifico: puoi indicare anche una zona circoscritta, per esempio Roma Nord."
+                    tooltipPosition="top"
+                    aria-label="Informazioni sul luogo della partita">
+                    <i class="pi pi-info-circle" aria-hidden="true"></i>
+                  </button>
+                </div>
                 <p-select inputId="court" [ngModel]="model().courtId" (ngModelChange)="updateMatchField('courtId', $event)" [ngModelOptions]="standaloneNgModel" [options]="courtOptions()" optionLabel="label" optionValue="value" placeholder="Seleziona un campo" [invalid]="showError(matchForm.courtId())" fluid />
                 @if (showError(matchForm.courtId())) { <p class="field-error" role="alert"><i class="pi pi-exclamation-circle" aria-hidden="true"></i> Seleziona il campo della partita.</p> }
               </div>
@@ -163,6 +172,10 @@ interface CourtFormModel { venueName: string; address: string; city: string; pla
     .field { display: grid; align-content: start; gap: 7px; min-width: 0; }
     .field label { font-size: .76rem; font-weight: 850; }
     .field label span { color: var(--color-danger); }
+    .field-label { display: flex; min-height: 44px; align-items: center; gap: 2px; margin-bottom: -7px; }
+    .info-button { display: grid; width: 44px; height: 44px; flex: 0 0 44px; padding: 0; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: 50%; background: none; cursor: help; }
+    .info-button:hover { color: var(--color-brand-strong); }
+    .info-button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: -7px; }
     .field input, .field textarea { width: 100%; min-height: 48px; padding: 0 12px; border: 1px solid var(--color-border); border-radius: var(--radius); color: var(--color-ink); background: white; }
     .field textarea { padding: 12px; resize: vertical; }
     :host ::ng-deep .field .p-invalid { border-color: var(--color-danger); box-shadow: 0 0 0 3px rgb(196 57 57 / .11); }
