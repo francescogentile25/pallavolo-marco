@@ -50,7 +50,8 @@ export class PublicHome implements AfterViewInit {
 
       gsap.to('.hero-orbit--one', { rotation: 360, duration: 22, repeat: -1, ease: 'none' });
       gsap.to('.hero-orbit--two', { rotation: -360, duration: 30, repeat: -1, ease: 'none' });
-      gsap.to('.court-ball', { y: -12, rotation: 16, duration: 1.65, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      gsap.to('.court-ball', { y: -12, duration: 1.65, repeat: -1, yoyo: true, ease: 'sine.inOut' });
+      gsap.to('.court-ball .ball-core', { rotation: 360, duration: 7, repeat: -1, ease: 'none' });
       gsap.to('.hero-copy', { yPercent: 22, opacity: 0.25, scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.7 } });
       gsap.to('.court-shell', { yPercent: -18, rotateZ: 3, scrollTrigger: { trigger: '.hero', start: 'top top', end: 'bottom top', scrub: 0.8 } });
 
@@ -61,15 +62,18 @@ export class PublicHome implements AfterViewInit {
       gsap.timeline({ scrollTrigger: { trigger: '.story-track', start: 'top top', end: 'bottom bottom', scrub: 0.65 } })
         .to('.story-progress span', { scaleY: 1, duration: 3, ease: 'none' }, 0)
         .to('.story-court', { rotateX: 66, rotateZ: 8, scale: 0.88, duration: 1 }, 0)
-        .to('.story-ball', { x: '32vw', y: '-10vh', rotation: 180, duration: 1 }, 0)
+        .to('.story-ball', { x: '32vw', y: '-10vh', duration: 1 }, 0)
+        .to('.story-ball .ball-core', { rotation: 180, duration: 1 }, 0)
         .to('.chapter-one', { opacity: 0, y: -36, duration: 0.35 }, 0.65)
         .fromTo('.chapter-two', { opacity: 0, y: 42 }, { opacity: 1, y: 0, duration: 0.35 }, 0.85)
         .to('.story-court', { rotateX: 52, rotateZ: -7, scale: 1.04, duration: 1 }, 1)
-        .to('.story-ball', { x: '-29vw', y: '14vh', rotation: 390, duration: 1 }, 1)
+        .to('.story-ball', { x: '-29vw', y: '14vh', duration: 1 }, 1)
+        .to('.story-ball .ball-core', { rotation: 390, duration: 1 }, 1)
         .to('.chapter-two', { opacity: 0, y: -36, duration: 0.35 }, 1.65)
         .fromTo('.chapter-three', { opacity: 0, y: 42 }, { opacity: 1, y: 0, duration: 0.35 }, 1.85)
         .to('.story-court', { rotateX: 72, rotateZ: 0, scale: 0.76, duration: 1 }, 2)
-        .to('.story-ball', { x: '0vw', y: '-18vh', scale: 1.6, rotation: 720, duration: 1 }, 2);
+        .to('.story-ball', { x: '0vw', y: '-18vh', scale: 1.6, duration: 1 }, 2)
+        .to('.story-ball .ball-core', { rotation: 720, duration: 1 }, 2);
 
       gsap.from('.closing-ball', { scale: 0.08, rotation: -240, scrollTrigger: { trigger: '.closing', start: 'top 82%', end: 'center center', scrub: 0.6 } });
     }, root);

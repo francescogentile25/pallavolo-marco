@@ -20,7 +20,8 @@ p { margin: 0 0 20px; color: var(--color-ink-muted); font-size: .91rem; line-hei
 .next { display: inline-flex; align-items: center; gap: 8px; color: white; border: 1px solid var(--color-ocean); background: var(--color-ocean); box-shadow: 0 8px 18px rgb(12 69 96 / .2); }
 button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
 @media (max-width: 767px) {
-  .popover { right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); left: max(10px, env(safe-area-inset-left)) !important; top: auto !important; width: auto; max-height: min(44dvh, 330px); overflow-y: auto; padding: 15px; border-radius: 19px; transform: none; }
+  .popover { right: max(10px, env(safe-area-inset-right)); bottom: max(10px, env(safe-area-inset-bottom)); left: max(10px, env(safe-area-inset-left)) !important; top: auto !important; width: auto; max-width: none; max-height: min(44dvh, 330px); overflow-x: hidden; overflow-y: auto; overscroll-behavior: contain; padding: 15px; border-radius: 19px; transform: none; }
+  .popover.centered { transform: none; }
   .tour-kicker { font-size: .61rem; }
   h2 { margin-top: 9px; font-size: 1.08rem; }
   p { margin-bottom: 13px; font-size: .8rem; line-height: 1.42; }
