@@ -45,7 +45,26 @@
   <section class="roles" id="due-modi" aria-labelledby="roles-title" data-reveal>
     <div class="section-heading"><p class="eyebrow">Due modi di viverla</p><h2 id="roles-title">Scegli da che lato<br />entrare in campo.</h2></div>
     <div class="role-grid">
-      <article class="role-card player-card" data-reveal><span class="role-number">Giocatore</span><div class="role-icon"><i class="pi pi-bolt" aria-hidden="true"></i></div><h3>Vuoi giocare.</h3><p>Scopri eventi, iscriviti, trova un compagno e segui il tuo calendario.</p><ul><li><i class="pi pi-check"></i> Partite nella tua zona</li><li><i class="pi pi-check"></i> Inviti e coppie</li><li><i class="pi pi-check"></i> Profilo e progressi</li></ul><a routerLink="/demo/giocatore">Vivi una partita <i class="pi pi-arrow-right"></i></a></article>
+      <article class="role-card player-card" [class.is-find]="playerMoment() === 'find'" [class.is-join]="playerMoment() === 'join'" [class.is-play]="playerMoment() === 'play'" data-reveal>
+        <span class="role-number">Giocatore · Tocca e prova</span>
+        <div class="player-card-layout">
+          <div class="player-card-copy"><div class="role-icon"><i class="pi pi-bolt" aria-hidden="true"></i></div><h3>Vuoi giocare.</h3><p>Da “ho voglia” a “sono in campo” in tre tocchi.</p></div>
+          <div class="player-sandbox" aria-live="polite">
+            <div class="mini-court" aria-hidden="true"><span class="mini-net"></span><i class="mini-player mini-player--one">TU</i><i class="mini-player mini-player--two">LC</i><i class="mini-player mini-player--three">AR</i><i class="mini-player mini-player--open">+</i><span class="mini-ball"></span><span class="court-radar"></span></div>
+            @switch (playerMoment()) {
+              @case ('find') { <p class="player-live-copy"><small>Scopri</small><strong>3 partite vicino a te</strong><span>La prima inizia oggi alle 18:30.</span></p> }
+              @case ('join') { <p class="player-live-copy"><small>Entra</small><strong>Posto confermato</strong><span>Luca ora è il tuo compagno.</span></p> }
+              @case ('play') { <p class="player-live-copy"><small>Gioca</small><strong>Squadre in campo</strong><span>Il match è iniziato. Buon divertimento.</span></p> }
+            }
+          </div>
+        </div>
+        <div class="player-modes" aria-label="Prova il percorso giocatore">
+          <button type="button" [class.active]="playerMoment() === 'find'" [attr.aria-pressed]="playerMoment() === 'find'" (click)="showPlayerMoment('find')"><i class="pi pi-search" aria-hidden="true"></i><span>Scopri</span></button>
+          <button type="button" [class.active]="playerMoment() === 'join'" [attr.aria-pressed]="playerMoment() === 'join'" (click)="showPlayerMoment('join')"><i class="pi pi-user-plus" aria-hidden="true"></i><span>Entra</span></button>
+          <button type="button" [class.active]="playerMoment() === 'play'" [attr.aria-pressed]="playerMoment() === 'play'" (click)="showPlayerMoment('play')"><i class="pi pi-bolt" aria-hidden="true"></i><span>Gioca</span></button>
+        </div>
+        <a routerLink="/demo/giocatore">Vivi una partita <i class="pi pi-arrow-right"></i></a>
+      </article>
       <article class="role-card organizer-card" data-reveal><span class="role-number">Organizzatore</span><div class="role-icon"><i class="pi pi-sitemap" aria-hidden="true"></i></div><h3>Vuoi farla accadere.</h3><p>Gestisci iscrizioni, gironi, campi e risultati senza perdere il filo.</p><ul><li><i class="pi pi-check"></i> Giocatori e coppie</li><li><i class="pi pi-check"></i> Gironi e tabelloni</li><li><i class="pi pi-check"></i> Risultati e podio</li></ul><a routerLink="/demo/organizzatore">Gestisci un torneo <i class="pi pi-arrow-right"></i></a></article>
     </div>
   </section>
