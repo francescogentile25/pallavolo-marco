@@ -4,19 +4,15 @@ import { CanActivateFn, Router } from '@angular/router';
 import { filter, map, take } from 'rxjs';
 import { AuthStore } from '../../features/auth/store/auth.store';
 
-export const authGuard: CanActivateFn = (_route, state) => {
+export const onboardingGuard: CanActivateFn = () => {
   const authStore = inject(AuthStore);
   const router = inject(Router);
 
   return toObservable(authStore.initialized).pipe(
     filter(Boolean),
     take(1),
-    map(() =>
-      authStore.needsOnboarding()
-        ? router.createUrlTree(['/completa-registrazione'])
-        : authStore.isAuthenticated()
-          ? true
-          : router.createUrlTree(['/login'], { queryParams: { returnUrl: state.url } }),
-    ),
+    map(() => authStore.needsOnboarding()
+      ? true
+      : router.createUrlTree([authStore.isAuthenticated() ? '/' : '/login'])),
   );
 };

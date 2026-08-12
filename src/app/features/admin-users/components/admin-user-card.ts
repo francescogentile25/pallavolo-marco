@@ -25,7 +25,7 @@ import { UserProfile, UserRole } from '../../auth/models/auth.model';
             [class.pi-clock]="!user().attivo"
             aria-hidden="true"
           ></i>
-          {{ user().attivo ? 'Attivo' : 'In attesa' }}
+          {{ user().attivo ? 'Attivo' : user().registration_completed_at ? 'In attesa' : 'Da completare' }}
         </span>
       </div>
       <div class="user-controls">
@@ -47,7 +47,7 @@ import { UserProfile, UserRole } from '../../auth/models/auth.model';
           [severity]="user().attivo ? 'danger' : 'success'"
           [outlined]="user().attivo"
           [loading]="updatingId() === user().id"
-          [disabled]="locked()"
+          [disabled]="locked() || (!user().attivo && !user().registration_completed_at)"
           (onClick)="activationRequested.emit(user())"
         />
       </div>

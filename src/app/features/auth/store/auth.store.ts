@@ -4,7 +4,7 @@ import { signalStore, withComputed, withHooks, withMethods, withState, patchStat
 import { Subscription, User } from '@supabase/supabase-js';
 import { MessageService } from 'primeng/api';
 import { SupabaseService } from '../../../core/services/supabase.service';
-import { AuthState, LoginRequest, RegisterRequest, UserProfile } from '../models/auth.model';
+import { AuthState, CompleteRegistrationRequest, LoginRequest, RegisterRequest, UserProfile } from '../models/auth.model';
 import { capabilitiesForRole, USER_ROLE_LABELS } from '../auth.utils';
 import { AuthService } from '../services/auth.service';
 
@@ -14,8 +14,12 @@ const initialState: AuthState = {
   isAuthenticated: false,
   loading: true,
   initialized: false,
+  needsOnboarding: false,
   error: null,
 };
+
+const OAUTH_RETURN_URL_KEY = 'bvh:oauth-return-url';
+const OAUTH_OUTCOME_KEY = 'bvh:oauth-outcome';
 
 let authSubscription: Subscription | undefined;
 
@@ -60,6 +64,7 @@ export const AuthStore = signalStore(
           isAuthenticated: false,
           loading: false,
           initialized: true,
+          needsOnboarding: false,
           error: null,
         });
       };
@@ -70,7 +75,21 @@ export const AuthStore = signalStore(
         try {
           const profile = await authService.getProfile(authUser.id);
 
+          if (!profile.attivo && !profile.registration_completed_at) {
+            patchState(store, {
+              authUser,
+              profile,
+              isAuthenticated: false,
+              loading: false,
+              initialized: true,
+              needsOnboarding: true,
+              error: null,
+            });
+            return profile;
+          }
+
           if (!profile.attivo) {
+            try { sessionStorage.setItem(OAUTH_OUTCOME_KEY, 'pending'); } catch { /* storage non disponibile */ }
             await authService.logout();
             patchState(store, {
               authUser: null,
@@ -78,6 +97,7 @@ export const AuthStore = signalStore(
               isAuthenticated: false,
               loading: false,
               initialized: true,
+              needsOnboarding: false,
               error: 'Il profilo è in attesa di attivazione.',
             });
             return null;
@@ -89,6 +109,7 @@ export const AuthStore = signalStore(
             isAuthenticated: true,
             loading: false,
             initialized: true,
+            needsOnboarding: false,
             error: null,
           });
           return profile;
@@ -99,6 +120,7 @@ export const AuthStore = signalStore(
             isAuthenticated: false,
             loading: false,
             initialized: true,
+            needsOnboarding: false,
             error: 'Profilo non disponibile. Contatta l’amministratore.',
           });
           return null;
@@ -145,8 +167,48 @@ export const AuthStore = signalStore(
             return false;
           }
 
+          if (store.needsOnboarding()) {
+            await router.navigateByUrl('/completa-registrazione');
+            return true;
+          }
+
           await router.navigateByUrl(returnUrl.startsWith('/') ? returnUrl : '/');
           return true;
+        },
+
+        async loginWithGoogle(returnUrl = '/'): Promise<boolean> {
+          patchState(store, { loading: true, error: null });
+          const safeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/';
+          try {
+            sessionStorage.setItem(OAUTH_RETURN_URL_KEY, safeReturnUrl);
+          } catch { /* session storage non disponibile */ }
+
+          const { error } = await authService.signInWithGoogle(`${window.location.origin}/auth/callback`);
+          if (error) {
+            patchState(store, { loading: false, error: readableAuthError(error.message) });
+            return false;
+          }
+          return true;
+        },
+
+        oauthReturnUrl(): string {
+          try {
+            const value = sessionStorage.getItem(OAUTH_RETURN_URL_KEY) ?? '/';
+            sessionStorage.removeItem(OAUTH_RETURN_URL_KEY);
+            return value.startsWith('/') && !value.startsWith('//') ? value : '/';
+          } catch {
+            return '/';
+          }
+        },
+
+        oauthOutcome(): string | null {
+          try {
+            const value = sessionStorage.getItem(OAUTH_OUTCOME_KEY);
+            sessionStorage.removeItem(OAUTH_OUTCOME_KEY);
+            return value;
+          } catch {
+            return null;
+          }
         },
 
         async register(
@@ -168,6 +230,22 @@ export const AuthStore = signalStore(
           return { success: true, emailConfirmationRequired: !data.session };
         },
 
+        async completeRegistration(request: CompleteRegistrationRequest): Promise<boolean> {
+          patchState(store, { loading: true, error: null });
+          try {
+            await authService.completeRegistration(request);
+            await authService.logout();
+            clearSession();
+            return true;
+          } catch (error) {
+            patchState(store, {
+              loading: false,
+              error: readableAuthError(error instanceof Error ? error.message : 'Completamento non riuscito.'),
+            });
+            return false;
+          }
+        },
+
         async logout(): Promise<void> {
           patchState(store, { loading: true });
           await authService.logout();
@@ -182,6 +260,10 @@ export const AuthStore = signalStore(
 
         clearError(): void {
           patchState(store, { error: null });
+        },
+
+        setError(message: string): void {
+          patchState(store, { loading: false, error: message });
         },
 
         updateProfileSnapshot(profile: UserProfile): void {

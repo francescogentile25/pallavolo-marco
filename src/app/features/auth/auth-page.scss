@@ -111,6 +111,26 @@
   gap: 16px;
 }
 
+.auth-divider {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 18px 0;
+  color: rgb(255 255 255 / .64);
+  font-size: .7rem;
+  font-weight: 800;
+  letter-spacing: .06em;
+  text-transform: uppercase;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  height: 1px;
+  flex: 1;
+  background: rgb(255 255 255 / .23);
+  content: '';
+}
+
 .form-row {
   display: grid;
   gap: 16px;

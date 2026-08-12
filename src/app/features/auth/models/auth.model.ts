@@ -22,6 +22,8 @@ export interface UserProfile {
   city_longitude: number | null;
   /** Identificativo del comune nell'anagrafica condivisa. */
   city_place_id: number | null;
+  /** Null finche un account OAuth non ha confermato nome e citta. */
+  registration_completed_at: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -34,9 +36,22 @@ export interface LoginRequest {
 export interface RegisterRequest {
   nome: string;
   cognome: string;
+  city: string;
+  cityLatitude: number | null;
+  cityLongitude: number | null;
+  cityPlaceId: number | null;
   email: string;
   password: string;
   confirmPassword: string;
+}
+
+export interface CompleteRegistrationRequest {
+  nome: string;
+  cognome: string;
+  city: string;
+  cityLatitude: number | null;
+  cityLongitude: number | null;
+  cityPlaceId: number | null;
 }
 
 export interface AuthState {
@@ -45,6 +60,7 @@ export interface AuthState {
   isAuthenticated: boolean;
   loading: boolean;
   initialized: boolean;
+  needsOnboarding: boolean;
   error: string | null;
 }
 

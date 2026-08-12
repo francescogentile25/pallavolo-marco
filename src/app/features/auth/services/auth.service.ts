@@ -1,6 +1,6 @@
 import { inject, Injectable } from '@angular/core';
 import { SupabaseService } from '../../../core/services/supabase.service';
-import { LoginRequest, RegisterRequest, UserProfile } from '../models/auth.model';
+import { CompleteRegistrationRequest, LoginRequest, RegisterRequest, UserProfile } from '../models/auth.model';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -18,10 +18,34 @@ export class AuthService {
         data: {
           nome: request.nome.trim(),
           cognome: request.cognome.trim(),
+          city: request.city.trim(),
+          city_latitude: request.cityLatitude,
+          city_longitude: request.cityLongitude,
+          city_place_id: request.cityPlaceId,
         },
         emailRedirectTo: window.location.origin + '/login',
       },
     });
+  }
+
+  signInWithGoogle(redirectTo: string) {
+    return this.supabase.client.auth.signInWithOAuth({
+      provider: 'google',
+      options: { redirectTo },
+    });
+  }
+
+  async completeRegistration(request: CompleteRegistrationRequest): Promise<UserProfile> {
+    const { data, error } = await this.supabase.client.rpc('complete_my_registration', {
+      p_nome: request.nome.trim(),
+      p_cognome: request.cognome.trim(),
+      p_city: request.city.trim(),
+      p_latitude: request.cityLatitude,
+      p_longitude: request.cityLongitude,
+      p_place_id: request.cityPlaceId,
+    });
+    if (error) throw error;
+    return data as UserProfile;
   }
 
   logout() {

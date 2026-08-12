@@ -44,12 +44,15 @@ Deno.serve(async (req) => {
       email,
       password,
       email_confirm: true,
-      user_metadata: { nome, cognome },
+      user_metadata: { nome, cognome, created_by_admin: true },
     });
     if (createErr || !created?.user) return json(400, { error: createErr?.message ?? 'Creazione non riuscita' });
 
     // Il trigger crea il profilo inattivo: lo attivo subito.
-    await admin.from('profiles').update({ attivo: true }).eq('id', created.user.id);
+    await admin.from('profiles').update({
+      attivo: true,
+      registration_completed_at: new Date().toISOString(),
+    }).eq('id', created.user.id);
 
     return json(200, { id: created.user.id });
   } catch (e) {

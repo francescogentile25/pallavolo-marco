@@ -6,10 +6,11 @@ import { InputText } from 'primeng/inputtext';
 import { LoginRequest } from '../models/auth.model';
 import { AuthBackdrop } from '../components/auth-backdrop';
 import { AuthStore } from '../store/auth.store';
+import { GoogleAuthButton } from '../components/google-auth-button';
 
 @Component({
   selector: 'app-login',
-  imports: [AuthBackdrop, FormField, RouterLink, ButtonModule, InputText],
+  imports: [AuthBackdrop, FormField, RouterLink, ButtonModule, InputText, GoogleAuthButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-auth-backdrop />
@@ -30,6 +31,13 @@ import { AuthStore } from '../store/auth.store';
           <p class="eyebrow">Bentornato in campo</p>
           <h2 id="login-title">Accedi</h2>
           <p class="auth-intro">Usa email e password per continuare.</p>
+
+          @if (registrationPending) {
+            <p class="auth-success" role="status">Registrazione completata. Ora attendi l’attivazione da parte dell’amministratore.</p>
+          }
+
+          <app-google-auth-button [loading]="authStore.loading()" (pressed)="loginWithGoogle()" />
+          <div class="auth-divider"><span>oppure</span></div>
 
           <form class="auth-form" (submit)="onSubmit($event)" novalidate>
             <div class="field">
@@ -96,6 +104,7 @@ import { AuthStore } from '../store/auth.store';
 export class Login {
   protected readonly authStore = inject(AuthStore);
   private readonly route = inject(ActivatedRoute);
+  protected readonly registrationPending = this.route.snapshot.queryParamMap.get('registration') === 'pending';
 
   private readonly model = signal<LoginRequest>({ email: '', password: '' });
   protected readonly loginForm = form(this.model, (path) => {
@@ -121,5 +130,10 @@ export class Login {
 
     const requestedUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
     await this.authStore.login(this.model(), requestedUrl);
+  }
+
+  protected async loginWithGoogle(): Promise<void> {
+    const requestedUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+    await this.authStore.loginWithGoogle(requestedUrl);
   }
 }

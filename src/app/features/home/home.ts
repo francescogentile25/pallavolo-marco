@@ -300,6 +300,8 @@ const DAY = 24 * 60 * 60 * 1000;
     }
 
     @media(max-width:840px){
+      .matches-panel,.tournaments-panel,.sky-column,.sky-column app-weather-panel,.sky-column app-weather-hours{width:100%;min-width:0}
+      .cards-tournaments{grid-template-columns:minmax(0,1fr)}
       .hero{background-position:62% center}
       .hero-inner{min-height:520px;grid-template-columns:minmax(0,1fr)}
       .hero-content{justify-content:flex-end;padding:36px 20px;background:linear-gradient(90deg,rgb(3 43 64/.86),rgb(3 43 64/.5),transparent)}

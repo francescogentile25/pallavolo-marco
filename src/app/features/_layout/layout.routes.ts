@@ -3,10 +3,13 @@ import { adminGuard } from '../../core/guards/admin.guard';
 import { authGuard } from '../../core/guards/auth.guard';
 import { loginGuard } from '../../core/guards/login.guard';
 import { organizerGuard } from '../../core/guards/organizer.guard';
+import { onboardingGuard } from '../../core/guards/onboarding.guard';
 
 export const layoutRoutes: Routes = [
   { path: 'login', canActivate: [loginGuard], loadComponent: () => import('../auth/login/login').then(c => c.Login) },
   { path: 'registrazione', canActivate: [loginGuard], loadComponent: () => import('../auth/register/register').then(c => c.Register) },
+  { path: 'auth/callback', loadComponent: () => import('../auth/oauth-callback/oauth-callback').then(c => c.OauthCallback) },
+  { path: 'completa-registrazione', canActivate: [onboardingGuard], loadComponent: () => import('../auth/complete-registration/complete-registration').then(c => c.CompleteRegistration) },
   {
     path: '', canActivate: [authGuard], loadComponent: () => import('./main/main').then(c => c.Main),
     children: [

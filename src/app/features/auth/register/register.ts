@@ -6,10 +6,13 @@ import { InputText } from 'primeng/inputtext';
 import { RegisterRequest } from '../models/auth.model';
 import { AuthBackdrop } from '../components/auth-backdrop';
 import { AuthStore } from '../store/auth.store';
+import { PlaceRef } from '../../../shared/places/place.model';
+import { PlaceSelect } from '../../../shared/places/place-select';
+import { GoogleAuthButton } from '../components/google-auth-button';
 
 @Component({
   selector: 'app-register',
-  imports: [AuthBackdrop, FormField, RouterLink, ButtonModule, InputText],
+  imports: [AuthBackdrop, FormField, RouterLink, ButtonModule, InputText, PlaceSelect, GoogleAuthButton],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <app-auth-backdrop />
@@ -37,6 +40,8 @@ import { AuthStore } from '../store/auth.store';
               Controlla la tua email e conferma l’indirizzo, poi torna alla pagina di accesso.
             </p>
           } @else {
+            <app-google-auth-button label="Registrati con Google" [loading]="authStore.loading()" (pressed)="registerWithGoogle()" />
+            <div class="auth-divider"><span>oppure con email</span></div>
             <form class="auth-form" (submit)="onSubmit($event)" novalidate>
               <div class="form-row">
                 <div class="field">
@@ -57,6 +62,22 @@ import { AuthStore } from '../store/auth.store';
                     }
                   }
                 </div>
+              </div>
+
+              <div class="field">
+                <label for="register-city">Città</label>
+                <app-place-select
+                  inputId="register-city"
+                  placeholder="Cerca il tuo comune"
+                  [showClear]="false"
+                  [invalid]="showError(registerForm.city())"
+                  [text]="model().city"
+                  (placeChange)="chooseCity($event)" />
+                @if (showError(registerForm.city())) {
+                  @for (error of registerForm.city().errors(); track $index) {
+                    <p class="field-error">{{ error.message }}</p>
+                  }
+                }
               </div>
 
               <div class="field">
@@ -122,9 +143,13 @@ export class Register {
   protected readonly authStore = inject(AuthStore);
   protected readonly registrationComplete = signal(false);
 
-  private readonly model = signal<RegisterRequest>({
+  protected readonly model = signal<RegisterRequest>({
     nome: '',
     cognome: '',
+    city: '',
+    cityLatitude: null,
+    cityLongitude: null,
+    cityPlaceId: null,
     email: '',
     password: '',
     confirmPassword: '',
@@ -133,6 +158,7 @@ export class Register {
   protected readonly registerForm = form(this.model, (path) => {
     required(path.nome, { message: 'Inserisci il nome.' });
     required(path.cognome, { message: 'Inserisci il cognome.' });
+    required(path.city, { message: 'Scegli la città dall’elenco.' });
     required(path.email, { message: 'Inserisci l’email.' });
     email(path.email, { message: 'Inserisci un indirizzo email valido.' });
     required(path.password, { message: 'Inserisci la password.' });
@@ -149,11 +175,23 @@ export class Register {
     return field.touched() && !field.valid();
   }
 
+  protected chooseCity(place: PlaceRef | null): void {
+    this.model.update((current) => ({
+      ...current,
+      city: place?.name ?? '',
+      cityLatitude: place?.latitude ?? null,
+      cityLongitude: place?.longitude ?? null,
+      cityPlaceId: place?.placeId ?? null,
+    }));
+    this.registerForm.city().markAsTouched();
+  }
+
   protected async onSubmit(event: Event): Promise<void> {
     event.preventDefault();
     this.authStore.clearError();
     this.registerForm.nome().markAsTouched();
     this.registerForm.cognome().markAsTouched();
+    this.registerForm.city().markAsTouched();
     this.registerForm.email().markAsTouched();
     this.registerForm.password().markAsTouched();
     this.registerForm.confirmPassword().markAsTouched();
@@ -166,5 +204,9 @@ export class Register {
     if (result.success) {
       this.registrationComplete.set(true);
     }
+  }
+
+  protected async registerWithGoogle(): Promise<void> {
+    await this.authStore.loginWithGoogle('/');
   }
 }

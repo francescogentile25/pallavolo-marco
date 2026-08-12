@@ -11,6 +11,8 @@ export const loginGuard: CanActivateFn = () => {
   return toObservable(authStore.initialized).pipe(
     filter(Boolean),
     take(1),
-    map(() => (authStore.isAuthenticated() ? router.createUrlTree(['/']) : true)),
+    map(() => authStore.needsOnboarding()
+      ? router.createUrlTree(['/completa-registrazione'])
+      : authStore.isAuthenticated() ? router.createUrlTree(['/']) : true),
   );
 };
