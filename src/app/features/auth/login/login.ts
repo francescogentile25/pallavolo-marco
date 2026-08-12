@@ -32,11 +32,10 @@ import { GoogleAuthButton } from '../components/google-auth-button';
           <h2 id="login-title">Accedi</h2>
           <p class="auth-intro">Usa email e password per continuare.</p>
 
-          @if (registrationPending) {
-            <p class="auth-success" role="status">Registrazione completata. Ora attendi l’attivazione da parte dell’amministratore.</p>
-          }
-
           <app-google-auth-button [loading]="authStore.loading()" (pressed)="loginWithGoogle()" />
+          @if (registrationPending) {
+            <p class="auth-success auth-feedback" role="status">Registrazione completata. Ora attendi l’attivazione da parte dell’amministratore.</p>
+          }
           <div class="auth-divider"><span>oppure</span></div>
 
           <form class="auth-form" (submit)="onSubmit($event)" novalidate>
@@ -78,10 +77,6 @@ import { GoogleAuthButton } from '../components/google-auth-button';
               }
             </div>
 
-            @if (authStore.error()) {
-              <p class="auth-error" role="alert">{{ authStore.error() }}</p>
-            }
-
             <button pButton class="submit-button" type="submit" [disabled]="authStore.loading()">
               @if (authStore.loading()) {
                 <span class="spinner" aria-hidden="true"></span>
@@ -90,6 +85,10 @@ import { GoogleAuthButton } from '../components/google-auth-button';
                 Entra <i class="pi pi-arrow-right" aria-hidden="true"></i>
               }
             </button>
+
+            @if (authStore.error()) {
+              <p class="auth-error" role="alert">{{ authStore.error() }}</p>
+            }
           </form>
 
           <p class="auth-switch">

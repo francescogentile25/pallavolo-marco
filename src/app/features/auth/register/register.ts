@@ -115,10 +115,6 @@ import { GoogleAuthButton } from '../components/google-auth-button';
                 Dopo la registrazione il profilo resta in attesa di attivazione da parte dell’amministratore.
               </p>
 
-              @if (authStore.error()) {
-                <p class="auth-error" role="alert">{{ authStore.error() }}</p>
-              }
-
               <button pButton class="submit-button" type="submit" [disabled]="authStore.loading()">
                 @if (authStore.loading()) {
                   <span class="spinner" aria-hidden="true"></span>
@@ -127,6 +123,10 @@ import { GoogleAuthButton } from '../components/google-auth-button';
                   Crea account <i class="pi pi-user-plus" aria-hidden="true"></i>
                 }
               </button>
+
+              @if (authStore.error()) {
+                <p class="auth-error" role="alert">{{ authStore.error() }}</p>
+              }
             </form>
           }
 
