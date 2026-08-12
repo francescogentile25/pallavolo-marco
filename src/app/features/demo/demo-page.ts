@@ -1,7 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { map } from 'rxjs';
 
 type DemoRole = 'giocatore' | 'organizzatore';
 
@@ -41,6 +40,10 @@ export class DemoPage {
 
   protected changeRole(role: DemoRole): void {
     void this.router.navigate(['/demo', role]);
+  }
+
+  protected demoLink(section?: string): readonly string[] {
+    return section ? ['/demo', this.role(), section] : ['/demo', this.role()];
   }
 
   protected joinMatch(): void {

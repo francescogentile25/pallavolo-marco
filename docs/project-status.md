@@ -59,6 +59,8 @@ incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
 - [x] Homepage pubblica separata dall'applicazione autenticata.
 - [x] Demo interattiva con dati mock per i percorsi giocatore e organizzatore.
 - [x] Stato demo isolato in `sessionStorage`, ripristinabile e senza accesso ai dati Supabase.
+- [x] Demo navigabile fra Home, Partite, Tornei, Campi, Amici, Profilo e Notifiche.
+- [x] Scenario mock coerente con città, meteo locale, amici, calendario e campi vicini.
 
 ## Implementazione parziale
 

@@ -15,15 +15,16 @@
       <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
     </a>
     <nav aria-label="Navigazione dimostrativa">
-      <button class="active" type="button"><i class="pi pi-home"></i> Home</button>
-      <button type="button"><i class="pi pi-users"></i> Partite</button>
-      <button type="button"><i class="pi pi-trophy"></i> Tornei</button>
-      <button type="button"><i class="pi pi-map-marker"></i> Campi</button>
+      <a class="active" [routerLink]="demoLink()"><i class="pi pi-home"></i> Home</a>
+      <a [routerLink]="demoLink('partite')"><i class="pi pi-users"></i> Partite</a>
+      <a [routerLink]="demoLink('tornei')"><i class="pi pi-trophy"></i> Tornei</a>
+      <a [routerLink]="demoLink('campi')"><i class="pi pi-map-marker"></i> Campi</a>
+      <a [routerLink]="demoLink('amici')"><i class="pi pi-user-plus"></i> Amici</a>
     </nav>
     <div class="profile">
       <span><strong>Marco Demo</strong><small>{{ role() === 'giocatore' ? 'Giocatore' : 'Organizzatore' }}</small></span>
-      <i class="pi pi-bell"></i>
-      <b>MD</b>
+      <a class="profile-link" [routerLink]="demoLink('notifiche')" aria-label="Notifiche demo"><i class="pi pi-bell"></i></a>
+      <a class="profile-avatar" [routerLink]="demoLink('profilo')" aria-label="Profilo demo">MD</a>
     </div>
   </header>
 
@@ -70,6 +71,15 @@
           <section class="notification-card" [class.visible]="state().joinedMatch">
             <i class="pi pi-bell"></i><span><strong>{{ state().joinedMatch ? 'Iscrizione confermata' : 'Le notifiche arrivano qui' }}</strong><small>{{ state().joinedMatch ? 'Lido Aurora · oggi alle 18:30' : 'Completa il primo passo della demo' }}</small></span>
           </section>
+          <section class="weather-card">
+            <div><p>Meteo a Pescara</p><strong>29°</strong><span>Sole · vento NE 12 km/h</span></div>
+            <i class="pi pi-sun" aria-hidden="true"></i>
+            <small>Condizioni ideali dalle 18:00</small>
+          </section>
+          <a class="friends-card" [routerLink]="demoLink('amici')">
+            <span class="avatar blue">LB</span><span class="avatar gold">NR</span><span class="avatar teal">AR</span>
+            <p><strong>12 amici a Pescara</strong><small>3 cercano una partita questa settimana</small></p><i class="pi pi-arrow-right"></i>
+          </a>
         </aside>
       </div>
 
@@ -137,7 +147,7 @@
   }
 
   <nav class="mobile-nav" aria-label="Navigazione demo mobile">
-    <button class="active"><i class="pi pi-home"></i><span>Home</span></button><button><i class="pi pi-users"></i><span>Partite</span></button><button><i class="pi pi-user"></i><span>Profilo</span></button><button><i class="pi pi-trophy"></i><span>Tornei</span></button>
+    <a class="active" [routerLink]="demoLink()"><i class="pi pi-home"></i><span>Home</span></a><a [routerLink]="demoLink('partite')"><i class="pi pi-users"></i><span>Partite</span></a><a [routerLink]="demoLink('profilo')"><i class="pi pi-user"></i><span>Profilo</span></a><a [routerLink]="demoLink('tornei')"><i class="pi pi-trophy"></i><span>Tornei</span></a><a [routerLink]="demoLink('campi')"><i class="pi pi-map-marker"></i><span>Campi</span></a>
   </nav>
 
   @if (message(); as text) { <div class="toast" role="status"><i class="pi pi-check-circle"></i><span>{{ text }}</span></div> }
