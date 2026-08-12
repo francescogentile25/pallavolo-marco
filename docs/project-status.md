@@ -56,6 +56,9 @@ incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
 - [x] Floating action pill desktop montata nella shell.
 - [x] Registro globale delle azioni pagina.
 - [x] Placeholder navigabili per partite, tornei, profilo e notifiche.
+- [x] Homepage pubblica separata dall'applicazione autenticata.
+- [x] Demo interattiva con dati mock per i percorsi giocatore e organizzatore.
+- [x] Stato demo isolato in `sessionStorage`, ripristinabile e senza accesso ai dati Supabase.
 
 ## Implementazione parziale
 
@@ -235,6 +238,7 @@ Onda 5 — Notifiche:
 | 2026-08-01 | PrimeNG come libreria UI predefinita | I componenti della libreria vengono adattati al tema; i controlli custom restano un'eccezione motivata |
 | 2026-08-02 | Regole reputazione Onda 3 | Voti entro 7 giorni; livello 75% peer e 25% autovalutazione; no-show solo organizzatore entro 48 ore con penalità di 1 punto |
 | 2026-08-02 | QA interattiva affidata all'utente | Codex non usa il browser interno né sessioni autenticate dell'utente per simulare click |
+| 2026-08-12 | Demo pubblica esclusivamente mock | La vetrina non espone dati reali; gli eventi Supabase richiedono registrazione e accesso |
 | 2026-08-02 | Iscrizioni tornei Onda 4 | Modalità solo coppie, solo individuale o ibrida; consenso obbligatorio e abbinamento manuale |
 | 2026-08-02 | Tabellone tornei Onda 4 | PrimeNG per gironi/risultati; Bracketry candidata solo per eliminazione; mobile a un turno per volta |
 

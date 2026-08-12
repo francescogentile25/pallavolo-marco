@@ -127,12 +127,12 @@ export class Login {
       return;
     }
 
-    const requestedUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+    const requestedUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/app';
     await this.authStore.login(this.model(), requestedUrl);
   }
 
   protected async loginWithGoogle(): Promise<void> {
-    const requestedUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/';
+    const requestedUrl = this.route.snapshot.queryParamMap.get('returnUrl') ?? '/app';
     await this.authStore.loginWithGoogle(requestedUrl);
   }
 }

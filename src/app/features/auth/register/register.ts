@@ -207,6 +207,6 @@ export class Register {
   }
 
   protected async registerWithGoogle(): Promise<void> {
-    await this.authStore.loginWithGoogle('/');
+    await this.authStore.loginWithGoogle('/app');
   }
 }

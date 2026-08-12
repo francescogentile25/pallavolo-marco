@@ -13,6 +13,6 @@ export const loginGuard: CanActivateFn = () => {
     take(1),
     map(() => authStore.needsOnboarding()
       ? router.createUrlTree(['/completa-registrazione'])
-      : authStore.isAuthenticated() ? router.createUrlTree(['/']) : true),
+      : authStore.isAuthenticated() ? router.createUrlTree(['/app']) : true),
   );
 };

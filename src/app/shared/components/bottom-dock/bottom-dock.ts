@@ -80,7 +80,7 @@ import { AuthStore } from '../../../features/auth/store/auth.store';
             <a
               [routerLink]="item.route"
               routerLinkActive="is-active"
-              [routerLinkActiveOptions]="{ exact: item.route === '/' }"
+              [routerLinkActiveOptions]="{ exact: item.route === '/app' }"
             >
               <span class="nav-icon">
                 @if (item.id === 'avatar') {
@@ -240,7 +240,7 @@ export class BottomDock {
     return p ? `${p.nome.charAt(0)}${p.cognome.charAt(0)}`.toUpperCase() : 'BV';
   });
   protected readonly navItems = [
-    { id: 'home', route: '/', icon: 'pi-home', label: 'Home' },
+    { id: 'home', route: '/app', icon: 'pi-home', label: 'Home' },
     { id: 'matches', route: '/partite', icon: 'pi-users', label: 'Partite' },
     { id: 'avatar', route: '/profilo', icon: 'pi-user', label: 'Profilo' },
     { id: 'tournaments', route: '/tornei', icon: 'pi-trophy', label: 'Tornei' },

@@ -149,7 +149,7 @@ export const AuthStore = signalStore(
           await loadProfile(authUser);
         },
 
-        async login(request: LoginRequest, returnUrl = '/'): Promise<boolean> {
+        async login(request: LoginRequest, returnUrl = '/app'): Promise<boolean> {
           patchState(store, { loading: true, error: null });
           const { data, error } = await authService.login(request);
 
@@ -172,13 +172,13 @@ export const AuthStore = signalStore(
             return true;
           }
 
-          await router.navigateByUrl(returnUrl.startsWith('/') ? returnUrl : '/');
+          await router.navigateByUrl(returnUrl.startsWith('/') ? returnUrl : '/app');
           return true;
         },
 
-        async loginWithGoogle(returnUrl = '/'): Promise<boolean> {
+        async loginWithGoogle(returnUrl = '/app'): Promise<boolean> {
           patchState(store, { loading: true, error: null });
-          const safeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/';
+          const safeReturnUrl = returnUrl.startsWith('/') && !returnUrl.startsWith('//') ? returnUrl : '/app';
           try {
             sessionStorage.setItem(OAUTH_RETURN_URL_KEY, safeReturnUrl);
           } catch { /* session storage non disponibile */ }
@@ -193,11 +193,11 @@ export const AuthStore = signalStore(
 
         oauthReturnUrl(): string {
           try {
-            const value = sessionStorage.getItem(OAUTH_RETURN_URL_KEY) ?? '/';
+            const value = sessionStorage.getItem(OAUTH_RETURN_URL_KEY) ?? '/app';
             sessionStorage.removeItem(OAUTH_RETURN_URL_KEY);
-            return value.startsWith('/') && !value.startsWith('//') ? value : '/';
+            return value.startsWith('/') && !value.startsWith('//') ? value : '/app';
           } catch {
-            return '/';
+            return '/app';
           }
         },
 

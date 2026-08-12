@@ -13,7 +13,7 @@ export const layoutRoutes: Routes = [
   {
     path: '', canActivate: [authGuard], loadComponent: () => import('./main/main').then(c => c.Main),
     children: [
-      { path: '', pathMatch: 'full', loadComponent: () => import('../home/home').then(c => c.Home) },
+      { path: 'app', loadComponent: () => import('../home/home').then(c => c.Home) },
       { path: 'partite', loadComponent: () => import('../matches/pages/matches-list').then(c => c.MatchesList) },
       { path: 'partite/nuova', loadComponent: () => import('../matches/pages/match-create').then(c => c.MatchCreate) },
       { path: 'partite/mie', loadComponent: () => import('../matches/pages/my-matches').then(c => c.MyMatches) },
@@ -30,5 +30,5 @@ export const layoutRoutes: Routes = [
       { path: 'notifiche', loadComponent: () => import('../notifications/pages/notifications-page').then(c => c.NotificationsPage) },
     ],
   },
-  { path: '**', redirectTo: '' },
+  { path: '**', redirectTo: '/' },
 ];

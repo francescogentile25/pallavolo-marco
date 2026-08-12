@@ -11,13 +11,13 @@ import { NotificationBell } from '../../notifications/components/notification-be
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <header class="app-header">
-      <a class="brand" routerLink="/" aria-label="Beach Volley Hub, home">
+      <a class="brand" routerLink="/app" aria-label="Beach Volley Hub, home applicazione">
         <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
       </a>
 
       <nav aria-label="Navigazione desktop" #navEl>
         <span class="nav-marker" aria-hidden="true"></span>
-        <a routerLink="/" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }"><i class="pi pi-home"></i> Home</a>
+        <a routerLink="/app" routerLinkActive="is-active"><i class="pi pi-home"></i> Home</a>
         <a routerLink="/partite" routerLinkActive="is-active"><i class="pi pi-users"></i> Partite</a>
         <a routerLink="/tornei" routerLinkActive="is-active"><i class="pi pi-trophy"></i> Tornei</a>
         <a routerLink="/campi" routerLinkActive="is-active"><i class="pi pi-map-marker"></i> Campi</a>

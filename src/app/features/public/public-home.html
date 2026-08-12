@@ -1,0 +1,128 @@
+<main class="public-page">
+  <header class="public-header">
+    <a class="brand" routerLink="/" aria-label="Beach Volley Hub, pagina iniziale">
+      <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
+    </a>
+    <nav aria-label="Navigazione pubblica">
+      <a href="#come-funziona">Come funziona</a>
+      <a href="#due-modi">Per chi gioca</a>
+    </nav>
+    <div class="header-actions">
+      <a class="text-link" routerLink="/login">Accedi</a>
+      <a class="button button-small" routerLink="/registrazione">Registrati</a>
+    </div>
+  </header>
+
+  <section class="hero" aria-labelledby="hero-title">
+    <div class="hero-copy">
+      <p class="eyebrow"><span></span> La community scende in campo</p>
+      <h1 id="hero-title">La prossima partita<br /><em>parte da qui.</em></h1>
+      <p class="hero-intro">
+        Trova persone con cui giocare, entra nei tornei e porta avanti ogni giornata,
+        dall'iscrizione fino all'ultimo punto.
+      </p>
+      <div class="hero-actions">
+        <a class="button" routerLink="/demo/giocatore">Prova come giocatore <i class="pi pi-arrow-right" aria-hidden="true"></i></a>
+        <a class="button button-quiet" routerLink="/demo/organizzatore">Prova come organizzatore</a>
+      </div>
+      <p class="demo-note"><i class="pi pi-shield" aria-hidden="true"></i> Demo libera, nessuna registrazione. Usi solo dati dimostrativi.</p>
+    </div>
+
+    <a class="court-preview" routerLink="/demo/giocatore" aria-label="Apri la demo giocatore">
+      <span class="court-label">Prossima partita</span>
+      <span class="net" aria-hidden="true"></span>
+      <span class="player player-one" aria-hidden="true">LF</span>
+      <span class="player player-two" aria-hidden="true">MG</span>
+      <span class="player player-three" aria-hidden="true">AR</span>
+      <span class="empty-player" aria-hidden="true"><i class="pi pi-plus"></i></span>
+      <span class="match-ticket">
+        <small>Oggi · 18:30</small>
+        <strong>Lido Aurora</strong>
+        <span>Livello 3–5 · 1 posto libero</span>
+        <b>Entra in campo <i class="pi pi-arrow-up-right" aria-hidden="true"></i></b>
+      </span>
+    </a>
+  </section>
+
+  <section class="proof-strip" aria-label="Funzioni principali">
+    <p><i class="pi pi-map-marker"></i><span><strong>Partite vicine</strong> Trova il campo giusto</span></p>
+    <p><i class="pi pi-users"></i><span><strong>Livelli compatibili</strong> Gioca alla pari</span></p>
+    <p><i class="pi pi-trophy"></i><span><strong>Tornei completi</strong> Dal girone al podio</span></p>
+  </section>
+
+  <section class="how" id="come-funziona" aria-labelledby="how-title">
+    <div class="section-heading">
+      <p class="eyebrow">Un'unica giornata, tutta connessa</p>
+      <h2 id="how-title">Non organizzi una chat.<br />Organizzi il gioco.</h2>
+    </div>
+    <ol class="journey">
+      <li>
+        <span class="step-marker">Prima</span>
+        <i class="pi pi-search" aria-hidden="true"></i>
+        <h3>Trova il tuo posto</h3>
+        <p>Partite e tornei filtrati per città, livello e disponibilità.</p>
+      </li>
+      <li>
+        <span class="step-marker">In campo</span>
+        <i class="pi pi-comments" aria-hidden="true"></i>
+        <h3>La squadra è allineata</h3>
+        <p>Inviti, conferme, notifiche e chat restano legati all'evento.</p>
+      </li>
+      <li>
+        <span class="step-marker">Dopo</span>
+        <i class="pi pi-chart-line" aria-hidden="true"></i>
+        <h3>Ogni partita conta</h3>
+        <p>Risultati, affidabilità e livello costruiscono il tuo percorso.</p>
+      </li>
+    </ol>
+  </section>
+
+  <section class="roles" id="due-modi" aria-labelledby="roles-title">
+    <div class="section-heading">
+      <p class="eyebrow">Due modi di viverla</p>
+      <h2 id="roles-title">Scegli da che lato<br />entrare in campo.</h2>
+    </div>
+    <div class="role-grid">
+      <article class="role-card player-card">
+        <span class="role-number">Giocatore</span>
+        <div class="role-icon"><i class="pi pi-bolt" aria-hidden="true"></i></div>
+        <h3>Vuoi giocare.</h3>
+        <p>Scopri eventi, iscriviti, trova un compagno e segui il tuo calendario.</p>
+        <ul>
+          <li><i class="pi pi-check"></i> Partite nella tua zona</li>
+          <li><i class="pi pi-check"></i> Inviti e coppie</li>
+          <li><i class="pi pi-check"></i> Profilo e progressi</li>
+        </ul>
+        <a routerLink="/demo/giocatore">Vivi una partita <i class="pi pi-arrow-right"></i></a>
+      </article>
+      <article class="role-card organizer-card">
+        <span class="role-number">Organizzatore</span>
+        <div class="role-icon"><i class="pi pi-sitemap" aria-hidden="true"></i></div>
+        <h3>Vuoi farla accadere.</h3>
+        <p>Gestisci iscrizioni, gironi, campi e risultati senza perdere il filo.</p>
+        <ul>
+          <li><i class="pi pi-check"></i> Giocatori e coppie</li>
+          <li><i class="pi pi-check"></i> Gironi e tabelloni</li>
+          <li><i class="pi pi-check"></i> Risultati e podio</li>
+        </ul>
+        <a routerLink="/demo/organizzatore">Gestisci un torneo <i class="pi pi-arrow-right"></i></a>
+      </article>
+    </div>
+  </section>
+
+  <section class="closing" aria-labelledby="closing-title">
+    <span class="ball" aria-hidden="true"></span>
+    <p class="eyebrow">La demo è già pronta</p>
+    <h2 id="closing-title">Prima provala.<br />Poi portala sul tuo campo.</h2>
+    <div class="hero-actions">
+      <a class="button button-light" routerLink="/demo/giocatore">Entra nella demo</a>
+      <a class="button button-outline-light" routerLink="/registrazione">Crea il tuo account</a>
+    </div>
+  </section>
+
+  <footer>
+    <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
+    <p>Partite, tornei e persone. Nello stesso campo.</p>
+    <div><a routerLink="/login">Accedi</a><a routerLink="/registrazione">Registrati</a></div>
+  </footer>
+</main>
