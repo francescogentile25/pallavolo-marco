@@ -1,0 +1,41 @@
+@if (tour.activeStep(); as active) {
+  <div class="tour-layer" aria-live="polite">
+    <button class="scrim" [class.with-stage]="!!stageStyle()" type="button" aria-label="Chiudi il tour" (click)="tour.cancel()"></button>
+    @if (stageStyle(); as style) {
+      <div
+        class="stage"
+        [class.blocks-interaction]="active.step.disableActiveInteraction !== false"
+        [style.left]="style.left"
+        [style.top]="style.top"
+        [style.width]="style.width"
+        [style.height]="style.height"
+        aria-hidden="true"
+      ></div>
+    }
+    <section
+      class="popover"
+      [class.centered]="!active.targetRect || active.step.side === 'over'"
+      role="dialog"
+      aria-modal="true"
+      [attr.aria-labelledby]="'tour-title-' + active.step.id"
+      [style.left]="popoverStyle().left"
+      [style.top]="popoverStyle().top"
+    >
+      <header>
+        <span class="tour-kicker"><i class="pi pi-compass" aria-hidden="true"></i> Guida Beach Volley Hub</span>
+        <button type="button" class="close" aria-label="Salta il tour" (click)="tour.cancel()"><i class="pi pi-times" aria-hidden="true"></i></button>
+      </header>
+      <h2 [id]="'tour-title-' + active.step.id">{{ active.step.title }}</h2>
+      <p>{{ active.step.description }}</p>
+      <footer>
+        @if (active.showProgress) {
+          <span class="progress" aria-label="Passaggio {{ active.index + 1 }} di {{ active.total }}">{{ active.index + 1 }} / {{ active.total }}</span>
+        }
+        <div class="actions">
+          @if (active.index > 0) { <button type="button" class="back" (click)="tour.back()">Indietro</button> }
+          <button type="button" class="next" (click)="tour.next()">{{ active.index === active.total - 1 ? 'Fine' : 'Avanti' }} <i class="pi" [class.pi-arrow-right]="active.index < active.total - 1" [class.pi-check]="active.index === active.total - 1" aria-hidden="true"></i></button>
+        </div>
+      </footer>
+    </section>
+  </div>
+}

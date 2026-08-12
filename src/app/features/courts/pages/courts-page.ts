@@ -18,7 +18,7 @@ const EMPTY: CourtInput = { venueName: '', address: '', city: '', placeId: null,
   imports: [FormsModule, Button, Checkbox, Dialog, InputText, PlaceSelect],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="courts-page">
+    <main class="courts-page" data-tour-page="courts">
       <header class="courts-hero">
         <div>
           <p class="eyebrow">I tuoi campi</p>

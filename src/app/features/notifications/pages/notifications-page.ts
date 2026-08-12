@@ -12,7 +12,7 @@ const PAGE_SIZE = 20;
   imports: [Paginator],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="notif-page">
+    <main class="notif-page" data-tour-page="notifications">
       <header class="notif-hero">
         <p class="eyebrow">Aggiornamenti</p>
         <h1>Notifiche</h1>

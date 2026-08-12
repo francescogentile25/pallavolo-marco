@@ -62,6 +62,7 @@ export interface AuthState {
   initialized: boolean;
   needsOnboarding: boolean;
   error: string | null;
+  demoMode: boolean;
 }
 
 export interface UserCapabilities {

@@ -23,7 +23,7 @@ import { matchVenuePoint } from '../../../shared/places/place-points';
   imports: [FormsModule, Button, Checkbox, InputText, RouterLink, Select, MatchCard, MatchActionSheet],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="matches-page">
+    <main class="matches-page" data-tour-page="matches">
       <header class="page-hero">
         <div><p class="eyebrow">Scendi in campo</p><h1>Trova una partita</h1></div>
         <p>Filtra per luogo, livello e disponibilità. I posti si aggiornano in tempo reale.</p>

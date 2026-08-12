@@ -4,6 +4,7 @@ import { motionAllowed } from '../../../shared/motion/reveal.directive';
 import { RouterLink, RouterLinkActive } from '@angular/router';
 import { AuthStore } from '../../auth/store/auth.store';
 import { NotificationBell } from '../../notifications/components/notification-bell';
+import { TourLauncherService } from '../../../core/tours/tour-launcher.service';
 
 @Component({
   selector: 'app-header',
@@ -17,7 +18,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
 
       <nav aria-label="Navigazione desktop" #navEl>
         <span class="nav-marker" aria-hidden="true"></span>
-        <a routerLink="/app" routerLinkActive="is-active"><i class="pi pi-home"></i> Home</a>
+        <a data-tour-nav="home" routerLink="/app" routerLinkActive="is-active"><i class="pi pi-home"></i> Home</a>
         <a routerLink="/partite" routerLinkActive="is-active"><i class="pi pi-users"></i> Partite</a>
         <a routerLink="/tornei" routerLinkActive="is-active"><i class="pi pi-trophy"></i> Tornei</a>
         <a routerLink="/campi" routerLinkActive="is-active"><i class="pi pi-map-marker"></i> Campi</a>
@@ -34,6 +35,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
           <a class="icon-action" routerLink="/admin/utenti" aria-label="Gestione utenti" title="Gestione utenti"><i class="pi pi-users" aria-hidden="true"></i></a>
         }
         <app-notification-bell />
+        <button class="icon-action tour-help" type="button" aria-label="Riavvia il tour guidato" title="Riavvia il tour guidato" (click)="restartTour()"><i class="pi pi-compass" aria-hidden="true"></i></button>
         <button class="icon-action logout" type="button" aria-label="Esci" (click)="logout()"><i class="pi pi-sign-out" aria-hidden="true"></i></button>
         <a class="user-avatar" routerLink="/profilo" aria-label="Apri il tuo profilo">
           @if (avatarUrl(); as url) {
@@ -67,7 +69,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
     .user-name { display: none; max-width: 15ch; overflow: hidden; color: var(--color-ink); font-size: .74rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .user-name small { display: block; color: var(--color-ink-muted); font-size: .62rem; font-weight: 650; text-align: right; }
     .icon-action { position: relative; display: none; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: var(--radius); background: var(--color-surface-muted); font: inherit; text-decoration: none; cursor: pointer; }
-    .icon-action.notifications, .icon-action.logout { display: grid; }
+    .icon-action.notifications, .icon-action.logout, .icon-action.tour-help { display: grid; }
     .icon-action:hover { color: var(--color-brand-strong); transform: translateY(-1px); }
     .notifications span { position: absolute; top: 8px; right: 8px; width: 7px; height: 7px; border: 2px solid var(--color-surface-muted); border-radius: 50%; background: var(--color-brand); }
     .user-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; overflow: hidden; color: white; border-radius: var(--radius); background: var(--color-brand); font-size: .68rem; font-weight: 850; text-decoration: none; }
@@ -83,6 +85,7 @@ import { NotificationBell } from '../../notifications/components/notification-be
 })
 export class Header {
   protected readonly authStore = inject(AuthStore);
+  private readonly tourLauncher = inject(TourLauncherService);
   protected readonly avatarBroken = signal(false);
   /** Segue lo snapshot del profilo: cambiando la foto la navbar si aggiorna da sola. */
   protected readonly avatarUrl = computed(() => (this.avatarBroken() ? null : this.authStore.profile()?.avatar_url ?? null));
@@ -125,6 +128,7 @@ export class Header {
   }
 
   protected logout(): void { void this.authStore.logout(); }
+  protected restartTour(): void { void this.tourLauncher.restart(); }
 
   protected userInitials(): string {
     return this.authStore.userName().split(/\s+/).filter(Boolean).slice(0, 2).map((part) => part[0]).join('').toUpperCase() || 'BV';

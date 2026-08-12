@@ -3,6 +3,8 @@ import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { Court } from '../../matches/models/match.model';
 import { CreateTournamentRequest, Tournament, TournamentGameDraft, TournamentRules } from '../models/tournament.model';
+import { AuthStore } from '../../auth/store/auth.store';
+import { DemoData } from '../../demo/demo-data';
 
 const TOURNAMENT_SELECT = `
   *,
@@ -17,32 +19,39 @@ const TOURNAMENT_SELECT = `
 @Injectable({ providedIn: 'root' })
 export class TournamentsService {
   private readonly supabase = inject(SupabaseService);
+  private readonly auth = inject(AuthStore);
+  private readonly demo = inject(DemoData);
 
   async getTournaments(): Promise<readonly Tournament[]> {
+    if (this.auth.isDemo()) return this.demo.tournaments;
     const { data, error } = await this.supabase.client.from('tournaments').select(TOURNAMENT_SELECT).order('starts_at');
     if (error) throw error;
     return (data ?? []).map(item => this.normalize(item));
   }
 
   async getTournament(id: string): Promise<Tournament> {
+    if (this.auth.isDemo()) return this.demo.tournaments.find(item => item.id === id) ?? this.demo.tournaments[0];
     const { data, error } = await this.supabase.client.from('tournaments').select(TOURNAMENT_SELECT).eq('id', id).single();
     if (error) throw error;
     return this.normalize(data);
   }
 
   async getCourts(): Promise<readonly Court[]> {
+    if (this.auth.isDemo()) return this.demo.courts;
     const { data, error } = await this.supabase.client.from('courts').select('id,venue_id,name,surface,indoor,venue:venues!courts_venue_id_fkey(id,name,address,city,latitude,longitude)').eq('active', true).order('name');
     if (error) throw error;
     return (data ?? []) as unknown as Court[];
   }
 
   async getPlayers(): Promise<readonly { id: string; nome: string; cognome: string; livello: number; lato_preferito?: string }[]> {
+    if (this.auth.isDemo()) return this.demo.friends;
     const { data, error } = await this.supabase.client.rpc('list_invitable_players');
     if (error) throw error;
     return data ?? [];
   }
 
   async create(request: CreateTournamentRequest): Promise<Tournament> {
+    if (this.auth.isDemo()) return this.demo.tournaments[0];
     const { data, error } = await this.supabase.client.rpc('create_tournament', {
       p_title: request.title, p_description: request.description, p_venue_id: request.venueId,
       p_court_ids: request.courtIds, p_gender: request.gender,
@@ -106,6 +115,7 @@ export class TournamentsService {
   }
   /** Carica il logo nel bucket pubblico e restituisce l'indirizzo definitivo. */
   async uploadLogo(file: File): Promise<string> {
+    if (this.auth.isDemo()) return URL.createObjectURL(file);
     const extension = (file.name.split('.').pop() || 'png').toLowerCase();
     const path = `${crypto.randomUUID()}.${extension}`;
     const { error } = await this.supabase.client.storage.from('tournament-logos')
@@ -161,6 +171,7 @@ export class TournamentsService {
   async generateGroupGames(tournamentId: string, groupId: string): Promise<void> { await this.rpc('generate_tournament_group_games', { p_tournament_id: tournamentId, p_group_id: groupId }); }
 
   subscribe(id: string | null, onChange: () => void): RealtimeChannel {
+    if (this.auth.isDemo()) return { unsubscribe: () => undefined } as unknown as RealtimeChannel;
     const filter = id ? `tournament_id=eq.${id}` : undefined;
     return this.supabase.client.channel(`tournaments-wave-4-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournaments' }, onChange)
@@ -169,15 +180,17 @@ export class TournamentsService {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'tournament_games', filter }, onChange).subscribe();
   }
   async setVisibility(tournamentId: string, visibility: 'public' | 'private'): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc('set_tournament_visibility', {
       p_tournament_id: tournamentId, p_visibility: visibility,
     });
     if (error) throw error;
   }
 
-  removeChannel(channel: RealtimeChannel): void { void this.supabase.client.removeChannel(channel); }
+  removeChannel(channel: RealtimeChannel): void { if (!this.auth.isDemo()) void this.supabase.client.removeChannel(channel); }
 
   private async rpc(name: string, args: Record<string, unknown>): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc(name, args); if (error) throw error;
   }
   private normalize(value: unknown): Tournament {

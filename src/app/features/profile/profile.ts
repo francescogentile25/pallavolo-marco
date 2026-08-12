@@ -23,7 +23,7 @@ import { Reveal } from '../../shared/motion/reveal.directive';
   imports: [ReactiveFormsModule, FormsModule, RouterLink, ButtonModule, Dialog, InputText, Select, ToggleSwitch, Tooltip, ProfileHistoryChart, PlaceSelect, Reveal],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="profile-page">
+    <main class="profile-page" data-tour-page="profile">
       @if (store.loading() && !store.profile()) {
         <div class="loading-state" role="status"><span class="spinner"></span> Caricamento profilo</div>
       } @else if (store.profile(); as profile) {

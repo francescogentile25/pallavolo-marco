@@ -13,11 +13,7 @@ export const routes: Routes = [
   },
   {
     path: 'demo/:ruolo',
-    loadComponent: () => import('./features/demo/demo-page').then(c => c.DemoPage),
-  },
-  {
-    path: 'demo/:ruolo/:sezione',
-    loadComponent: () => import('./features/demo/demo-section-page').then(c => c.DemoSectionPage),
+    loadComponent: () => import('./features/demo/demo-entry').then(c => c.DemoEntry),
   },
   {
     path: '',

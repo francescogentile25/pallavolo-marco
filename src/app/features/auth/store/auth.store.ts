@@ -16,10 +16,13 @@ const initialState: AuthState = {
   initialized: false,
   needsOnboarding: false,
   error: null,
+  demoMode: false,
 };
 
 const OAUTH_RETURN_URL_KEY = 'bvh:oauth-return-url';
 const OAUTH_OUTCOME_KEY = 'bvh:oauth-outcome';
+const DEMO_ROLE_KEY = 'bvh:demo-role';
+const DEMO_USER_ID = '00000000-0000-4000-8000-000000000001';
 
 let authSubscription: Subscription | undefined;
 
@@ -36,7 +39,7 @@ function readableAuthError(message: string): string {
 export const AuthStore = signalStore(
   { providedIn: 'root' },
   withState(initialState),
-  withComputed(({ profile }) => {
+  withComputed(({ profile, demoMode }) => {
     const capabilities = computed(() => capabilitiesForRole(profile()?.ruolo));
     return {
     userName: computed(() => {
@@ -49,6 +52,7 @@ export const AuthStore = signalStore(
     canAdministerApplication: computed(() => capabilities().administerApplication),
     roleLabel: computed(() => profile() ? USER_ROLE_LABELS[profile()!.ruolo] : ''),
     capabilities,
+    isDemo: computed(() => demoMode()),
   };}),
   withMethods(
     (
@@ -66,6 +70,7 @@ export const AuthStore = signalStore(
           initialized: true,
           needsOnboarding: false,
           error: null,
+          demoMode: false,
         });
       };
 
@@ -129,6 +134,16 @@ export const AuthStore = signalStore(
 
       return {
         async initialize(): Promise<void> {
+          const demoRole = sessionStorage.getItem(DEMO_ROLE_KEY);
+          if (demoRole === 'giocatore' || demoRole === 'organizzatore') {
+            const now = new Date().toISOString();
+            patchState(store, {
+              authUser: { id: DEMO_USER_ID, email: 'marco.demo@beachvolleyhub.it', user_metadata: {}, app_metadata: {}, aud: 'authenticated', created_at: now } as User,
+              profile: { id: DEMO_USER_ID, nome: 'Marco', cognome: 'Demo', email: 'marco.demo@beachvolleyhub.it', ruolo: demoRole, attivo: true, livello: 4.3, affidabilita: 96, lato_preferito: 'indifferente', avatar_url: null, autovalutazione: 4, in_app_notifications_enabled: true, city: 'Pescara', city_latitude: 42.4618, city_longitude: 14.2161, city_place_id: 1, registration_completed_at: now, created_at: now, updated_at: now },
+              isAuthenticated: true, loading: false, initialized: true, needsOnboarding: false, error: null, demoMode: true,
+            });
+            return;
+          }
           const { data, error } = await authService.getSession();
           if (error || !data.session?.user) {
             clearSession();
@@ -138,6 +153,7 @@ export const AuthStore = signalStore(
         },
 
         async handleAuthUser(authUser: User | null): Promise<void> {
+          if (store.demoMode()) return;
           if (!authUser) {
             clearSession();
             return;
@@ -247,6 +263,12 @@ export const AuthStore = signalStore(
         },
 
         async logout(): Promise<void> {
+          if (store.demoMode()) {
+            sessionStorage.removeItem(DEMO_ROLE_KEY);
+            clearSession();
+            await router.navigateByUrl('/');
+            return;
+          }
           patchState(store, { loading: true });
           await authService.logout();
           clearSession();
@@ -270,6 +292,15 @@ export const AuthStore = signalStore(
           if (profile.id === store.authUser()?.id) {
             patchState(store, { profile });
           }
+        },
+        async enterDemo(role: 'giocatore' | 'organizzatore'): Promise<void> {
+          sessionStorage.setItem(DEMO_ROLE_KEY, role);
+          await this.initialize();
+          await router.navigateByUrl('/app');
+        },
+        async changeDemoRole(role: 'giocatore' | 'organizzatore'): Promise<void> {
+          sessionStorage.setItem(DEMO_ROLE_KEY, role);
+          await this.initialize();
         },
       };
     },

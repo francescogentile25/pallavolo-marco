@@ -2,6 +2,8 @@ import { inject, Injectable, signal } from '@angular/core';
 import { RealtimeChannel } from '@supabase/supabase-js';
 import { SupabaseService } from '../../../core/services/supabase.service';
 import { AppNotification, AppNotificationType, NotificationsPage } from '../models/notification.model';
+import { AuthStore } from '../../auth/store/auth.store';
+import { DemoData } from '../../demo/demo-data';
 
 const RECENT_LIMIT = 15;
 
@@ -38,6 +40,8 @@ const META: Record<AppNotificationType, TypeMeta> = {
 @Injectable({ providedIn: 'root' })
 export class NotificationsService {
   private readonly supabase = inject(SupabaseService);
+  private readonly auth = inject(AuthStore);
+  private readonly demo = inject(DemoData);
   private channel: RealtimeChannel | null = null;
   private connectedUserId: string | null = null;
 
@@ -46,6 +50,7 @@ export class NotificationsService {
 
   /** Apre la connessione realtime per l'utente e carica i recenti. Idempotente. */
   async connect(userId: string): Promise<void> {
+    if (this.auth.isDemo()) { this.notifications.set(this.demo.notifications); this.unreadCount.set(this.demo.notifications.filter(item => !item.is_read).length); return; }
     if (this.connectedUserId === userId && this.channel) return;
     await this.disconnect();
     this.connectedUserId = userId;
@@ -76,6 +81,7 @@ export class NotificationsService {
   }
 
   async loadRecent(): Promise<void> {
+    if (this.auth.isDemo()) { this.notifications.set(this.demo.notifications); this.unreadCount.set(this.demo.notifications.filter(item => !item.is_read).length); return; }
     const { data } = await this.supabase.client
       .from('notifications')
       .select('*')
@@ -90,6 +96,7 @@ export class NotificationsService {
   }
 
   async fetchPage(page: number, pageSize: number): Promise<NotificationsPage> {
+    if (this.auth.isDemo()) { const from = (page - 1) * pageSize; return { items: this.demo.notifications.slice(from, from + pageSize), total: this.demo.notifications.length }; }
     const from = (page - 1) * pageSize;
     const { data, count } = await this.supabase.client
       .from('notifications')
@@ -101,6 +108,7 @@ export class NotificationsService {
 
   async markRead(id: number): Promise<void> {
     if (this.notifications().find((n) => n.id === id)?.is_read) return;
+    if (this.auth.isDemo()) { this.notifications.update(list => list.map(n => n.id === id ? { ...n, is_read: true } : n)); this.unreadCount.update(c => Math.max(0, c - 1)); return; }
     const { data } = await this.supabase.client.rpc('mark_notification_read', { p_id: id });
     if (typeof data === 'number') this.unreadCount.set(data);
     this.notifications.update((list) => list.map((n) => (n.id === id ? { ...n, is_read: true } : n)));
@@ -108,7 +116,7 @@ export class NotificationsService {
 
   async markAllRead(): Promise<void> {
     if (this.unreadCount() === 0) return;
-    await this.supabase.client.rpc('mark_all_notifications_read');
+    if (!this.auth.isDemo()) await this.supabase.client.rpc('mark_all_notifications_read');
     this.unreadCount.set(0);
     this.notifications.update((list) => list.map((n) => ({ ...n, is_read: true })));
   }
@@ -126,7 +134,7 @@ export class NotificationsService {
     if (n.type === 'name_change_request') return ['/admin/utenti'];
     if (n.tournament_id) return ['/tornei', n.tournament_id];
     if (n.match_id) return ['/partite', n.match_id];
-    return ['/'];
+    return ['/app'];
   }
 
   timeAgo(iso: string): string {

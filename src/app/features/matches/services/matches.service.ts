@@ -13,6 +13,8 @@ import {
   UpdateMatchRequest,
 } from '../models/match.model';
 import { hasCompleteMatchRelations } from '../matches.utils';
+import { AuthStore } from '../../auth/store/auth.store';
+import { DemoData } from '../../demo/demo-data';
 
 const MATCH_SELECT = `
   *,
@@ -26,8 +28,11 @@ const MATCH_SELECT = `
 @Injectable({ providedIn: 'root' })
 export class MatchesService {
   private readonly supabase = inject(SupabaseService);
+  private readonly auth = inject(AuthStore);
+  private readonly demo = inject(DemoData);
 
   async getMatches(): Promise<readonly BeachMatch[]> {
+    if (this.auth.isDemo()) return this.demo.matches;
     await this.refreshStatuses();
     const { data, error } = await this.supabase.client
       .from('matches')
@@ -41,6 +46,7 @@ export class MatchesService {
   }
 
   async getMyMatches(userId: string): Promise<readonly BeachMatch[]> {
+    if (this.auth.isDemo()) return this.demo.myMatches;
     await this.refreshStatuses();
     const { data: memberships, error: membershipError } = await this.supabase.client
       .from('match_participants')
@@ -60,6 +66,7 @@ export class MatchesService {
   }
 
   async getMatch(matchId: string): Promise<MatchDetails> {
+    if (this.auth.isDemo()) return this.demo.getMatch(matchId);
     await this.refreshStatuses();
     const [{ data, error }, participants] = await Promise.all([
       this.supabase.client.from('matches').select(MATCH_SELECT).eq('id', matchId).single(),
@@ -73,6 +80,7 @@ export class MatchesService {
   }
 
   async getCourts(): Promise<readonly Court[]> {
+    if (this.auth.isDemo()) return this.demo.courts;
     // Solo i campi personali (creati o ereditati giocando), via RPC.
     const { data, error } = await this.supabase.client.rpc('list_my_courts');
     if (error) throw error;
@@ -88,12 +96,14 @@ export class MatchesService {
   }
 
   async getInvitablePlayers(): Promise<readonly InvitablePlayer[]> {
+    if (this.auth.isDemo()) return this.demo.friends.map(item => ({ ...item, avatar_url: null }));
     const { data, error } = await this.supabase.client.rpc('list_invitable_players');
     if (error) throw error;
     return (data ?? []) as InvitablePlayer[];
   }
 
   async createCourt(request: CreateCourtRequest): Promise<Court> {
+    if (this.auth.isDemo()) return this.demo.courts[0];
     const { data, error } = await this.supabase.client.rpc('create_court_with_venue', {
       p_venue_name: request.venueName,
       p_address: request.address,
@@ -111,6 +121,7 @@ export class MatchesService {
   }
 
   async createMatch(request: CreateMatchRequest): Promise<MatchDetails> {
+    if (this.auth.isDemo()) return this.demo.getMatch('match-aurora');
     const { data, error } = await this.supabase.client.rpc('create_match', {
       p_court_id: request.courtId,
       p_gender: request.gender,
@@ -127,6 +138,7 @@ export class MatchesService {
   }
 
   async updateMatch(request: UpdateMatchRequest): Promise<MatchDetails> {
+    if (this.auth.isDemo()) return this.demo.getMatch(request.matchId);
     const { data, error } = await this.supabase.client.rpc('update_match', {
       p_match_id: request.matchId,
       p_court_id: request.courtId,
@@ -143,26 +155,31 @@ export class MatchesService {
   }
 
   async join(matchId: string): Promise<void> {
+    if (this.auth.isDemo()) { this.demo.join(matchId); return; }
     const { error } = await this.supabase.client.rpc('join_match', { p_match_id: matchId });
     if (error) throw error;
   }
 
   async withdraw(matchId: string): Promise<void> {
+    if (this.auth.isDemo()) { this.demo.withdraw(matchId); return; }
     const { error } = await this.supabase.client.rpc('withdraw_from_match', { p_match_id: matchId });
     if (error) throw error;
   }
 
   async cancel(matchId: string): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc('cancel_match', { p_match_id: matchId });
     if (error) throw error;
   }
 
   async close(matchId: string): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc('close_match', { p_match_id: matchId });
     if (error) throw error;
   }
 
   async rate(matchId: string, profileId: string, score: number): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc('submit_match_rating', {
       p_match_id: matchId,
       p_rated_profile_id: profileId,
@@ -172,6 +189,7 @@ export class MatchesService {
   }
 
   async reportNoShow(matchId: string, profileId: string, reason: string): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc('report_match_no_show', {
       p_match_id: matchId,
       p_profile_id: profileId,
@@ -181,6 +199,7 @@ export class MatchesService {
   }
 
   async setMatchVisibility(matchId: string, visibility: MatchVisibility): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc('set_match_visibility', {
       p_match_id: matchId,
       p_visibility: visibility,
@@ -189,6 +208,7 @@ export class MatchesService {
   }
 
   subscribeToMatchChanges(onChange: () => void): RealtimeChannel {
+    if (this.auth.isDemo()) return { unsubscribe: () => undefined } as unknown as RealtimeChannel;
     return this.supabase.client
       .channel(`matches-wave-2-${crypto.randomUUID()}`)
       .on('postgres_changes', { event: '*', schema: 'public', table: 'matches' }, onChange)
@@ -199,6 +219,7 @@ export class MatchesService {
   }
 
   removeChannel(channel: RealtimeChannel): void {
+    if (this.auth.isDemo()) return;
     void this.supabase.client.removeChannel(channel);
   }
 
@@ -211,6 +232,7 @@ export class MatchesService {
   }
 
   private async refreshStatuses(): Promise<void> {
+    if (this.auth.isDemo()) return;
     const { error } = await this.supabase.client.rpc('refresh_match_statuses');
     if (error) throw error;
   }

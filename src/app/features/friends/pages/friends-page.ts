@@ -14,7 +14,7 @@ import { FriendsService } from '../services/friends.service';
   imports: [FormsModule, RouterLink, Accordion, AccordionContent, AccordionHeader, AccordionPanel, Button, InputText, Paginator],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="friends-page">
+    <main class="friends-page" data-tour-page="friends">
       <header class="friends-hero">
         <p class="eyebrow">La tua rete</p>
         <h1>Amici</h1>

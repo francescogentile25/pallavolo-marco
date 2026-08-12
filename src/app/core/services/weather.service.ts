@@ -1,6 +1,7 @@
 import { inject, Injectable } from '@angular/core';
 import { Coordinates, roundCoordinates, WeatherPoint, WeatherSnapshot } from '../../shared/weather/weather.model';
 import { PlacesService } from './places.service';
+import { AuthStore } from '../../features/auth/store/auth.store';
 
 const FORECAST_URL = 'https://api.open-meteo.com/v1/forecast';
 const CURRENT_FIELDS = 'temperature_2m,relative_humidity_2m,apparent_temperature,precipitation,weather_code,wind_speed_10m,wind_gusts_10m,uv_index';
@@ -31,6 +32,7 @@ interface ForecastResponse {
 export class WeatherService {
   private readonly memory = new Map<string, CacheEntry<unknown>>();
   private readonly places = inject(PlacesService);
+  private readonly auth = inject(AuthStore);
 
   /** Coordinate di una sede: quelle salvate se ci sono, altrimenti il comune risolto. */
   async coordinatesForCity(city: string | null | undefined, saved?: Coordinates | null): Promise<Coordinates | null> {
@@ -41,6 +43,10 @@ export class WeatherService {
 
   /** Condizioni attuali e tramonto: quello che serve alla testata della home. */
   async snapshot(coordinates: Coordinates): Promise<WeatherSnapshot | null> {
+    if (this.auth.isDemo()) {
+      const point = (offset: number): WeatherPoint => ({ time: new Date(Date.now() + offset * 3600000).toISOString(), temperature: 29 - Math.floor(offset / 3), apparentTemperature: 30, humidity: 54, precipitation: 0, precipitationProbability: 5, weatherCode: 0, windSpeed: 12, windGusts: 18, uvIndex: offset < 4 ? 6 : 2 });
+      return { current: point(0), hours: Array.from({ length: 12 }, (_, index) => point(index + 1)), sunrise: new Date().toISOString(), sunset: new Date(Date.now() + 6 * 3600000).toISOString() };
+    }
     const { latitude, longitude } = roundCoordinates(coordinates);
     const key = `now:${latitude},${longitude}`;
     const cached = this.read<WeatherSnapshot | null>(key, FORECAST_TTL);
@@ -69,6 +75,7 @@ export class WeatherService {
    * quando l'evento e passato o troppo lontano perche esista una previsione.
    */
   async forecastAt(coordinates: Coordinates, instant: string): Promise<WeatherPoint | null> {
+    if (this.auth.isDemo()) return { time: instant, temperature: 27, apparentTemperature: 28, humidity: 57, precipitation: 0, precipitationProbability: 5, weatherCode: 0, windSpeed: 10, windGusts: 16, uvIndex: 3 };
     const target = Date.parse(instant);
     if (!Number.isFinite(target)) return null;
     const distance = target - Date.now();

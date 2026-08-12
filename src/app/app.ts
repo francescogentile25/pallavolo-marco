@@ -5,10 +5,12 @@ import { PrimeNG } from "primeng/config";
 import { ConfirmDialog } from "primeng/confirmdialog";
 import { ConfirmationService } from "primeng/api";
 import { AuthStore } from './features/auth/store/auth.store';
+import { GuidedTourOverlay } from './shared/components/guided-tour/guided-tour-overlay';
+import { TourLauncherService } from './core/tours/tour-launcher.service';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet, Toast, ConfirmDialog],
+  imports: [RouterOutlet, Toast, ConfirmDialog, GuidedTourOverlay],
   templateUrl: './app.html',
   styleUrl: './app.scss',
   providers: [ConfirmationService]
@@ -16,6 +18,7 @@ import { AuthStore } from './features/auth/store/auth.store';
 export class App implements OnInit {
   private primeng = inject(PrimeNG);
   protected readonly authStore = inject(AuthStore);
+  private readonly tourLauncher = inject(TourLauncherService);
   ngOnInit() {
     this.primeng.setTranslation({
       emptyMessage: 'Nessun risultato trovato',

@@ -8,6 +8,8 @@ incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
 
 ## Snapshot
 
+Il tour guidato cross-route è integrato nella UI reale: per i visitatori pubblici parte sempre con dati mock, varia tra giocatore e organizzatore e per gli utenti autenticati viene mostrato una sola volta tramite preferenza Supabase con RLS. La bussola nell'header lo riavvia; su mobile usa una scheda inferiore compatta.
+
 | Voce | Stato |
 | --- | --- |
 | Ambiente locale | Operativo |
@@ -57,9 +59,9 @@ incremento significativo e alla chiusura di ogni onda. La roadmap completa è in
 - [x] Registro globale delle azioni pagina.
 - [x] Placeholder navigabili per partite, tornei, profilo e notifiche.
 - [x] Homepage pubblica separata dall'applicazione autenticata.
-- [x] Demo interattiva con dati mock per i percorsi giocatore e organizzatore.
-- [x] Stato demo isolato in `sessionStorage`, ripristinabile e senza accesso ai dati Supabase.
-- [x] Demo navigabile fra Home, Partite, Tornei, Campi, Amici, Profilo e Notifiche.
+- [x] Demo interattiva eseguita nella stessa shell e negli stessi componenti dell'app autenticata.
+- [x] Repository mock selezionati dalla sessione demo, senza accesso ai dati Supabase.
+- [x] Navigazione reale fra Home, Partite, Tornei, Campi, Amici, Profilo e Notifiche.
 - [x] Scenario mock coerente con città, meteo locale, amici, calendario e campi vicini.
 
 ## Implementazione parziale

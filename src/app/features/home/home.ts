@@ -33,7 +33,7 @@ const DAY = 24 * 60 * 60 * 1000;
   imports: [DatePipe, NgTemplateOutlet, RouterLink, Tooltip, WeatherPanel, WeatherHours, HomeCalendar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main class="page">
+    <main class="page" data-tour-page="home">
       <section class="hero" [class.hero-empty]="!nextMatch()" #hero>
         <img class="hero-media" #heroMedia src="assets/images/tournaments-hero.webp" alt="" fetchpriority="high" decoding="async" />
         <span class="hero-veil" aria-hidden="true"></span>

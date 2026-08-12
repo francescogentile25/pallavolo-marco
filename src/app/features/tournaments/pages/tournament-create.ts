@@ -38,7 +38,7 @@ interface TournamentDraft {
   imports: [Button, CurrencyPipe, DatePicker, FormsModule, InputNumber, InputText, PlaceSelect, Select, Textarea],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
-    <main>
+    <main data-tour-page="organize-tournament">
       <header class="create-hero">
         <div>
           <p class="eyebrow">Console organizzatore</p>
