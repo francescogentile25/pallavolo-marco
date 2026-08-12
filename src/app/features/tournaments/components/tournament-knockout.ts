@@ -245,20 +245,21 @@ interface RoundColumn { number: number; title: string; pairs: TournamentGame[][]
     .drag-preview{padding:10px 14px;color:#fff;border-radius:var(--radius);background:#1740b0;box-shadow:0 14px 30px rgb(3 105 161/.24);font-size:.72rem;font-weight:850}
 
     /* ---- albero del tabellone ---- */
-    .podium-card{display:grid;gap:14px;padding:16px;border:1px solid #d9cdb4;border-radius:var(--radius-lg);background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.03)}
+    .podium-card{display:grid;width:100%;min-width:0;max-width:100%;gap:14px;padding:16px;border:1px solid #d9cdb4;border-radius:var(--radius-lg);background:#fff;box-shadow:0 4px 14px rgb(15 23 42/.03)}
     .podium-card header{display:flex;align-items:center;gap:10px}
+    .podium-card header>div{min-width:0}
     .podium-card header>i{display:grid;width:40px;height:40px;place-items:center;color:#f59e0b;border-radius:var(--radius);background:#fff4d6;font-size:1.05rem}
     .podium-card h4{margin:0;font:900 1.05rem/1 var(--display-font);letter-spacing:-.03em}
     .podium-card small{color:#5b6a72;font-size:.62rem;line-height:1.35}
-    .podium-slots{display:grid;grid-template-columns:minmax(0,1fr);gap:10px}
+    .podium-slots{display:grid;width:100%;min-width:0;max-width:100%;grid-template-columns:minmax(0,1fr);gap:10px}
     .podium-slot{display:grid;min-width:0;gap:8px;padding:12px;border:1px solid #d9cdb4;border-left-width:5px;border-radius:var(--radius);background:#faf7f0}
     .podium-slot>span{display:inline-flex;min-width:0;align-items:center;gap:9px;font-size:.7rem;font-weight:850;letter-spacing:.02em}
     .podium-slot>span>i{margin-left:auto;font-size:.95rem}
     .podium-slot>strong{font-size:.78rem;overflow-wrap:anywhere}
     /* Una coppia dal nome lungo allargava la scheda oltre la colonna: ora il
        nome si tronca dentro il suo spazio invece di spingere il bordo. */
-    .podium-slot ::ng-deep .p-select{max-width:100%}
-    .podium-slot ::ng-deep .p-select-label{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+    .podium-slot ::ng-deep .p-select{width:100%;min-width:0;max-width:100%}
+    .podium-slot ::ng-deep .p-select-label{width:1%;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
     .medal{display:grid;width:26px;height:26px;flex:0 0 26px;place-items:center;border-radius:50%;color:#fff;font:800 .78rem/1 var(--display-font)}
     /* oro, argento e bronzo: il primo posto pesa piu degli altri due */
     .podium-slot.place-1{border-color:#e0a72e;border-left-color:#e0a72e;background:#fdf4e0;box-shadow:0 3px 12px rgb(224 167 46 / .22)}

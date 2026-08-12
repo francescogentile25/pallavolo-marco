@@ -9,15 +9,21 @@ describe('tournaments utilities', () => {
   });
 
   it('riserva la formula lunga all’ultima partita del tabellone', () => {
-    const rules = { group_best_of: 1, knockout_best_of: 3 } as const;
-    const final = { phase: 'knockout' as const, next_game_id: null };
-    const semifinal = { phase: 'knockout' as const, next_game_id: 'game-finale' };
-    const groupGame = { phase: 'group' as const, next_game_id: null };
-    const thirdPlace = { phase: 'third_place' as const, next_game_id: null };
+    const semifinal = { id: 'semi', phase: 'knockout' as const, bracket_no: 1, round_no: 1, position: 1 };
+    const final = { id: 'final', phase: 'knockout' as const, bracket_no: 1, round_no: 2, position: 1 };
+    const consolationFinal = { id: 'consolation', phase: 'knockout' as const, bracket_no: 2, round_no: 2, position: 1 };
+    const groupGame = { id: 'group', phase: 'group' as const, bracket_no: 1, round_no: 1, position: 1 };
+    const thirdPlace = { id: 'third', phase: 'third_place' as const, bracket_no: 1, round_no: 2, position: 1 };
+    const rules = {
+      group_best_of: 1,
+      knockout_best_of: 3,
+      games: [semifinal, final, consolationFinal, groupGame, thirdPlace],
+    } as unknown as Pick<Tournament, 'group_best_of' | 'knockout_best_of' | 'games'>;
 
-    expect(isFinalGame(final)).toBeTrue();
-    expect(isFinalGame(semifinal)).toBeFalse();
-    expect(isFinalGame(groupGame)).toBeFalse();
+    expect(isFinalGame(rules, final)).toBeTrue();
+    expect(isFinalGame(rules, semifinal)).toBeFalse();
+    expect(isFinalGame(rules, consolationFinal)).toBeFalse();
+    expect(isFinalGame(rules, groupGame)).toBeFalse();
 
     expect(setsForGame(rules, final)).toBe(3);
     expect(setsForGame(rules, semifinal)).toBe(1);

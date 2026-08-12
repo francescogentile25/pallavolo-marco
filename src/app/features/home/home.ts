@@ -2,7 +2,7 @@ import { afterRenderEffect, ChangeDetectionStrategy, Component, computed, effect
 import type { gsap } from 'gsap';
 import type { ScrollTrigger as ScrollTriggerType } from 'gsap/ScrollTrigger';
 import { loadMotion } from '../../shared/motion/gsap-loader';
-import { DatePipe } from '@angular/common';
+import { DatePipe, NgTemplateOutlet } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PageActionsService } from '../../core/services/page-actions.service';
 import { NearbyPlaces } from '../../shared/places/nearby.service';
@@ -19,6 +19,7 @@ import { TournamentsStore } from '../tournaments/store/tournaments.store';
 import { CalendarEvent, HomeCalendar } from './components/home-calendar';
 import { WeatherSnapshot } from '../../shared/weather/weather.model';
 import { matchVenuePoint as venuePoint, tournamentPoint } from '../../shared/places/place-points';
+import { balanceHomeDashboard, HomeDashboardColumns, HomeDashboardPanel, sameHomeDashboardColumns } from './home-dashboard.utils';
 
 const DAY = 24 * 60 * 60 * 1000;
 
@@ -29,7 +30,7 @@ const DAY = 24 * 60 * 60 * 1000;
  */
 @Component({
   selector: 'app-home',
-  imports: [DatePipe, RouterLink, Tooltip, WeatherPanel, WeatherHours, HomeCalendar],
+  imports: [DatePipe, NgTemplateOutlet, RouterLink, Tooltip, WeatherPanel, WeatherHours, HomeCalendar],
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <main class="page">
@@ -84,11 +85,21 @@ const DAY = 24 * 60 * 60 * 1000;
         </div>
       </section>
 
-      <section class="dashboard">
-        <div class="dashboard-column left-column">
-          <app-home-calendar [events]="calendarEvents()" />
-
-        <article class="panel list-panel matches-panel" aria-labelledby="open-matches-title">
+      <ng-template #dashboardPanel let-panel>
+        @switch (panel) {
+          @case ('calendar') {
+            <app-home-calendar data-dashboard-panel="calendar" [events]="calendarEvents()" />
+          }
+          @case ('weather') {
+            <div class="sky-column" data-dashboard-panel="weather">
+              <app-weather-panel [latitude]="cityLatitude()" [longitude]="cityLongitude()" [place]="cityName()" (snapshotChange)="forecast.set($event)" />
+              @if (forecast(); as data) {
+                <app-weather-hours [hours]="data.hours" [sunrise]="data.sunrise" [sunset]="data.sunset" />
+              }
+            </div>
+          }
+          @case ('matches') {
+        <article class="panel list-panel matches-panel" data-dashboard-panel="matches" aria-labelledby="open-matches-title">
           <div class="section-head">
             <div>
               <span class="eyebrow">{{ nearbyLabel() }}</span>
@@ -129,18 +140,9 @@ const DAY = 24 * 60 * 60 * 1000;
             }
           </div>
         </article>
-
-        </div>
-
-        <div class="dashboard-column right-column">
-          <div class="sky-column">
-            <app-weather-panel [latitude]="cityLatitude()" [longitude]="cityLongitude()" [place]="cityName()" (snapshotChange)="forecast.set($event)" />
-            @if (forecast(); as data) {
-              <app-weather-hours [hours]="data.hours" [sunrise]="data.sunrise" [sunset]="data.sunset" />
-            }
-          </div>
-
-        <article class="panel list-panel tournaments-panel" aria-labelledby="open-tournaments-title">
+          }
+          @case ('tournaments') {
+        <article class="panel list-panel tournaments-panel" data-dashboard-panel="tournaments" aria-labelledby="open-tournaments-title">
           <div class="section-head">
             <div>
               <span class="eyebrow">{{ nearbyLabel() }}</span>
@@ -179,6 +181,20 @@ const DAY = 24 * 60 * 60 * 1000;
             }
           </div>
         </article>
+          }
+        }
+      </ng-template>
+
+      <section class="dashboard" #dashboard>
+        <div class="dashboard-column left-column">
+          @for (panel of dashboardColumns().left; track panel) {
+            <ng-container [ngTemplateOutlet]="dashboardPanel" [ngTemplateOutletContext]="{ $implicit: panel }" />
+          }
+        </div>
+        <div class="dashboard-column right-column">
+          @for (panel of dashboardColumns().right; track panel) {
+            <ng-container [ngTemplateOutlet]="dashboardPanel" [ngTemplateOutletContext]="{ $implicit: panel }" />
+          }
         </div>
       </section>
     </main>
@@ -323,6 +339,7 @@ export class Home implements OnInit, OnDestroy {
   private readonly hero = viewChild<ElementRef<HTMLElement>>('hero');
   private readonly heroMedia = viewChild<ElementRef<HTMLElement>>('heroMedia');
   private readonly spotsValue = viewChild<ElementRef<HTMLElement>>('spotsValue');
+  private readonly dashboard = viewChild<ElementRef<HTMLElement>>('dashboard');
 
   private intro?: gsap.core.Timeline;
   private parallax?: ScrollTriggerType;
@@ -338,6 +355,10 @@ export class Home implements OnInit, OnDestroy {
   protected readonly nearby = inject(NearbyPlaces);
 
   protected readonly forecast = signal<WeatherSnapshot | null>(null);
+  protected readonly dashboardColumns = signal<HomeDashboardColumns>({
+    left: ['calendar', 'matches'],
+    right: ['weather', 'tournaments'],
+  });
   protected readonly cityName = computed(() => this.authStore.profile()?.city ?? null);
   protected readonly cityLatitude = computed(() => this.authStore.profile()?.city_latitude ?? null);
   protected readonly cityLongitude = computed(() => this.authStore.profile()?.city_longitude ?? null);
@@ -466,6 +487,40 @@ export class Home implements OnInit, OnDestroy {
       this.countedNode = node;
       untracked(() => void this.countSpots(node));
     });
+
+    // Ogni variazione di calendario, meteo o liste puo cambiare l'altezza dei
+    // pannelli. ResizeObserver ricalcola la colonna piu corta anche dopo i
+    // caricamenti asincroni, senza fissare altezze o lasciare spazi vuoti.
+    afterRenderEffect((onCleanup) => {
+      this.dashboardColumns();
+      const root = this.dashboard()?.nativeElement;
+      if (!root || typeof ResizeObserver === 'undefined') return;
+
+      const rebalance = (): void => this.rebalanceDashboard(root);
+      const observer = new ResizeObserver(rebalance);
+      observer.observe(root);
+      root.querySelectorAll<HTMLElement>('[data-dashboard-panel]').forEach(panel => observer.observe(panel));
+      queueMicrotask(rebalance);
+      onCleanup(() => observer.disconnect());
+    });
+  }
+
+  private rebalanceDashboard(root: HTMLElement): void {
+    if (typeof matchMedia !== 'function' || !matchMedia('(min-width: 1121px)').matches) return;
+    const heights: Record<HomeDashboardPanel, number> = {
+      calendar: 0,
+      weather: 0,
+      matches: 0,
+      tournaments: 0,
+    };
+    for (const panel of root.querySelectorAll<HTMLElement>('[data-dashboard-panel]')) {
+      const id = panel.dataset['dashboardPanel'] as HomeDashboardPanel | undefined;
+      if (id) heights[id] = panel.getBoundingClientRect().height;
+    }
+    if (Object.values(heights).some(height => height <= 0)) return;
+
+    const next = balanceHomeDashboard(heights);
+    if (!sameHomeDashboardColumns(this.dashboardColumns(), next)) this.dashboardColumns.set(next);
   }
 
   /** Ingresso orchestrato della testata, piu il parallasse della foto sullo scorrimento. */

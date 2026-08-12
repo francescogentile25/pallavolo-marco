@@ -14,13 +14,13 @@ import { TournamentsStore } from '../store/tournaments.store';
   changeDetection: ChangeDetectionStrategy.OnPush,
   template: `
     <section class="rule-card">
-      <div class="toolbar"><div><strong>Regole attive</strong><span>La formula lunga vale solo per l’ultima partita di ogni tabellone; tutte le altre seguono i set delle partite. Puoi cambiarle anche a torneo iniziato: non riscrivono risultati passati.</span></div></div>
+      <div class="toolbar"><div><strong>Regole attive</strong><span>La formula lunga vale solo per la finalissima del tabellone principale; tutte le altre seguono i set delle partite. Puoi cambiarle anche a torneo iniziato: non riscrivono risultati passati.</span></div></div>
       <div class="rule-grid">
         <label>Coppie massime<p-inputnumber [ngModel]="rules().maxTeams" (ngModelChange)="updateRule('maxTeams', $event ?? 2)" [min]="2" [max]="64" [showButtons]="true" fluid /></label>
         <label>Set nelle partite<p-select [ngModel]="rules().groupBestOf" (ngModelChange)="updateRule('groupBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
-        <label>Set nella finale<p-select [ngModel]="rules().knockoutBestOf" (ngModelChange)="updateRule('knockoutBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
+        <label>Set nella finalissima<p-select [ngModel]="rules().knockoutBestOf" (ngModelChange)="updateRule('knockoutBestOf', $event)" [options]="bestOfOptions" optionLabel="label" optionValue="value" fluid /></label>
         <label>Punti set partite<p-inputnumber [ngModel]="rules().groupSetPoints" (ngModelChange)="updateRule('groupSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
-        <label>Punti set finale<p-inputnumber [ngModel]="rules().knockoutSetPoints" (ngModelChange)="updateRule('knockoutSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
+        <label>Punti set finalissima<p-inputnumber [ngModel]="rules().knockoutSetPoints" (ngModelChange)="updateRule('knockoutSetPoints', $event ?? 21)" [min]="1" [max]="99" fluid /></label>
       </div>
       <div class="phases">
         <p class="phases-title">Fasi previste</p>

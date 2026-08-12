@@ -11,27 +11,34 @@ export function teamLabel(team: TournamentTeam | undefined): string {
 }
 
 /**
- * La finale e l'ultima partita del suo tabellone: nessun altro incontro la
- * segue. Solo li vale la formula lunga; il resto del torneo, gironi compresi,
- * gioca con la formula base.
+ * La finalissima e una sola: l'incontro dell'ultimo turno del tabellone
+ * principale. `next_game_id` non e affidabile per i tabelloni costruiti a mano,
+ * perche i loro incontri nascono tutti scollegati.
  */
-export function isFinalGame(game: Pick<TournamentGame, 'phase' | 'next_game_id'>): boolean {
-  return game.phase === 'knockout' && !game.next_game_id;
+export function isFinalGame(
+  tournament: Pick<Tournament, 'games'>,
+  game: Pick<TournamentGame, 'id' | 'phase' | 'bracket_no' | 'round_no' | 'position'>,
+): boolean {
+  if (game.phase !== 'knockout' || game.bracket_no !== 1) return false;
+  const final = (tournament.games ?? [])
+    .filter(item => item.phase === 'knockout' && item.bracket_no === 1)
+    .sort((first, second) => second.round_no - first.round_no || first.position - second.position)[0];
+  return final?.id === game.id;
 }
 
 /** Quanti set prevede la formula per questa partita. */
 export function setsForGame(
-  tournament: Pick<Tournament, 'group_best_of' | 'knockout_best_of'>,
-  game: Pick<TournamentGame, 'phase' | 'next_game_id'>,
+  tournament: Pick<Tournament, 'group_best_of' | 'knockout_best_of' | 'games'>,
+  game: Pick<TournamentGame, 'id' | 'phase' | 'bracket_no' | 'round_no' | 'position'>,
 ): number {
-  return isFinalGame(game) ? tournament.knockout_best_of : tournament.group_best_of;
+  return isFinalGame(tournament, game) ? tournament.knockout_best_of : tournament.group_best_of;
 }
 
 export function tournamentSummary(rules: TournamentRules): string {
   const registration = REGISTRATION_MODE_LABELS[rules.registrationMode];
   const format = FORMAT_LABELS[rules.format];
   const groups = rules.format === 'knockout' ? '' : ` · gironi da ${rules.groupSize}`;
-  const final = rules.format === 'groups' ? '' : ` · eliminazione al meglio di ${rules.knockoutBestOf}`;
+  const final = rules.format === 'groups' ? '' : ` · finalissima al meglio di ${rules.knockoutBestOf}`;
   return `${rules.maxTeams} coppie · ${registration} · ${format}${groups}${final}`;
 }
 
