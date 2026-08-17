@@ -1,4 +1,4 @@
-import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject, signal } from '@angular/core';
+import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementRef, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { loadMotion } from '../../shared/motion/gsap-loader';
 
@@ -10,13 +10,8 @@ import { loadMotion } from '../../shared/motion/gsap-loader';
   styleUrl: './public-home.scss',
 })
 export class PublicHome implements AfterViewInit {
-  protected readonly playerMoment = signal<'find' | 'join' | 'play'>('find');
   private readonly host = inject<ElementRef<HTMLElement>>(ElementRef);
   private readonly destroyRef = inject(DestroyRef);
-
-  protected showPlayerMoment(moment: 'find' | 'join' | 'play'): void {
-    this.playerMoment.set(moment);
-  }
 
   ngAfterViewInit(): void {
     const root = this.host.nativeElement;

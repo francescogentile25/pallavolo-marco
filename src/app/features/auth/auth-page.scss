@@ -41,6 +41,7 @@
 }
 
 .auth-panel {
+  position: relative;
   display: grid;
   align-content: center;
   padding:
@@ -48,6 +49,26 @@
     18px
     max(24px, env(safe-area-inset-bottom));
 }
+
+.back-to-showcase {
+  position: absolute;
+  top: max(18px, env(safe-area-inset-top));
+  left: 18px;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 9px 12px;
+  color: white;
+  border: 1px solid rgb(255 255 255 / .28);
+  border-radius: 12px;
+  background: rgb(3 16 22 / .2);
+  font-size: .75rem;
+  font-weight: 800;
+  text-decoration: none;
+  backdrop-filter: blur(10px);
+}
+
+.back-to-showcase:hover { background: rgb(255 255 255 / .16); }
 
 .mobile-brand {
   display: flex;
@@ -236,6 +257,7 @@
 
 .submit-button:focus-visible,
 .auth-switch a:focus-visible,
+.back-to-showcase:focus-visible,
 .mobile-brand:focus-visible {
   outline: 3px solid white;
   outline-offset: 3px;

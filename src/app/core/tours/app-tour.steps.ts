@@ -10,7 +10,6 @@ export function buildAppTourSteps(
   router: Router,
   tour: TourService,
   auth: InstanceType<typeof AuthStore>,
-  includePublicWelcome = false,
 ): TourStep[] {
   const open = (route: string, selector: string, enterDemo = false) => async () => {
     const path = router.url.split('?')[0];
@@ -23,16 +22,6 @@ export function buildAppTourSteps(
   };
 
   const steps: TourStep[] = [];
-  if (includePublicWelcome) {
-    steps.push({
-      id: 'public-welcome',
-      element: '[data-tour-page="public"]',
-      title: 'Prova l’app, prima di iscriverti',
-      description: 'Ti accompagniamo nell’app reale usando un profilo dimostrativo e dati simulati. Puoi saltare la guida in qualsiasi momento.',
-      side: 'over',
-    });
-  }
-
   steps.push(
     {
       id: 'home',
@@ -40,7 +29,7 @@ export function buildAppTourSteps(
       title: 'La tua giornata di beach volley',
       description: 'La Home riunisce il prossimo impegno, il calendario, il meteo di Pescara e le attività vicine alla città scelta nel profilo.',
       side: 'over',
-      beforeHighlight: open('/app', '[data-tour-page="home"]', includePublicWelcome),
+      beforeHighlight: open('/app', '[data-tour-page="home"]'),
     },
     {
       id: 'matches',

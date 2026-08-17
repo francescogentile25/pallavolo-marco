@@ -22,6 +22,9 @@ import { GoogleAuthButton } from '../components/google-auth-button';
       </aside>
 
       <main class="auth-panel">
+        <a class="back-to-showcase" routerLink="/">
+          <i class="pi pi-arrow-left" aria-hidden="true"></i> Torna alla vetrina
+        </a>
         <a class="mobile-brand" routerLink="/" aria-label="Beach Volley Hub">
           <img src="assets/img/logo-banner.svg" alt="Beach Volley Hub" />
         </a>

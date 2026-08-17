@@ -32,7 +32,7 @@ export class TourLauncherService {
     const definition = this.currentDefinition();
     const userId = this.auth.authUser()?.id;
     await this.tour.runGuidedNavigation(() => this.router.navigateByUrl('/app?tour=1'));
-    this.startCurrent(false);
+    this.startCurrent();
     if (userId && !this.auth.isDemo()) void this.persistence.reset(definition, userId).catch(() => undefined);
   }
 
@@ -40,16 +40,6 @@ export class TourLauncherService {
     if (!this.auth.initialized() || this.checking || this.tour.activeStep()) return;
     const path = this.router.url.split('?')[0];
     const force = new URLSearchParams(this.router.url.split('?')[1] ?? '').get('tour') === '1';
-
-    if (path !== '/' && this.lastAutoKey.startsWith('public:')) this.lastAutoKey = '';
-
-    if (path === '/' && !this.auth.isAuthenticated()) {
-      const key = `public:${this.router.url}`;
-      if (this.lastAutoKey === key) return;
-      this.lastAutoKey = key;
-      setTimeout(() => this.startCurrent(true), 260);
-      return;
-    }
 
     if (path !== '/app' || !this.auth.isAuthenticated()) return;
     let demoForced = false;
@@ -62,7 +52,7 @@ export class TourLauncherService {
     this.lastAutoKey = key;
 
     if (force || this.auth.isDemo() || demoForced) {
-      setTimeout(() => this.startCurrent(false), 260);
+      setTimeout(() => this.startCurrent(), 260);
       return;
     }
 
@@ -70,12 +60,12 @@ export class TourLauncherService {
     if (!userId) return;
     this.checking = true;
     try {
-      if (!await this.persistence.hasSeen(this.currentDefinition(), userId)) setTimeout(() => this.startCurrent(false), 260);
+      if (!await this.persistence.hasSeen(this.currentDefinition(), userId)) setTimeout(() => this.startCurrent(), 260);
     } catch { /* Se Supabase non risponde, l'app resta utilizzabile senza mostrare errori. */ }
     finally { this.checking = false; }
   }
 
-  private startCurrent(includePublicWelcome: boolean): void {
+  private startCurrent(): void {
     if (this.tour.activeStep()) return;
     const role = this.auth.profile()?.ruolo === 'organizzatore' || this.auth.profile()?.ruolo === 'admin' ? 'organizzatore' : 'giocatore';
     const definition = this.persistence.definitionFor(role);
@@ -85,7 +75,7 @@ export class TourLauncherService {
     };
     void this.tour.start(
       definition.id,
-      buildAppTourSteps(role, this.router, this.tour, this.auth, includePublicWelcome),
+      buildAppTourSteps(role, this.router, this.tour, this.auth),
       { onComplete: markSeen, onSkip: markSeen, showProgress: true },
     );
   }

@@ -28,6 +28,11 @@ import { TourLauncherService } from '../../../core/tours/tour-launcher.service';
 
       <div class="account-actions">
         <span class="user-name">{{ authStore.userName() }} <small>{{ authStore.roleLabel() }}</small></span>
+        @if (authStore.isDemo()) {
+          <button class="storefront-action" type="button" (click)="returnToShowcase()">
+            <i class="pi pi-arrow-left" aria-hidden="true"></i><span>Torna alla vetrina</span>
+          </button>
+        }
         @if (authStore.canOrganizeTournaments()) {
           <a class="icon-action" routerLink="/tornei/organizza" aria-label="Organizza torneo" title="Organizza torneo"><i class="pi pi-trophy" aria-hidden="true"></i></a>
         }
@@ -66,6 +71,8 @@ import { TourLauncherService } from '../../../core/tours/tour-launcher.service';
        storto: l'inclinazione vale solo dove c'e un puntatore vero. */
     @media (hover: hover) and (pointer: fine) { .brand:hover img { transform: rotate(-2deg) scale(1.03); } }
     .account-actions { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; }
+    .storefront-action { display: inline-flex; min-height: 40px; align-items: center; gap: 7px; padding: 0 12px; color: var(--color-ocean); border: 1px solid var(--color-border); border-radius: var(--radius); background: white; font: 800 .7rem var(--body-font); cursor: pointer; }
+    .storefront-action:hover { color: var(--color-brand-strong); border-color: var(--color-brand); transform: translateY(-1px); }
     .user-name { display: none; max-width: 15ch; overflow: hidden; color: var(--color-ink); font-size: .74rem; font-weight: 800; text-overflow: ellipsis; white-space: nowrap; }
     .user-name small { display: block; color: var(--color-ink-muted); font-size: .62rem; font-weight: 650; text-align: right; }
     .icon-action { position: relative; display: none; width: 40px; height: 40px; place-items: center; color: var(--color-ink-muted); border: 0; border-radius: var(--radius); background: var(--color-surface-muted); font: inherit; text-decoration: none; cursor: pointer; }
@@ -75,6 +82,7 @@ import { TourLauncherService } from '../../../core/tours/tour-launcher.service';
     .user-avatar { display: grid; width: 38px; height: 38px; flex: 0 0 38px; place-items: center; overflow: hidden; color: white; border-radius: var(--radius); background: var(--color-brand); font-size: .68rem; font-weight: 850; text-decoration: none; }
     .user-avatar img { width: 100%; height: 100%; object-fit: cover; }
     a:focus-visible, button:focus-visible { outline: 3px solid var(--color-focus); outline-offset: 3px; }
+    @media (max-width: 520px) { .storefront-action { width: 40px; padding: 0; justify-content: center; } .storefront-action span { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); } }
     @media (max-width: 420px) { .brand strong { max-width: 74px; white-space: normal; } .icon-action.logout { display: none; } }
     /* Fra 768 e 1023 la barra non conteneva logo, sei voci, nome utente e azioni:
        fino a 1024 resta il dock in basso, come su telefono. */
@@ -128,6 +136,7 @@ export class Header {
   }
 
   protected logout(): void { void this.authStore.logout(); }
+  protected returnToShowcase(): void { void this.authStore.logout(); }
   protected restartTour(): void { void this.tourLauncher.restart(); }
 
   protected userInitials(): string {

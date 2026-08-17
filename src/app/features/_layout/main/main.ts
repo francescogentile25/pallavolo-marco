@@ -15,7 +15,6 @@ import { AuthStore } from '../../auth/store/auth.store';
         <aside class="demo-strip" aria-label="Modalità demo">
           <span><i class="pi pi-sparkles"></i> Demo con dati simulati</span>
           <div><button type="button" [class.active]="auth.profile()?.ruolo === 'giocatore'" (click)="changeRole('giocatore')">Giocatore</button><button type="button" [class.active]="auth.profile()?.ruolo === 'organizzatore'" (click)="changeRole('organizzatore')">Organizzatore</button></div>
-          <button class="exit" type="button" (click)="auth.logout()">Esci dalla demo</button>
         </aside>
       }
       <app-header />
@@ -29,7 +28,7 @@ import { AuthStore } from '../../auth/store/auth.store';
   styles: `
     :host { display: block; min-height: 100dvh; }
     .app-shell { min-height: 100dvh; }
-    .demo-strip{display:flex;min-height:44px;align-items:center;gap:10px;padding:6px 14px;color:white;background:#102e43;font-size:.68rem}.demo-strip>span{font-weight:800}.demo-strip>span i{color:var(--court-yellow)}.demo-strip>div{display:flex;margin-left:auto;padding:2px;border-radius:999px;background:#ffffff18}.demo-strip button{min-height:32px;padding:0 10px;color:#ffffffbb;border:0;border-radius:999px;background:transparent;font-size:.65rem;font-weight:800;cursor:pointer}.demo-strip button.active{color:#102e43;background:white}.demo-strip .exit{color:white;border:1px solid #ffffff44}@media(max-width:520px){.demo-strip>span{font-size:0}.demo-strip>span i{font-size:1rem}.demo-strip .exit{width:36px;padding:0;font-size:0}.demo-strip .exit::after{font-size:.85rem;content:'×'}}
+    .demo-strip{display:flex;min-height:44px;align-items:center;gap:10px;padding:6px 14px;color:white;background:#102e43;font-size:.68rem}.demo-strip>span{font-weight:800}.demo-strip>span i{color:var(--court-yellow)}.demo-strip>div{display:flex;margin-left:auto;padding:2px;border-radius:999px;background:#ffffff18}.demo-strip button{min-height:32px;padding:0 10px;color:#ffffffbb;border:0;border-radius:999px;background:transparent;font-size:.65rem;font-weight:800;cursor:pointer}.demo-strip button.active{color:#102e43;background:white}@media(max-width:520px){.demo-strip>span{font-size:0}.demo-strip>span i{font-size:1rem}}
     .page-content { min-height: calc(100dvh - var(--header-height)); }
   `,
 })
