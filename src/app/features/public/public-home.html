@@ -9,18 +9,21 @@
     <span class="hero-orbit hero-orbit--one" aria-hidden="true"></span><span class="hero-orbit hero-orbit--two" aria-hidden="true"></span>
     <div class="hero-copy">
       <p class="eyebrow"><span></span> La community scende in campo</p>
-      <h1 id="hero-title">Il gioco<br />non <em>aspetta.</em></h1>
+      <h1 id="hero-title" aria-label="Il gioco non aspetta.">
+        <span class="hero-title-line" data-headline-subject aria-hidden="true">Il gioco</span><br />
+        <em class="hero-title-line" data-headline-action aria-hidden="true">non aspetta.</em>
+      </h1>
       <p class="hero-intro">Dalla voglia di giocare all'ultimo punto: persone, campi e tornei si incontrano in un'unica esperienza.</p>
       <div class="hero-actions"><a class="button" routerLink="/demo/giocatore">Prova come giocatore <i class="pi pi-arrow-right" aria-hidden="true"></i></a><a class="button button-quiet" routerLink="/demo/organizzatore">Prova come organizzatore</a></div>
       <p class="demo-note"><i class="pi pi-shield" aria-hidden="true"></i> Demo libera, nessuna registrazione. Usi solo dati dimostrativi.</p>
     </div>
     <div class="court-shell">
       <p class="visual-caption"><span>Live</span> Lido Aurora · oggi 18:30</p>
-      <a class="court-preview" routerLink="/demo/giocatore" aria-label="Apri la demo giocatore">
+      <div class="court-preview" aria-hidden="true">
         <span class="court-label">Prossima partita</span><span class="court-ball volleyball" aria-hidden="true"><span class="ball-core"><i class="ball-panel ball-panel--blue"></i><i class="ball-panel ball-panel--white"></i><i class="ball-glint"></i></span><span class="ball-contact"></span></span><span class="net" aria-hidden="true"></span>
         <span class="player player-one" aria-hidden="true">LF</span><span class="player player-two" aria-hidden="true">MG</span><span class="player player-three" aria-hidden="true">AR</span><span class="empty-player" aria-hidden="true"><i class="pi pi-plus"></i></span>
         <span class="match-ticket"><small>Oggi · 18:30</small><strong>Lido Aurora</strong><span>Livello 3–5 · 1 posto libero</span><b>Entra in campo <i class="pi pi-arrow-up-right" aria-hidden="true"></i></b></span>
-      </a>
+      </div>
       <span class="court-shadow" aria-hidden="true"></span>
     </div>
   </section>

@@ -2,6 +2,13 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementR
 import { RouterLink } from '@angular/router';
 import { loadMotion } from '../../shared/motion/gsap-loader';
 
+const HERO_HEADLINES = [
+  { subject: 'Il gioco', action: 'non aspetta.' },
+  { subject: 'La squadra', action: 'non si ferma.' },
+  { subject: 'Le sfide', action: 'ci uniscono.' },
+  { subject: 'Ogni punto', action: 'conta.' },
+] as const;
+
 @Component({
   selector: 'app-public-home',
   imports: [RouterLink],
@@ -47,6 +54,36 @@ export class PublicHome implements AfterViewInit {
         .from('.hero-copy > *', { opacity: 0, y: 42, duration: 0.85, stagger: 0.09 }, 0.15)
         .from('.court-shell', { opacity: 0, y: 70, rotateX: -8, scale: 0.9, duration: 1.25 }, 0.22)
         .from('.court-ball', { opacity: 0, y: -100, scale: 0.35, duration: 0.8, ease: 'bounce.out' }, 0.85);
+
+      const headlineSubject = root.querySelector<HTMLElement>('[data-headline-subject]');
+      const headlineAction = root.querySelector<HTMLElement>('[data-headline-action]');
+      if (headlineSubject && headlineAction) {
+        let headlineIndex = 0;
+        gsap.timeline({ repeat: -1, delay: 3.2 })
+          .to([headlineSubject, headlineAction], {
+            opacity: 0,
+            yPercent: -32,
+            filter: 'blur(6px)',
+            duration: 0.34,
+            stagger: 0.05,
+            ease: 'power2.in',
+          })
+          .call(() => {
+            headlineIndex = (headlineIndex + 1) % HERO_HEADLINES.length;
+            headlineSubject.textContent = HERO_HEADLINES[headlineIndex].subject;
+            headlineAction.textContent = HERO_HEADLINES[headlineIndex].action;
+          })
+          .set([headlineSubject, headlineAction], { yPercent: 34 })
+          .to([headlineSubject, headlineAction], {
+            opacity: 1,
+            yPercent: 0,
+            filter: 'blur(0px)',
+            duration: 0.52,
+            stagger: 0.06,
+            ease: 'power3.out',
+          })
+          .to({}, { duration: 2.8 });
+      }
 
       gsap.to('.hero-orbit--one', { rotation: 360, duration: 22, repeat: -1, ease: 'none' });
       gsap.to('.hero-orbit--two', { rotation: -360, duration: 30, repeat: -1, ease: 'none' });

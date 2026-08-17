@@ -58,6 +58,7 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/@fontsource-variable/inter/wght.css",
               "node_modules/@fontsource-variable/archivo/wdth.css",
               "node_modules/@fontsource-variable/instrument-sans/wght.css",
               "node_modules/@fontsource-variable/jetbrains-mono/wght.css",
@@ -137,6 +138,7 @@
               "src/assets"
             ],
             "styles": [
+              "node_modules/@fontsource-variable/inter/wght.css",
               "node_modules/@fontsource-variable/archivo/wdth.css",
               "node_modules/@fontsource-variable/instrument-sans/wght.css",
               "node_modules/@fontsource-variable/jetbrains-mono/wght.css",
